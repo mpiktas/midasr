@@ -7,19 +7,19 @@
 ##' @param x the predictor variable, a \code{ts} object
 ##' @param k the number of lags of predictor variable to include
 ##' @return a matrix
-##' @author Vaidotas Zemlys
+##' @author Vaidotas Zemlys (zemlys@gmail.com)
 ##' @export
 ##' @import foreach
-model.matrix.midas <- function(y,x,k=0) {
+model.matrix.midas <- function(y, x, k=0) {
     n.x <- length(x)
     n <- length(y)
     m <- frequency(x) %/% frequency(y)    
     idx <- m*c((n.x/m-n+1):(n.x/m))
-    X <- foreach(h.x=0:((k+1)*m-1), .combine='cbind')%do%{
+    X <- foreach(h.x=0:((k+1)*m-1), .combine='cbind') %do% {
         x[idx-h.x]
     }   
-    res <- cbind(y,X)
-    colnames(res) <- c("y",paste("X.lag",rep(0:k,each=m),".",rep(m:1,k+1),sep=""))
+    res <- cbind(y, X)
+    colnames(res) <- c("y", paste("X.lag", rep(0:k, each=m), ".", rep(m:1, k+1), sep=""))
     res
 }
 ##' Unrestricted MIDAS regression
@@ -30,27 +30,46 @@ model.matrix.midas <- function(y,x,k=0) {
 ##' @param x the predictor variable
 ##' @param k the number of lags to include in MIDAS regression
 ##' @return \code{lm} object
-##' @author Vaidotas Zemlys
+##' @author Vaidotas Zemlys (zemlys@gmail.com)
+##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} \url{http://dx.doi.org/10.1016/j.econlet.2012.03.009}
+##' @details MIDAS regression has the following form:
+##' 
+##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+u_t}
+##'
+##' or alternatively
+##'
+##' \deqn{y_t=\sum_{h=0}^{(k+1)m}\theta_hx_{tm-h}+u_t,}
+##' where \eqn{m} is the frequency of high-frequency data \eqn{x} and
+##' \eqn{k} is the number of lags included in the regression.
+##'
+##' Given certain assumptions the coefficients can be estimated using usual OLS and they have the familiar properties associated with simple linear regression.
 ##' @export
-midas.u <- function(y,x,k) {
-    mm <- model.matrix.midas(y,x,k)
+midas.u <- function(y, x, k) {
+    mm <- model.matrix.midas(y, x, k)
     lm(y~.-1,data=data.frame(mm))
 }
 ##' Restricted MIDAS regression
 ##'
-##' Estimate restricted MIDAS regression using non-linear least squares. Uses \code{optim} for optimisation. 
+##' Estimate restricted MIDAS regression using non-linear least squares. Uses \code{optim} for optimisation. Currently only the estimates of the parameters are given, without their standard errors.
 ##' 
 ##' @param y the response variable
 ##' @param x the predictor variable
 ##' @param resfun the function which returns restricted parameters given
 ##' the restriction function. The parameters for the restriction function must be the supplied as numeric vector in the first argument of the function. Number of lags of the regression is calculated from the output of this function. 
-##' @param gradfun the gradient of the restriction function. Must return the matrix with dimensions \code{l x p}, where \code{l} is the number of unrestricted coefficients of the regression and \code{p} is the number of parameters in the restriction function.
 ##' @param start the starting values for optimisation
-##' @param method the method used for optimisation, see \code{optim} documentation. All methods are suported except "L-BFGS-B" and "Brent". Default method is "BFGS".
-##' @param control.optim a list of control parameters for \code{optim}.
+##' @param method the method used for optimisation, see \code{\link{optim}} documentation. All methods are suported except "L-BFGS-B" and "Brent". Default method is "BFGS".
+##' @param control.optim a list of control parameters for \code{\link{optim}}.
 ##' @param ... additional parameters supplied for \code{resfun} and \code{gradfun}
-##' @return output suitable for function HAH.test
-##' @author Vaidotas Zemlys
+##' @return output suitable for function hAh.test
+##' @author Vaidotas Zemlys (zemlys@gmail.com)
+##' @details Given MIDAS regression:
+##'
+##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+u_t}
+##'
+##' estimate the parameters of the restriction
+##'
+##' \deqn{\theta_h=g(h,\lambda),}
+##' where \eqn{h=0,...,(k+1)m}.
 ##' @export
 midas.r <- function(y, x, resfun, start, method="BFGS", control.optim=list(), ...) {
     crstart <- resfun(start,...)
@@ -70,20 +89,29 @@ midas.r <- function(y, x, resfun, start, method="BFGS", control.optim=list(), ..
         sum(r^2)
     }
     
-    opt <- optim(fn0,start,method=method,control=control.optim,...)
-    list(coefficients=resfun(opt$par),parameters=opt$par,data=yx,opt=opt)
+    opt <- optim(start,fn0,method=method,control=control.optim,...)
+    list(coefficients=resfun(opt$par,...),parameters=opt$par,data=yx,opt=opt)
 }
 
 ##' Test restrictions on coefficients of MIDAS regression
 ##'
 ##' Perform a test whether the restriction on MIDAS regression coefficients holds.
 ##' 
-##' @param unrestricted the unrestricted model
-##' @param restricted the restricted model
+##' @param unrestricted the unrestricted model, estimated with \code{\link{midas.u}}
+##' @param restricted the restricted model, estimated with \code{\link{midas.r}}
 ##' @param gr the gradient of the restriction function. Must return the matrix with dimensions \code{l x p}, where \code{l} is the number of unrestricted coefficients of the regression and \code{p} is the number of parameters in the restriction function.
 ##' @param ... the parameters supplied to gradient function
 ##' @return a \code{htest} object
-##' @author Vaidotas Zemlys
+##' @author Vaidotas Zemlys (zemlys@gmail.com)
+##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} \url{http://dx.doi.org/10.1016/j.econlet.2012.03.009}
+##' @details  Given MIDAS regression:
+##'
+##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+u_t}
+##'
+##' test the null hypothesis that the following restriction holds:
+##'
+##' \deqn{\theta_h=g(h,\lambda),}
+##' where \eqn{h=0,...,(k+1)m}. 
 ##' @export
 ##' @import MASS
 hAh.test <- function(unrestricted,restricted,gr,...) {
@@ -92,6 +120,9 @@ hAh.test <- function(unrestricted,restricted,gr,...) {
 
     XtX <- crossprod(restricted$data[,-1])
     dk <- ncol(XtX)    
+
+    if(nrow(D0) != dk)stop("The gradient dimensions are incorrect. Number of rows does not equal number of unrestricted coefficients")
+    
     P <- chol(XtX)
 
     h.0 <- P%*%(coef(unrestricted)-coef(restricted))
@@ -103,7 +134,7 @@ hAh.test <- function(unrestricted,restricted,gr,...) {
     se2 <- sum(residuals(unrestricted)^2)/(nrow(restricted$data)-dk)
     STATISTIC <- t(h.0)%*%A0%*%h.0/se2
     
-    names(statistic) <- "hAh"
+    names(STATISTIC) <- "hAh"
     METHOD <- "hAh restriction test"
     PARAMETER <- dk-length(restricted$parameters)
     PVAL <- 1-pchisq(STATISTIC,PARAMETER)
