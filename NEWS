@@ -1,0 +1,6 @@
+midasr 0.0.1
+---------------------------------------------------------------
+
+Initial release. Very basic functionality. Currently only one predictor variable
+is allowed. Full functionality of the package is reflected in help page of
+function hAh.test.
