@@ -32,6 +32,6 @@
 x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
 }
 \author{
-  Vaidotas Zemlys (zemlys
+  Vaidotas Zemlys
 }
 

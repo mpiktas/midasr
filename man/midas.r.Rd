@@ -73,6 +73,6 @@ y <- midas.sim(500,theta0,x,1)
 midas.r(y,x,theta.h0,c(-0.1,10,-10,-10),dk=4*12)
 }
 \author{
-  Vaidotas Zemlys (zemlys
+  Vaidotas Zemlys
 }
 

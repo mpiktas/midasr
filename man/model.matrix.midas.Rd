@@ -20,6 +20,6 @@
   form for easy fitting.
 }
 \author{
-  Vaidotas Zemlys (zemlys
+  Vaidotas Zemlys
 }
 

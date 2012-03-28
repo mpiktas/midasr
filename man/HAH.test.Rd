@@ -79,7 +79,7 @@ grad.h0<-function(p, dk) {
 hAh.test(mu,mr,grad.h0,dk=4*12)
 }
 \author{
-  Vaidotas Zemlys (zemlys
+  Vaidotas Zemlys
 }
 \references{
   Kvedaras V., Zemlys, V. \emph{Testing the functional

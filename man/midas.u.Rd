@@ -60,7 +60,7 @@ y <- midas.sim(500,theta0,x,1)
 midas.u(y,x,3)
 }
 \author{
-  Vaidotas Zemlys (zemlys
+  Vaidotas Zemlys
 }
 \references{
   Kvedaras V., Zemlys, V. \emph{Testing the functional
