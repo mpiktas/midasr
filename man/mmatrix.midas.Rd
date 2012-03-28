@@ -1,8 +1,8 @@
-\name{model.matrix.midas}
-\alias{model.matrix.midas}
-\title{Arange data for fitting}
+\name{mmatrix.midas}
+\alias{mmatrix.midas}
+\title{Combine one low and one high frequency time series objects}
 \usage{
-  model.matrix.midas(y, x, k = 0)
+  mmatrix.midas(y, x, k = 0)
 }
 \arguments{
   \item{y}{the response variable, a \code{ts} object}
@@ -16,8 +16,8 @@
   a matrix
 }
 \description{
-  Given response and predictor variables arrange them into
-  form for easy fitting.
+  Given low and high frequency time series, combine them
+  into matrix suitable for MIDAS regresion estimation.
 }
 \author{
   Vaidotas Zemlys

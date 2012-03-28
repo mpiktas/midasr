@@ -31,7 +31,7 @@
   \code{resfun} and \code{gradfun}}
 }
 \value{
-  output suitable for function hAh.test
+  output suitable for function \code{\link{hAh.test}}
 }
 \description{
   Estimate restricted MIDAS regression using non-linear
