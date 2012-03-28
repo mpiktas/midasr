@@ -1,7 +1,7 @@
-##' Arange data for fitting
+##' Combine one low and one high frequency time series objects
 ##' 
-##' Given response and predictor variables arrange them into form for easy
-##' fitting.  
+##' Given low and high frequency time series, combine them into matrix 
+##' suitable for MIDAS regresion estimation.
 ##' 
 ##' @param y the response variable, a \code{ts} object
 ##' @param x the predictor variable, a \code{ts} object
@@ -10,7 +10,7 @@
 ##' @author Vaidotas Zemlys 
 ##' @export
 ##' @import foreach
-model.matrix.midas <- function(y, x, k=0) {
+mmatrix.midas <- function(y, x, k=0) {
     n.x <- length(x)
     n <- length(y)
     m <- frequency(x) %/% frequency(y)    
@@ -68,7 +68,7 @@ model.matrix.midas <- function(y, x, k=0) {
 ##' Given certain assumptions the coefficients can be estimated using usual OLS and they have the familiar properties associated with simple linear regression.
 ##' @export
 midas.u <- function(y, x, k) {
-    mm <- model.matrix.midas(y, x, k)
+    mm <- mmatrix.midas(y, x, k)
     lm(y~.-1,data=data.frame(mm))
 }
 ##' Restricted MIDAS regression
@@ -83,7 +83,7 @@ midas.u <- function(y, x, k) {
 ##' @param method the method used for optimisation, see \code{\link{optim}} documentation. All methods are suported except "L-BFGS-B" and "Brent". Default method is "BFGS".
 ##' @param control.optim a list of control parameters for \code{\link{optim}}.
 ##' @param ... additional parameters supplied for \code{resfun} and \code{gradfun}
-##' @return output suitable for function hAh.test
+##' @return output suitable for function \code{\link{hAh.test}}
 ##' @author Vaidotas Zemlys
 ##' @examples
 ##' ##The parameter function
@@ -125,7 +125,7 @@ midas.r <- function(y, x, resfun, start, method="BFGS", control.optim=list(), ..
 
     if((k+1)*m != length(crstart)) stop("Fractional lags are not supported currently")
     
-    yx <- model.matrix.midas(y, x, k)
+    yx <- mmatrix.midas(y, x, k)
 
     X <- yx[,-1]
     y <- yx[,1]
