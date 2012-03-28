@@ -7,34 +7,29 @@ library(devtools)
 
 load_all("midasr")
 
-theta.h0 <- function(p,dk) {
+theta.h0 <- function(p, dk) {
     i <- (1:dk-1)/100
-    pol <- p[3]*i+p[4]*i^2
-    (p[1]+p[2]*i)*exp(pol)
+    pol <- p[3]*i + p[4]*i^2
+    (p[1] + p[2]*i)*exp(pol)
 }
 
-grad.h0<-function(p,dk){
-    alpha<-p[1]
-    beta<-p[2]
-    lambda<-c(p[3],p[4])
+grad.h0<-function(p, dk){
+    alpha <- p[1]
+    beta <- p[2]
+    lambda <- c(p[3],p[4])
     index <- c(1:dk)
     i <- (index-1)/100
     pol <- poly(i,2,raw=TRUE) %*%lambda
-    a<-(alpha+beta*i)*exp(pol)
-    cbind(a,a*i,a*i*(alpha+beta*i),a*i^2*(alpha+beta*i))
+    a <- (alpha+beta*i)*exp(pol)
+    cbind(a, a*i, a*i*(alpha+beta*i), a*i^2*(alpha+beta*i))
 }
 
 
 sd.x <- 1
 sd.y <- 1
 
-info.type <- 0 ## n^alpha--0, AIC--1, BIC--2, HQ--3, AICC--4
-
 n <- 500
 m <- 12
-
-pow <- ifelse(info.type==0,0.33,0)
-#kmax <- ifelse(pow==0,k0+1,trunc(n^pow))
 
 n.x.max <- (n+1000)*m
 
@@ -52,3 +47,6 @@ yx <- model.matrix.midas(y,x,k0)
 
 mu <- midas.u(y,x,k0)
 
+mr <- midas.r(y,x,theta.h0,c(-0.1,10,-10,-10),dk=(k0+1)*m)
+
+hAh.test(mu,mr,grad.h0,dk=(k0+1)*m)
