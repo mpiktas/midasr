@@ -40,7 +40,7 @@ midas.sim <- function(n,theta,x,eps.sd) {
     n.x <- length(x)
     
     if(m==1) stop("The frequency of the predictor variable should be at least 2")
-    if(n.x<=n*length(theta)) stop("The history of the predictor variable is not long enough, reduce the desired sample size")
+    if(n.x<=m*n+length(theta)-m) stop("The history of the predictor variable is not long enough, reduce the desired sample size")
    
 
     theta.d <- c(theta,rep(0,n.x-length(theta)))
@@ -51,8 +51,3 @@ midas.sim <- function(n,theta,x,eps.sd) {
     }
     ts(y+rnorm(n,sd=eps.sd),frequency=1)    
 }
-
-##idx <- m*c((n.x/m-n+1):(n.x/m))
-##X <- foreach(h.x=0:((kmax+1)*m-1), .combine='cbind')%do%{
-##       x[idx-h.x]
-##}
