@@ -2,7 +2,7 @@
 \alias{model.matrix.midas}
 \title{Arange data for fitting}
 \usage{
-  model.matrix.midas(y, x, k = 1)
+  model.matrix.midas(y, x, k = 0)
 }
 \arguments{
   \item{y}{the response variable, a \code{ts} object}
@@ -20,6 +20,6 @@
   form for easy fitting.
 }
 \author{
-  Vaidotas Zemlys
+  Vaidotas Zemlys (zemlys
 }
 

@@ -17,32 +17,62 @@
   Number of lags of the regression is calculated from the
   output of this function.}
 
-  \item{gradfun}{the gradient of the restriction function.
-  Must return the matrix with dimensions \code{l x p},
-  where \code{l} is the number of unrestricted coefficients
-  of the regression and \code{p} is the number of
-  parameters in the restriction function.}
-
   \item{start}{the starting values for optimisation}
 
   \item{method}{the method used for optimisation, see
-  \code{optim} documentation. All methods are suported
-  except "L-BFGS-B" and "Brent". Default method is "BFGS".}
+  \code{\link{optim}} documentation. All methods are
+  suported except "L-BFGS-B" and "Brent". Default method is
+  "BFGS".}
 
   \item{control.optim}{a list of control parameters for
-  \code{optim}.}
+  \code{\link{optim}}.}
 
   \item{...}{additional parameters supplied for
   \code{resfun} and \code{gradfun}}
 }
 \value{
-  output suitable for function HAH.test
+  output suitable for function hAh.test
 }
 \description{
   Estimate restricted MIDAS regression using non-linear
   least squares. Uses \code{optim} for optimisation.
+  Currently only the estimates of the parameters are given,
+  without their standard errors.
+}
+\details{
+  Given MIDAS regression:
+
+  \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i}
+  x_{(t-j)m-i}+u_t}
+
+  estimate the parameters of the restriction
+
+  \deqn{\theta_h=g(h,\lambda),} where \eqn{h=0,...,(k+1)m}.
+}
+\examples{
+##The parameter function
+theta.h0 <- function(p, dk) {
+   i <- (1:dk-1)/100
+   pol <- p[3]*i + p[4]*i^2
+   (p[1] + p[2]*i)*exp(pol)
+}
+
+##Generate coefficients
+theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
+
+##Plot the coefficients
+plot(theta0)
+
+##Generate the predictor variable
+x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
+
+##Simulate the response variable
+y <- midas.sim(500,theta0,x,1)
+
+##Fit restricted model
+midas.r(y,x,theta.h0,c(-0.1,10,-10,-10),dk=4*12)
 }
 \author{
-  Vaidotas Zemlys
+  Vaidotas Zemlys (zemlys
 }
 

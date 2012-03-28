@@ -16,7 +16,7 @@
   are zero mean normal random variables}
 
   \item{frequency}{the frequency of the regressor, should
-  larger than one.}
+  be larger than one.}
 
   \item{n.start}{the length of the burn.in period, the
   default is 300.}
@@ -27,7 +27,11 @@
 \description{
   Simulate MIDAS regressor as a AR(1) or MA(1) time series
 }
+\examples{
+#Generate AR(1) model with rho=0.6, with frequency 12
+x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
+}
 \author{
-  Vaidotas Zemlys
+  Vaidotas Zemlys (zemlys
 }
 
