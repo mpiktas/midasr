@@ -32,6 +32,29 @@ model.matrix.midas <- function(y, x, k=0) {
 ##' @return \code{lm} object
 ##' @author Vaidotas Zemlys (zemlys@gmail.com)
 ##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} \url{http://dx.doi.org/10.1016/j.econlet.2012.03.009}
+##' @examples
+##' ##The parameter function
+##' theta.h0 <- function(p, dk) {
+##'    i <- (1:dk-1)/100
+##'    pol <- p[3]*i + p[4]*i^2
+##'    (p[1] + p[2]*i)*exp(pol)
+##' }
+##'
+##' ##Generate coefficients
+##' theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
+##'
+##' ##Plot the coefficients
+##' plot(theta0)
+##'
+##' ##Generate the predictor variable
+##' x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
+##'
+##' ##Simulate the response variable
+##' y <- midas.sim(500,theta0,x,1)
+##'
+##' ##Fit unrestricted model
+##' midas.u(y,x,3)
+##' 
 ##' @details MIDAS regression has the following form:
 ##' 
 ##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+u_t}
@@ -62,6 +85,29 @@ midas.u <- function(y, x, k) {
 ##' @param ... additional parameters supplied for \code{resfun} and \code{gradfun}
 ##' @return output suitable for function hAh.test
 ##' @author Vaidotas Zemlys (zemlys@gmail.com)
+##' @examples
+##' ##The parameter function
+##' theta.h0 <- function(p, dk) {
+##'    i <- (1:dk-1)/100
+##'    pol <- p[3]*i + p[4]*i^2
+##'    (p[1] + p[2]*i)*exp(pol)
+##' }
+##'
+##' ##Generate coefficients
+##' theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
+##'
+##' ##Plot the coefficients
+##' plot(theta0)
+##'
+##' ##Generate the predictor variable
+##' x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
+##'
+##' ##Simulate the response variable
+##' y <- midas.sim(500,theta0,x,1)
+##'
+##' ##Fit restricted model
+##' midas.r(y,x,theta.h0,c(-0.1,10,-10,-10),dk=4*12)
+##' 
 ##' @details Given MIDAS regression:
 ##'
 ##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+u_t}
@@ -104,6 +150,47 @@ midas.r <- function(y, x, resfun, start, method="BFGS", control.optim=list(), ..
 ##' @return a \code{htest} object
 ##' @author Vaidotas Zemlys (zemlys@gmail.com)
 ##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} \url{http://dx.doi.org/10.1016/j.econlet.2012.03.009}
+##' @examples
+##' ##The parameter function
+##' theta.h0 <- function(p, dk) {
+##'    i <- (1:dk-1)/100
+##'    pol <- p[3]*i + p[4]*i^2
+##'    (p[1] + p[2]*i)*exp(pol)
+##' }
+##'
+##' ##Generate coefficients
+##' theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
+##'
+##' ##Plot the coefficients
+##' plot(theta0)
+##'
+##' ##Generate the predictor variable
+##' set.seed(13)
+##' x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
+##'
+##' ##Simulate the response variable
+##' y <- midas.sim(500,theta0,x,1)
+##'
+##' ##Fit restricted model
+##' mr <- midas.r(y,x,theta.h0,c(-0.1,10,-10,-10),dk=4*12)
+##' mu <- midas.u(y,x,3)
+##'
+##' ##The gradient function
+##' grad.h0<-function(p, dk) {
+##'    alpha <- p[1]
+##'    beta <- p[2]
+##'    lambda <- c(p[3],p[4])
+##'    index <- c(1:dk)
+##'    i <- (index-1)/100
+##'    pol <- poly(i,2,raw=TRUE) %*%lambda
+##'    a <- (alpha+beta*i)*exp(pol)
+##'    cbind(a, a*i, a*i*(alpha+beta*i), a*i^2*(alpha+beta*i))
+##' }
+##'
+##' ##Perform test (the expected result should be the acceptance of null)
+##'
+##' hAh.test(mu,mr,grad.h0,dk=4*12)
+##' 
 ##' @details  Given MIDAS regression:
 ##'
 ##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+u_t}
