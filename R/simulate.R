@@ -54,7 +54,7 @@ simplearma.sim <- function(model,n,innov.sd,frequency,n.start=300) {
 ##' x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
 ##'
 ##' ##Simulate the response variable
-##' y <- midas.sim(n,theta0,x,1)
+##' y <- midas.sim(500,theta0,x,1)
 ##' 
 ##' @export
 ##' @import foreach
