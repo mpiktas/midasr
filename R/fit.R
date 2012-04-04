@@ -168,7 +168,7 @@ midas.r <- function(y, x, exo=NULL, resfun, start=list(resfun=NULL,exo=NULL), me
     }
     else {
         
-        exonm <- grep("exo",colnames(yx))
+        exonm <- grep("exo",colnames(yx),value=TRUE)
         
         X <- yx[,setdiff(colnames(yx),c("y",exonm))]
         y <- yx[,1]
