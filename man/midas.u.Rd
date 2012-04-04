@@ -2,7 +2,7 @@
 \alias{midas.u}
 \title{Unrestricted MIDAS regression}
 \usage{
-  midas.u(y, x, k)
+  midas.u(y, x, exo = NULL, k)
 }
 \arguments{
   \item{y}{the response variable, \code{\link{ts}} object.}
@@ -10,6 +10,11 @@
   \item{x}{the predictor variable, \code{\link{ts}} object,
   such that \code{frequency(x) / frequency(y)} is an
   integer.}
+
+  \item{exo}{exogenous variables, \code{\link{ts}} object,
+  having the same properties as \code{y}. The default is
+  NULL, meaning that no exogenous variables are used in the
+  regression.}
 
   \item{k}{the number of lags to include in MIDAS
   regression.}

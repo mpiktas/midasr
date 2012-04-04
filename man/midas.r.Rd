@@ -2,8 +2,9 @@
 \alias{midas.r}
 \title{Restricted MIDAS regression}
 \usage{
-  midas.r(y, x, resfun, start, method = "BFGS",
-    control.optim = list(), ...)
+  midas.r(y, x, exo = NULL, resfun,
+    start = list(resfun = NULL, exo = NULL),
+    method = "BFGS", control.optim = list(), ...)
 }
 \arguments{
   \item{y}{the response variable, \code{\link{ts}} object.}
@@ -12,6 +13,11 @@
   such that \code{frequency(x) / frequency(y)} is an
   integer.}
 
+  \item{exo}{exogenous variables, \code{\link{ts}} object,
+  having the same properties as \code{y}. The default is
+  NULL, meaning that no exogenous variables are used in the
+  regression.}
+
   \item{resfun}{the function which returns restricted
   parameters given the restriction function. The parameters
   for the restriction function must be the supplied as
@@ -19,7 +25,11 @@
   Number of lags of the regression is calculated from the
   output of this function.}
 
-  \item{start}{the starting values for optimisation}
+  \item{start}{the starting values for optimisation. Must
+  be a list with named elements \code{resfun} containing
+  vector of starting values for restriction function and
+  \code{exo} containing vector of starting values for
+  exogenous variables.}
 
   \item{method}{the method used for optimisation, see
   \code{\link{optim}} documentation. All methods are
