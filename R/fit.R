@@ -257,7 +257,16 @@ hAh.test <- function(unrestricted,restricted,gr,...) {
 
     D0 <- gr(restricted$parameters,...)
 
-    XtX <- crossprod(restricted$data[,-1])
+    exonm <- grep("exo",colnames(restricted$data),value=TRUE)
+    if(length(exonm)>0) {
+        X <- restricted$data[,setdiff(colnames(restricted$data),c("y",exonm))]
+    }
+    else {
+        X <- restricted$data[,-1]
+    }
+    
+    XtX <- crossprod(X)
+
     dk <- ncol(XtX)    
 
     if(nrow(D0) != dk)stop("The gradient dimensions are incorrect. Number of rows does not equal number of unrestricted coefficients")
