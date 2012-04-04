@@ -89,7 +89,7 @@ x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
 y <- midas.sim(500,theta0,x,1)
 
 ##Fit restricted model
-midas.r(y,x,theta.h0,c(-0.1,10,-10,-10),dk=4*12)
+midas.r(y,x,resfun=theta.h0,start=list(resfun=c(-0.1,10,-10,-10)),dk=4*12)
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

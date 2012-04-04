@@ -72,7 +72,7 @@ mmatrix.midas <- function(y, x, exo=NULL, k=0) {
 ##' y <- midas.sim(500,theta0,x,1)
 ##'
 ##' ##Fit unrestricted model
-##' midas.u(y,x,3)
+##' midas.u(y,x,k=3)
 ##' 
 ##' @details MIDAS regression has the following form:
 ##' 
@@ -130,7 +130,7 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##' y <- midas.sim(500,theta0,x,1)
 ##'
 ##' ##Fit restricted model
-##' midas.r(y,x,theta.h0,c(-0.1,10,-10,-10),dk=4*12)
+##' midas.r(y,x,resfun=theta.h0,start=list(resfun=c(-0.1,10,-10,-10)),dk=4*12)
 ##' 
 ##' @details Given MIDAS regression:
 ##'
@@ -148,7 +148,7 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##' objects supplied. 
 ##' @export
 midas.r <- function(y, x, exo=NULL, resfun, start=list(resfun=NULL,exo=NULL), method="BFGS", control.optim=list(), ...) {
-    crstart <- resfun(start,...)
+    crstart <- resfun(start$resfun,...)
     if(sum(is.na(crstart))>0) stop("NA coefficients for the starting values")
     m <- frequency(x) %/% frequency(y)
     k <- length(crstart) %/% m - 1
@@ -164,7 +164,7 @@ midas.r <- function(y, x, exo=NULL, resfun, start=list(resfun=NULL,exo=NULL), me
             r <- y-X%*%resfun(p,...)
               sum(r^2)
         }
-        starto <- ifelse(is.list(start),start$resfun,start)
+        starto <- start$resfun
     }
     else {
         
@@ -224,8 +224,8 @@ midas.r <- function(y, x, exo=NULL, resfun, start=list(resfun=NULL,exo=NULL), me
 ##' y <- midas.sim(500,theta0,x,1)
 ##'
 ##' ##Fit restricted model
-##' mr <- midas.r(y,x,theta.h0,c(-0.1,0.1,-0.1,-0.001),dk=4*12)
-##' mu <- midas.u(y,x,3)
+##' mr <- midas.r(y,x,resfun=theta.h0,start=list(resfun=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
+##' mu <- midas.u(y,x,k=3)
 ##'
 ##' ##The gradient function
 ##' grad.h0<-function(p, dk) {

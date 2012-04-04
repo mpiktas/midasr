@@ -58,8 +58,8 @@ x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
 y <- midas.sim(500,theta0,x,1)
 
 ##Fit restricted model
-mr <- midas.r(y,x,theta.h0,c(-0.1,0.1,-0.1,-0.001),dk=4*12)
-mu <- midas.u(y,x,3)
+mr <- midas.r(y,x,resfun=theta.h0,start=list(resfun=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
+mu <- midas.u(y,x,k=3)
 
 ##The gradient function
 grad.h0<-function(p, dk) {
