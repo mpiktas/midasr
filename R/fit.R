@@ -172,10 +172,12 @@ midas.r <- function(y, x, exo=NULL, resfun, start=list(resfun=NULL,exo=NULL), me
         
         X <- yx[,setdiff(colnames(yx),c("y",exonm))]
         y <- yx[,1]
+        exom <- yx[,exonm]
+        
         np <- cumsum(sapply(start,length))
         
         fn0 <- function(p,...) {
-            r <- y-X%*%resfun(p[1:np[1]],...) - exo%*%p[(np[1]+1):np[2]]
+            r <- y-X%*%resfun(p[1:np[1]],...) - exom%*%p[(np[1]+1):np[2]]
             sum(r^2)
         }
         starto <- unlist(start[c("resfun","exo")])
