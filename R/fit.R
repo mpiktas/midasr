@@ -26,12 +26,12 @@ mmatrix.midas <- function(y, x, k=0) {
 ##'
 ##' Estimate unrestricted MIDAS regression using OLS. This function is basically a wrapper for \code{lm}.
 ##' 
-##' @param y the response variable
-##' @param x the predictor variable
-##' @param k the number of lags to include in MIDAS regression
-##' @return \code{lm} object
+##' @param y the response variable, \code{\link{ts}} object.
+##' @param x the predictor variable, \code{\link{ts}} object, such that \code{frequency(x) / frequency(y)} is an integer. 
+##' @param k the number of lags to include in MIDAS regression.
+##' @return \code{\link{lm}} object
 ##' @author Virmantas Kvedaras,Vaidotas Zemlys
-##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} \url{http://dx.doi.org/10.1016/j.econlet.2012.03.009}
+##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250–254 
 ##' @examples
 ##' ##The parameter function
 ##' theta.h0 <- function(p, dk) {
@@ -62,10 +62,14 @@ mmatrix.midas <- function(y, x, k=0) {
 ##' or alternatively
 ##'
 ##' \deqn{y_t=\sum_{h=0}^{(k+1)m}\theta_hx_{tm-h}+u_t,}
-##' where \eqn{m} is the frequency of high-frequency data \eqn{x} and
-##' \eqn{k} is the number of lags included in the regression.
+##' where \eqn{m} is the frequency ratio and
+##' \eqn{k} is the number of lags included in the regression. 
 ##'
 ##' Given certain assumptions the coefficients can be estimated using usual OLS and they have the familiar properties associated with simple linear regression.
+##'
+##' MIDAS regression involves times series with different frequencies. In R
+##' the frequency property is set when creating time series objects
+##' \code{\link{ts}}. Hence the frequency ratio \eqn{m} which figures in MIDAS regression is calculated from frequency property of time series objects supplied.
 ##' @export
 midas.u <- function(y, x, k) {
     mm <- mmatrix.midas(y, x, k)
@@ -75,8 +79,8 @@ midas.u <- function(y, x, k) {
 ##'
 ##' Estimate restricted MIDAS regression using non-linear least squares. Uses \code{optim} for optimisation. Currently only the estimates of the parameters are given, without their standard errors.
 ##' 
-##' @param y the response variable
-##' @param x the predictor variable
+##' @param y the response variable, \code{\link{ts}} object.
+##' @param x the predictor variable, \code{\link{ts}} object, such that \code{frequency(x) / frequency(y)} is an integer.
 ##' @param resfun the function which returns restricted parameters given
 ##' the restriction function. The parameters for the restriction function must be the supplied as numeric vector in the first argument of the function. Number of lags of the regression is calculated from the output of this function. 
 ##' @param start the starting values for optimisation
@@ -116,6 +120,12 @@ midas.u <- function(y, x, k) {
 ##'
 ##' \deqn{\theta_h=g(h,\lambda),}
 ##' where \eqn{h=0,...,(k+1)m}.
+##'
+##'MIDAS regression involves times series with different frequencies. In R
+##' the frequency property is set when creating time series objects
+##' \code{\link{ts}}. Hence the frequency ratio \eqn{m} which figures in
+##' MIDAS regression is calculated from frequency property of time series
+##' objects supplied. 
 ##' @export
 midas.r <- function(y, x, resfun, start, method="BFGS", control.optim=list(), ...) {
     crstart <- resfun(start,...)
@@ -149,7 +159,7 @@ midas.r <- function(y, x, resfun, start, method="BFGS", control.optim=list(), ..
 ##' @param ... the parameters supplied to gradient function
 ##' @return a \code{htest} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
-##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} \url{http://dx.doi.org/10.1016/j.econlet.2012.03.009}
+##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250–254
 ##' @examples
 ##' ##The parameter function
 ##' theta.h0 <- function(p, dk) {
