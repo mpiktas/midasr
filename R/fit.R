@@ -3,25 +3,41 @@
 ##' Given low and high frequency time series, combine them into matrix 
 ##' suitable for MIDAS regresion estimation.
 ##' 
-##' @param y the response variable, a \code{ts} object
-##' @param x the predictor variable, a \code{ts} object
+##' @param y the response low frequency variable, a \code{ts} object
+##' @param x the predictor high frequency variable, a \code{ts} object
+##' @param exo the exogenous low frequency variables, a \code{ts} object.
 ##' @param k the number of lags of predictor variable to include
 ##' @return a matrix
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys 
 ##' @export
 ##' @import foreach
-mmatrix.midas <- function(y, x, k=0) {
+mmatrix.midas <- function(y, x, exo=NULL, k=0) {
     n.x <- length(x)
     n <- length(y)
-    m <- frequency(x) %/% frequency(y)    
+    m <- frequency(x) %/% frequency(y)
+
     idx <- m*c((n.x/m-n+k+1):(n.x/m))    
     y <- y[(k+1):n]
         
     X <- foreach(h.x=0:((k+1)*m-1), .combine='cbind') %do% {
         x[idx-h.x]
     }   
-    res <- cbind(y, X)
-    colnames(res) <- c("y", paste("X", rep(0:k, each=m), ".", rep(m:1, k+1), sep=""))
+
+    if(is.null(exo)) {
+        exo.cn <- character()
+    }
+    else {
+        if(inherits(exo,"mts")) {
+            exo <- exo[(k+1):n,]
+            exo.cn <- paste("exo",1:ncol(exo),sep="")
+        }
+        else {
+            exo <- exo[(k+1):n]
+            exo.cn <- "exo1"
+        }
+    }
+    res <- cbind(y,X,exo)
+    colnames(res) <- c("y", paste("X", rep(0:k, each=m), ".", rep(m:1, k+1), sep=""),exo.cn)
     res
 }
 ##' Unrestricted MIDAS regression
@@ -30,6 +46,7 @@ mmatrix.midas <- function(y, x, k=0) {
 ##' 
 ##' @param y the response variable, \code{\link{ts}} object.
 ##' @param x the predictor variable, \code{\link{ts}} object, such that \code{frequency(x) / frequency(y)} is an integer. 
+##' @param exo exogenous variables, \code{\link{ts}} object, having the same properties as \code{y}. The default is NULL, meaning that no exogenous variables are used in the regression.
 ##' @param k the number of lags to include in MIDAS regression.
 ##' @return \code{\link{lm}} object
 ##' @author Virmantas Kvedaras,Vaidotas Zemlys
@@ -73,8 +90,8 @@ mmatrix.midas <- function(y, x, k=0) {
 ##' the frequency property is set when creating time series objects
 ##' \code{\link{ts}}. Hence the frequency ratio \eqn{m} which figures in MIDAS regression is calculated from frequency property of time series objects supplied.
 ##' @export
-midas.u <- function(y, x, k) {
-    mm <- mmatrix.midas(y, x, k)
+midas.u <- function(y, x, exo = NULL, k) {
+    mm <- mmatrix.midas(y, x, exo, k)
     lm(y~.-1,data=data.frame(mm))
 }
 ##' Restricted MIDAS regression
@@ -83,9 +100,10 @@ midas.u <- function(y, x, k) {
 ##' 
 ##' @param y the response variable, \code{\link{ts}} object.
 ##' @param x the predictor variable, \code{\link{ts}} object, such that \code{frequency(x) / frequency(y)} is an integer.
+##' @param exo exogenous variables, \code{\link{ts}} object, having the same properties as \code{y}. The default is NULL, meaning that no exogenous variables are used in the regression.
 ##' @param resfun the function which returns restricted parameters given
 ##' the restriction function. The parameters for the restriction function must be the supplied as numeric vector in the first argument of the function. Number of lags of the regression is calculated from the output of this function. 
-##' @param start the starting values for optimisation
+##' @param start the starting values for optimisation. Must be a list with named elements \code{resfun} containing vector of starting values for restriction function and \code{exo} containing vector of starting values for exogenous variables.
 ##' @param method the method used for optimisation, see \code{\link{optim}} documentation. All methods are suported except "L-BFGS-B" and "Brent". Default method is "BFGS".
 ##' @param control.optim a list of control parameters for \code{\link{optim}}.
 ##' @param ... additional parameters supplied for \code{resfun} and \code{gradfun}
@@ -129,7 +147,7 @@ midas.u <- function(y, x, k) {
 ##' MIDAS regression is calculated from frequency property of time series
 ##' objects supplied. 
 ##' @export
-midas.r <- function(y, x, resfun, start, method="BFGS", control.optim=list(), ...) {
+midas.r <- function(y, x, exo=NULL, resfun, start=list(resfun=NULL,exo=NULL), method="BFGS", control.optim=list(), ...) {
     crstart <- resfun(start,...)
     if(sum(is.na(crstart))>0) stop("NA coefficients for the starting values")
     m <- frequency(x) %/% frequency(y)
@@ -137,18 +155,41 @@ midas.r <- function(y, x, resfun, start, method="BFGS", control.optim=list(), ..
 
     if((k+1)*m != length(crstart)) stop("Fractional lags are not supported currently")
     
-    yx <- mmatrix.midas(y, x, k)
+    yx <- mmatrix.midas(y, x, exo, k)
 
-    X <- yx[,-1]
-    y <- yx[,1]
-    
-    fn0 <- function(p,...) {
-        r <- y-X%*%resfun(p,...)
-        sum(r^2)
+    if(is.null(exo)) {
+        X <- yx[,-1]
+        y <- yx[,1]
+        fn0 <- function(p,...) {
+            r <- y-X%*%resfun(p,...)
+              sum(r^2)
+        }
+        starto <- ifelse(is.list(start),start$resfun,start)
     }
-    
-    opt <- optim(start,fn0,method=method,control=control.optim,...)
-    list(coefficients=resfun(opt$par,...),parameters=opt$par,data=yx,opt=opt)
+    else {
+        
+        exonm <- grep("exo",colnames(yx))
+        
+        X <- yx[,setdiff(colnames(yx),c("y",exonm))]
+        y <- yx[,1]
+        np <- cumsum(sapply(start,length))
+        
+        fn0 <- function(p,...) {
+            r <- y-X%*%resfun(p[1:np[1]],...) - exo%*%p[(np[1]+1):np[2]]
+            sum(r^2)
+        }
+        starto <- unlist(start[c("resfun","exo")])
+    }
+    opt <- optim(starto,fn0,method=method,control=control.optim,...)
+    if(is.null(exo)) {
+        resfun.param <- opt$par
+        exo.coef <- NULL
+    }
+    else {
+        resfun.param <- opt$par[1:np[1]]
+        exo.coef <- opt$par[(np[1]+1):np[2]]
+    }
+    list(coefficients=resfun(opt$par,...),parameters=resfun.param,data=yx,opt=opt,exo.coef=exo.coef)
 }
 
 ##' Test restrictions on coefficients of MIDAS regression
