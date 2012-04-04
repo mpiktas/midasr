@@ -9,7 +9,7 @@
 ##' @param frequency the frequency of the regressor, should be larger than one.
 ##' @param n.start the length of the burn.in period, the default is 300.
 ##' @return a time-series object of class \code{ts} 
-##' @author Vaidotas Zemlys 
+##' @author Virmantas Kvedaras, Vaidotas Zemlys 
 ##' @examples
 ##' #Generate AR(1) model with rho=0.6, with frequency 12
 ##' x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
@@ -35,7 +35,7 @@ simplearma.sim <- function(model,n,innov.sd,frequency,n.start=300) {
 ##' @param x a \code{ts} object with MIDAS regression predictor variable
 ##' @param eps.sd the standard error of the regression disturbances, which are assumed to be independent normal zero mean random variables 
 ##' @return a \code{ts} object
-##' @author Vaidotas Zemlys
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @examples
 ##' ##The parameter function
 ##' theta.h0 <- function(p, dk) {

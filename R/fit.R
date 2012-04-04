@@ -7,7 +7,7 @@
 ##' @param x the predictor variable, a \code{ts} object
 ##' @param k the number of lags of predictor variable to include
 ##' @return a matrix
-##' @author Vaidotas Zemlys 
+##' @author Virmantas Kvedaras, Vaidotas Zemlys 
 ##' @export
 ##' @import foreach
 mmatrix.midas <- function(y, x, k=0) {
@@ -30,7 +30,7 @@ mmatrix.midas <- function(y, x, k=0) {
 ##' @param x the predictor variable
 ##' @param k the number of lags to include in MIDAS regression
 ##' @return \code{lm} object
-##' @author Vaidotas Zemlys
+##' @author Virmantas Kvedaras,Vaidotas Zemlys
 ##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} \url{http://dx.doi.org/10.1016/j.econlet.2012.03.009}
 ##' @examples
 ##' ##The parameter function
@@ -84,7 +84,7 @@ midas.u <- function(y, x, k) {
 ##' @param control.optim a list of control parameters for \code{\link{optim}}.
 ##' @param ... additional parameters supplied for \code{resfun} and \code{gradfun}
 ##' @return output suitable for function \code{\link{hAh.test}}
-##' @author Vaidotas Zemlys
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @examples
 ##' ##The parameter function
 ##' theta.h0 <- function(p, dk) {
@@ -148,7 +148,7 @@ midas.r <- function(y, x, resfun, start, method="BFGS", control.optim=list(), ..
 ##' @param gr the gradient of the restriction function. Must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly.
 ##' @param ... the parameters supplied to gradient function
 ##' @return a \code{htest} object
-##' @author Vaidotas Zemlys
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} \url{http://dx.doi.org/10.1016/j.econlet.2012.03.009}
 ##' @examples
 ##' ##The parameter function
