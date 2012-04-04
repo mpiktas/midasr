@@ -14,7 +14,9 @@ mmatrix.midas <- function(y, x, k=0) {
     n.x <- length(x)
     n <- length(y)
     m <- frequency(x) %/% frequency(y)    
-    idx <- m*c((n.x/m-n+1):(n.x/m))
+    idx <- m*c((n.x/m-n+k+1):(n.x/m))    
+    y <- y[(k+1):n]
+        
     X <- foreach(h.x=0:((k+1)*m-1), .combine='cbind') %do% {
         x[idx-h.x]
     }   
