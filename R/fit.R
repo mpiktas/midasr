@@ -189,7 +189,7 @@ midas.r <- function(y, x, exo=NULL, resfun, start=list(resfun=NULL,exo=NULL), me
         resfun.param <- opt$par[1:np[1]]
         exo.coef <- opt$par[(np[1]+1):np[2]]
     }
-    list(coefficients=resfun(opt$par,...),parameters=resfun.param,data=yx,opt=opt,exo.coef=exo.coef)
+    list(coefficients=resfun(resfun.param,...),parameters=resfun.param,data=yx,opt=opt,exo.coef=exo.coef)
 }
 
 ##' Test restrictions on coefficients of MIDAS regression
@@ -273,7 +273,10 @@ hAh.test <- function(unrestricted,restricted,gr,...) {
     
     P <- chol(XtX)
 
-    h.0 <- P%*%(coef(unrestricted)-coef(restricted))
+    cfur <- coef(unrestricted)
+    cfur <- cfur[setdiff(names(cfur),exonm)]
+    
+    h.0 <- P%*%(cfur-coef(restricted))
 
     Delta.0 <- D0%*%tcrossprod(ginv(crossprod(D0,XtX)%*%D0),D0)
 
