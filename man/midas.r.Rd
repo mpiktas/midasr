@@ -6,9 +6,11 @@
     control.optim = list(), ...)
 }
 \arguments{
-  \item{y}{the response variable}
+  \item{y}{the response variable, \code{\link{ts}} object.}
 
-  \item{x}{the predictor variable}
+  \item{x}{the predictor variable, \code{\link{ts}} object,
+  such that \code{frequency(x) / frequency(y)} is an
+  integer.}
 
   \item{resfun}{the function which returns restricted
   parameters given the restriction function. The parameters
@@ -48,6 +50,13 @@
   estimate the parameters of the restriction
 
   \deqn{\theta_h=g(h,\lambda),} where \eqn{h=0,...,(k+1)m}.
+
+  MIDAS regression involves times series with different
+  frequencies. In R the frequency property is set when
+  creating time series objects \code{\link{ts}}. Hence the
+  frequency ratio \eqn{m} which figures in MIDAS regression
+  is calculated from frequency property of time series
+  objects supplied.
 }
 \examples{
 ##The parameter function
@@ -73,6 +82,6 @@ y <- midas.sim(500,theta0,x,1)
 midas.r(y,x,theta.h0,c(-0.1,10,-10,-10),dk=4*12)
 }
 \author{
-  Vaidotas Zemlys
+  Virmantas Kvedaras, Vaidotas Zemlys
 }
 

@@ -45,6 +45,6 @@ x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
 y <- midas.sim(500,theta0,x,1)
 }
 \author{
-  Vaidotas Zemlys
+  Virmantas Kvedaras, Vaidotas Zemlys
 }
 

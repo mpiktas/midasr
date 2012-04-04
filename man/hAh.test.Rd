@@ -12,10 +12,10 @@
   \code{\link{midas.r}}}
 
   \item{gr}{the gradient of the restriction function. Must
-  return the matrix with dimensions \code{l x p}, where
-  \code{l} is the number of unrestricted coefficients of
-  the regression and \code{p} is the number of parameters
-  in the restriction function.}
+  return the matrix with dimensions \eqn{d_k \times q},
+  where \eqn{d_k} and \eqn{q} are the numbers of
+  coefficients in unrestricted and restricted regressions
+  correspondingly.}
 
   \item{...}{the parameters supplied to gradient function}
 }
@@ -40,13 +40,12 @@
 \examples{
 ##The parameter function
 theta.h0 <- function(p, dk) {
-   i <- (1:dk-1)/100
-   pol <- p[3]*i + p[4]*i^2
-   (p[1] + p[2]*i)*exp(pol)
+   i <- (1:dk-1)
+   (p[1] + p[2]*i)*exp(p[3]*i + p[4]*i^2)
 }
 
 ##Generate coefficients
-theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
+theta0 <- theta.h0(c(-0.1,0.1,-0.1,-0.001),4*12)
 
 ##Plot the coefficients
 plot(theta0)
@@ -59,7 +58,8 @@ x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
 y <- midas.sim(500,theta0,x,1)
 
 ##Fit restricted model
-mr <- midas.r(y,x,theta.h0,c(-0.1,10,-10,-10),dk=4*12)
+###Change starting values!!!
+mr <- midas.r(y,x,theta.h0,c(-0.1,0.1,-0.1,-0.001),dk=4*12)
 mu <- midas.u(y,x,3)
 
 ##The gradient function
@@ -68,7 +68,7 @@ grad.h0<-function(p, dk) {
    beta <- p[2]
    lambda <- c(p[3],p[4])
    index <- c(1:dk)
-   i <- (index-1)/100
+   i <- (index-1)
    pol <- poly(i,2,raw=TRUE) \%*\%lambda
    a <- (alpha+beta*i)*exp(pol)
    cbind(a, a*i, a*i*(alpha+beta*i), a*i^2*(alpha+beta*i))
@@ -79,12 +79,12 @@ grad.h0<-function(p, dk) {
 hAh.test(mu,mr,grad.h0,dk=4*12)
 }
 \author{
-  Vaidotas Zemlys
+  Virmantas Kvedaras, Vaidotas Zemlys
 }
 \references{
   Kvedaras V., Zemlys, V. \emph{Testing the functional
   constraints on parameters in regressions with variables
-  of different frequency}
-  \url{http://dx.doi.org/10.1016/j.econlet.2012.03.009}
+  of different frequency} Economics Letters 116 (2012)
+  250–254
 }
 

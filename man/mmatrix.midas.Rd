@@ -20,6 +20,6 @@
   into matrix suitable for MIDAS regresion estimation.
 }
 \author{
-  Vaidotas Zemlys
+  Virmantas Kvedaras, Vaidotas Zemlys
 }
 

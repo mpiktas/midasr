@@ -5,15 +5,17 @@
   midas.u(y, x, k)
 }
 \arguments{
-  \item{y}{the response variable}
+  \item{y}{the response variable, \code{\link{ts}} object.}
 
-  \item{x}{the predictor variable}
+  \item{x}{the predictor variable, \code{\link{ts}} object,
+  such that \code{frequency(x) / frequency(y)} is an
+  integer.}
 
   \item{k}{the number of lags to include in MIDAS
-  regression}
+  regression.}
 }
 \value{
-  \code{lm} object
+  \code{\link{lm}} object
 }
 \description{
   Estimate unrestricted MIDAS regression using OLS. This
@@ -28,13 +30,19 @@
   or alternatively
 
   \deqn{y_t=\sum_{h=0}^{(k+1)m}\theta_hx_{tm-h}+u_t,} where
-  \eqn{m} is the frequency of high-frequency data \eqn{x}
-  and \eqn{k} is the number of lags included in the
-  regression.
+  \eqn{m} is the frequency ratio and \eqn{k} is the number
+  of lags included in the regression.
 
   Given certain assumptions the coefficients can be
   estimated using usual OLS and they have the familiar
   properties associated with simple linear regression.
+
+  MIDAS regression involves times series with different
+  frequencies. In R the frequency property is set when
+  creating time series objects \code{\link{ts}}. Hence the
+  frequency ratio \eqn{m} which figures in MIDAS regression
+  is calculated from frequency property of time series
+  objects supplied.
 }
 \examples{
 ##The parameter function
@@ -60,12 +68,12 @@ y <- midas.sim(500,theta0,x,1)
 midas.u(y,x,3)
 }
 \author{
-  Vaidotas Zemlys
+  Virmantas Kvedaras,Vaidotas Zemlys
 }
 \references{
   Kvedaras V., Zemlys, V. \emph{Testing the functional
   constraints on parameters in regressions with variables
-  of different frequency}
-  \url{http://dx.doi.org/10.1016/j.econlet.2012.03.009}
+  of different frequency} Economics Letters 116 (2012)
+  250–254
 }
 
