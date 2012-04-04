@@ -74,6 +74,6 @@ midas.u(y,x,3)
   Kvedaras V., Zemlys, V. \emph{Testing the functional
   constraints on parameters in regressions with variables
   of different frequency} Economics Letters 116 (2012)
-  250–254
+  250-254
 }
 

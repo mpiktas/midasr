@@ -33,7 +33,7 @@ mmatrix.midas <- function(y, x, k=0) {
 ##' @param k the number of lags to include in MIDAS regression.
 ##' @return \code{\link{lm}} object
 ##' @author Virmantas Kvedaras,Vaidotas Zemlys
-##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250–254 
+##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254 
 ##' @examples
 ##' ##The parameter function
 ##' theta.h0 <- function(p, dk) {
@@ -161,7 +161,7 @@ midas.r <- function(y, x, resfun, start, method="BFGS", control.optim=list(), ..
 ##' @param ... the parameters supplied to gradient function
 ##' @return a \code{htest} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
-##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250–254
+##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254
 ##' @examples
 ##' ##The parameter function
 ##' theta.h0 <- function(p, dk) {
@@ -183,7 +183,6 @@ midas.r <- function(y, x, resfun, start, method="BFGS", control.optim=list(), ..
 ##' y <- midas.sim(500,theta0,x,1)
 ##'
 ##' ##Fit restricted model
-##' ###Change starting values!!!
 ##' mr <- midas.r(y,x,theta.h0,c(-0.1,0.1,-0.1,-0.001),dk=4*12)
 ##' mu <- midas.u(y,x,3)
 ##'
