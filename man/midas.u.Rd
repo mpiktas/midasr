@@ -17,10 +17,11 @@
   regression.}
 
   \item{k}{the number of lags to include in MIDAS
-  regression.}
+  regression. See \code{\link{mmatrix.midas}} for more
+  details.}
 }
 \value{
-  \code{\link{lm}} object
+  \code{\link{lm}} object.
 }
 \description{
   Estimate unrestricted MIDAS regression using OLS. This
@@ -73,7 +74,7 @@ y <- midas.sim(500,theta0,x,1)
 midas.u(y,x,k=3)
 }
 \author{
-  Virmantas Kvedaras,Vaidotas Zemlys
+  Virmantas Kvedaras, Vaidotas Zemlys
 }
 \references{
   Kvedaras V., Zemlys, V. \emph{Testing the functional

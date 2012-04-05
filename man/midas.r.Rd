@@ -2,7 +2,7 @@
 \alias{midas.r}
 \title{Restricted MIDAS regression}
 \usage{
-  midas.r(y, x, exo = NULL, resfun,
+  midas.r(y, x, exo = NULL, k = NULL, resfun,
     start = list(resfun = NULL, exo = NULL),
     method = "BFGS", control.optim = list(), ...)
 }
@@ -18,13 +18,17 @@
   NULL, meaning that no exogenous variables are used in the
   regressidon.}
 
+  \item{k}{the number of lags to include in MIDAS
+  regression. The default is \code{NULL} meaning that the
+  number of lags is calculated depending on output of
+  \code{resfun}.}
+
   \item{resfun}{the function which returns restricted
   parameters given the restriction function. The parameters
   for the restriction function must be the supplied as
   numeric vector in the first argument of the function.
   Number of lags of the regression is calculated from the
-  output of this function. If function has some default
-  parameters, they should be supplied.}
+  output of this function.}
 
   \item{start}{the starting values for optimisation. Must
   be a list with named elements \code{resfun} containing
@@ -44,7 +48,23 @@
   \code{resfun}}
 }
 \value{
-  output suitable for function \code{\link{hAh.test}}
+  a list with the following elements:
+
+  \code{coefficients} - the estimates of restricted
+  coefficients
+
+  \code{parameters} - the estimates of parameters of the
+  restriction function \code{data} - output of
+  \code{\link{mmatrix.midas}}, the data matrix used for
+  fitting.
+
+  \code{opt} - the output of call to \code{\link{optim}}
+
+  \code{exo.coef} - the estimates of the coefficients of
+  exogenous variables
+
+  \code{restr.fun} - the restriction function used in
+  estimation
 }
 \description{
   Estimate restricted MIDAS regression using non-linear
@@ -68,6 +88,14 @@
   frequency ratio \eqn{m} which figures in MIDAS regression
   is calculated from frequency property of time series
   objects supplied.
+
+  The restriction function must return the restricted
+  coefficients of the MIDAS regression. If specific lag
+  structure is needed (see more in
+  \code{\link{mmatrix.midas}}) make sure that the number of
+  coefficients returned by restriction function coincides
+  with number of columns of the lagged high frequency
+  predictor variable matrix.
 }
 \examples{
 ##The parameter function

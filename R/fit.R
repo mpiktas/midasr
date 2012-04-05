@@ -70,9 +70,9 @@ mmatrix.midas <- function(y, x, exo=NULL, k=0) {
 ##' @param y the response variable, \code{\link{ts}} object.
 ##' @param x the predictor variable, \code{\link{ts}} object, such that \code{frequency(x) / frequency(y)} is an integer. 
 ##' @param exo exogenous variables, \code{\link{ts}} object, having the same properties as \code{y}. The default is NULL, meaning that no exogenous variables are used in the regression.
-##' @param k the number of lags to include in MIDAS regression.
-##' @return \code{\link{lm}} object
-##' @author Virmantas Kvedaras,Vaidotas Zemlys
+##' @param k the number of lags to include in MIDAS regression. See \code{\link{mmatrix.midas}} for more details.
+##' @return \code{\link{lm}} object.
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254 
 ##' @examples
 ##' ##The parameter function
@@ -124,13 +124,27 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##' @param y the response variable, \code{\link{ts}} object.
 ##' @param x the predictor variable, \code{\link{ts}} object, such that \code{frequency(x) / frequency(y)} is an integer.
 ##' @param exo exogenous variables, \code{\link{ts}} object, having the same properties as \code{y}. The default is NULL, meaning that no exogenous variables are used in the regressidon.
+##' @param k the number of lags to include in MIDAS regression. The default is \code{NULL} meaning that the number of lags is calculated depending on output of \code{resfun}. 
 ##' @param resfun the function which returns restricted parameters given
-##' the restriction function. The parameters for the restriction function must be the supplied as numeric vector in the first argument of the function. Number of lags of the regression is calculated from the output of this function. If function has some default parameters, they should be supplied.
+##' the restriction function. The parameters for the restriction function must be the supplied as numeric vector in the first argument of the function. Number of lags of the regression is calculated from the output of this function. 
 ##' @param start the starting values for optimisation. Must be a list with named elements \code{resfun} containing vector of starting values for restriction function and \code{exo} containing vector of starting values for exogenous variables.
 ##' @param method the method used for optimisation, see \code{\link{optim}} documentation. All methods are suported except "L-BFGS-B" and "Brent". Default method is "BFGS".
 ##' @param control.optim a list of control parameters for \code{\link{optim}}.
 ##' @param ... additional arguments supplied for \code{resfun}
-##' @return output suitable for function \code{\link{hAh.test}}
+##' @return a list with the following elements:
+##'
+##' \code{coefficients} - the estimates of restricted coefficients
+##'
+##' \code{parameters} - the estimates of parameters of the restriction function
+##' \code{data} - output of \code{\link{mmatrix.midas}}, the data matrix used for fitting.
+##'
+##' \code{opt} - the output of call to \code{\link{optim}}
+##'
+##' \code{exo.coef} - the estimates of the coefficients of exogenous
+##' variables
+##'
+##' \code{restr.fun} - the restriction function used in estimation
+##' 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @examples
 ##' ##The parameter function
@@ -164,20 +178,28 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##' \deqn{\theta_h=g(h,\lambda),}
 ##' where \eqn{h=0,...,(k+1)m}.
 ##'
-##'MIDAS regression involves times series with different frequencies. In R
+##' MIDAS regression involves times series with different frequencies. In R
 ##' the frequency property is set when creating time series objects
 ##' \code{\link{ts}}. Hence the frequency ratio \eqn{m} which figures in
 ##' MIDAS regression is calculated from frequency property of time series
-##' objects supplied. 
+##' objects supplied.
+##'
+##' The restriction function must return the restricted coefficients of
+##' the MIDAS regression. If specific lag structure is needed (see
+##' more in \code{\link{mmatrix.midas}}) make sure that the number of
+##' coefficients returned by restriction function coincides with number
+##' of columns of the lagged high frequency predictor variable matrix.
+##' 
 ##' @export
-midas.r <- function(y, x, exo=NULL, resfun, start=list(resfun=NULL,exo=NULL), method="BFGS", control.optim=list(), ...) {
+midas.r <- function(y, x, exo=NULL, k=NULL, resfun, start=list(resfun=NULL,exo=NULL), method="BFGS", control.optim=list(), ...) {
 
     ###Prepare resfun for using it in hAh.test
     cl <- match.call()
     ff <- eval(cl$resfun,parent.frame())
     rf.arg <- formals(ff)
     class(rf.arg) <- "list"
-    rf.argnm <-  names(rf.arg)[-1]
+    rf.argnm <-  intersect(names(rf.arg)[-1],names(cl))
+    
     for(i in rf.argnm) {
          rf.arg[[i]] <- eval(cl[[i]],parent.frame())
     }
@@ -191,11 +213,22 @@ midas.r <- function(y, x, exo=NULL, resfun, start=list(resfun=NULL,exo=NULL), me
     crstart <- resfun(start$resfun,...)
     if(sum(is.na(crstart))>0) stop("NA coefficients for the starting values")
     m <- frequency(x) %/% frequency(y)
-    k <- length(crstart) %/% m - 1
-mr <- 
-    if((k+1)*m != length(crstart)) stop("Fractional lags are not supported currently")
+    if(is.null(k)) {
+        k <- length(crstart) %/% m - 1
+        klags <- 0:k
+    }
+    else {
+        if(length(k)>1) {
+            klags <- k
+            k <- max(klags)
+        }
+        else {
+            klags <- 0:k
+        }
+        if(length(klags)*m != length(crstart)) stop("Fractional lags are not supported currently")
+    }   
     
-    yx <- mmatrix.midas(y, x, exo, k)
+    yx <- mmatrix.midas(y, x, exo, klags)
 
     if(is.null(exo)) {
         X <- yx[,-1]
