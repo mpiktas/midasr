@@ -123,13 +123,13 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##' 
 ##' @param y the response variable, \code{\link{ts}} object.
 ##' @param x the predictor variable, \code{\link{ts}} object, such that \code{frequency(x) / frequency(y)} is an integer.
-##' @param exo exogenous variables, \code{\link{ts}} object, having the same properties as \code{y}. The default is NULL, meaning that no exogenous variables are used in the regression.
+##' @param exo exogenous variables, \code{\link{ts}} object, having the same properties as \code{y}. The default is NULL, meaning that no exogenous variables are used in the regressidon.
 ##' @param resfun the function which returns restricted parameters given
-##' the restriction function. The parameters for the restriction function must be the supplied as numeric vector in the first argument of the function. Number of lags of the regression is calculated from the output of this function. 
+##' the restriction function. The parameters for the restriction function must be the supplied as numeric vector in the first argument of the function. Number of lags of the regression is calculated from the output of this function. If function has some default parameters, they should be supplied.
 ##' @param start the starting values for optimisation. Must be a list with named elements \code{resfun} containing vector of starting values for restriction function and \code{exo} containing vector of starting values for exogenous variables.
 ##' @param method the method used for optimisation, see \code{\link{optim}} documentation. All methods are suported except "L-BFGS-B" and "Brent". Default method is "BFGS".
 ##' @param control.optim a list of control parameters for \code{\link{optim}}.
-##' @param ... additional parameters supplied for \code{resfun} and \code{gradfun}
+##' @param ... additional arguments supplied for \code{resfun}
 ##' @return output suitable for function \code{\link{hAh.test}}
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @examples
@@ -178,7 +178,10 @@ midas.r <- function(y, x, exo=NULL, resfun, start=list(resfun=NULL,exo=NULL), me
     rf.arg <- formals(ff)
     class(rf.arg) <- "list"
     rf.argnm <-  names(rf.arg)[-1]
-    rf.arg[[rf.argnm]] <- eval(cl[[rf.argnm]],parent.frame())
+    for(i in rf.argnm) {
+         rf.arg[[i]] <- eval(cl[[i]],parent.frame())
+    }
+    
     rf.name <- as.character(cl$resfun)
     rf <- function(p) {
         rf.arg[[1]] <- p

@@ -16,14 +16,15 @@
   \item{exo}{exogenous variables, \code{\link{ts}} object,
   having the same properties as \code{y}. The default is
   NULL, meaning that no exogenous variables are used in the
-  regression.}
+  regressidon.}
 
   \item{resfun}{the function which returns restricted
   parameters given the restriction function. The parameters
   for the restriction function must be the supplied as
   numeric vector in the first argument of the function.
   Number of lags of the regression is calculated from the
-  output of this function.}
+  output of this function. If function has some default
+  parameters, they should be supplied.}
 
   \item{start}{the starting values for optimisation. Must
   be a list with named elements \code{resfun} containing
@@ -39,8 +40,8 @@
   \item{control.optim}{a list of control parameters for
   \code{\link{optim}}.}
 
-  \item{...}{additional parameters supplied for
-  \code{resfun} and \code{gradfun}}
+  \item{...}{additional arguments supplied for
+  \code{resfun}}
 }
 \value{
   output suitable for function \code{\link{hAh.test}}
