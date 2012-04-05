@@ -28,7 +28,7 @@ mmatrix.midas <- function(y, x, exo=NULL, k=0) {
     }
         
     idx <- m*c((n.x/m-n+k+1):(n.x/m))    
-    y <- y[(k+1):n]
+
         
     X <- foreach(h.x=0:((k+1)*m-1), .combine='cbind') %do% {
         x[idx-h.x]
@@ -38,8 +38,8 @@ mmatrix.midas <- function(y, x, exo=NULL, k=0) {
         exo.cn <- character()
     }
     else {
-        exo <- try(ts(exo,start=start(y),end=end(y),frequency=frequency(y)))
-        if(class(exo)=="try-error") stop("Failed to convert exogenous variables to time series object")
+        exo <- try(ts(exo,start=start(y),end=end(y),frequency=frequency(y)))       
+        if(inherits(class(exo),"try-error")) stop("Failed to convert exogenous variables to time series object")
         
         if(inherits(exo,"mts")) {
             exo <- exo[(k+1):n,]
@@ -50,6 +50,10 @@ mmatrix.midas <- function(y, x, exo=NULL, k=0) {
             exo.cn <- "exo1"
         }
     }
+
+    y <- y[(k+1):n]
+
+    
     res <- cbind(y,X,exo)
     colnames(res) <- c("y", paste("X", rep(0:k, each=m), ".", rep(m:1, k+1), sep=""),exo.cn)
 
