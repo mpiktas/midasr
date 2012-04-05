@@ -148,11 +148,25 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##' objects supplied. 
 ##' @export
 midas.r <- function(y, x, exo=NULL, resfun, start=list(resfun=NULL,exo=NULL), method="BFGS", control.optim=list(), ...) {
+
+    ###Prepare resfun for using it in hAh.test
+    cl <- match.call()
+    ff <- eval(cl$resfun,parent.frame())
+    rf.arg <- formals(ff)
+    class(rf.arg) <- "list"
+    rf.argnm <-  names(rf.arg)[-1]
+    rf.arg[[rf.argnm]] <- eval(cl[[rf.argnm]],parent.frame())
+    rf.name <- as.character(cl$resfun)
+    rf <- function(p) {
+        rf.arg[[1]] <- p
+        do.call(rf.name,rf.arg)
+    }
+    
     crstart <- resfun(start$resfun,...)
     if(sum(is.na(crstart))>0) stop("NA coefficients for the starting values")
     m <- frequency(x) %/% frequency(y)
     k <- length(crstart) %/% m - 1
-
+mr <- 
     if((k+1)*m != length(crstart)) stop("Fractional lags are not supported currently")
     
     yx <- mmatrix.midas(y, x, exo, k)
@@ -191,7 +205,7 @@ midas.r <- function(y, x, exo=NULL, resfun, start=list(resfun=NULL,exo=NULL), me
         resfun.param <- opt$par[1:np[1]]
         exo.coef <- opt$par[(np[1]+1):np[2]]
     }
-    list(coefficients=resfun(resfun.param,...),parameters=resfun.param,data=yx,opt=opt,exo.coef=exo.coef)
+    list(coefficients=resfun(resfun.param,...),parameters=resfun.param,data=yx,opt=opt,exo.coef=exo.coef,restr.fun=rf)
 }
 
 ##' Test restrictions on coefficients of MIDAS regression
@@ -200,8 +214,8 @@ midas.r <- function(y, x, exo=NULL, resfun, start=list(resfun=NULL,exo=NULL), me
 ##' 
 ##' @param unrestricted the unrestricted model, estimated with \code{\link{midas.u}}
 ##' @param restricted the restricted model, estimated with \code{\link{midas.r}}
-##' @param gr the gradient of the restriction function. Must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly.
-##' @param ... the parameters supplied to gradient function
+##' @param gr the gradient of the restriction function. Must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. Default value is \code{NULL}, which means that the numeric approximation of gradient is calculated.
+##' @param ... the parameters supplied to gradient function, if \code{gr} is not \code{NULL}
 ##' @return a \code{htest} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254
@@ -231,19 +245,17 @@ midas.r <- function(y, x, exo=NULL, resfun, start=list(resfun=NULL,exo=NULL), me
 ##'
 ##' ##The gradient function
 ##' grad.h0<-function(p, dk) {
-##'    alpha <- p[1]
-##'    beta <- p[2]
-##'    lambda <- c(p[3],p[4])
-##'    index <- c(1:dk)
-##'    i <- (index-1)
-##'    pol <- poly(i,2,raw=TRUE) %*%lambda
-##'    a <- (alpha+beta*i)*exp(pol)
-##'    cbind(a, a*i, a*i*(alpha+beta*i), a*i^2*(alpha+beta*i))
+##'    i <- (1:dk-1)
+##'    a <- exp(p[3]*i + p[4]*i^2)
+##'    cbind(a, a*i, a*i*(p[1]+p[2]*i), a*i^2*(p[1]+p[2]*i))
 ##' }
 ##'
 ##' ##Perform test (the expected result should be the acceptance of null)
 ##'
 ##' hAh.test(mu,mr,grad.h0,dk=4*12)
+##'
+##' ##Use numerical gradient instead of supplied one 
+##' hAh.test(mu,mr)
 ##' 
 ##' @details  Given MIDAS regression:
 ##'
@@ -254,9 +266,11 @@ midas.r <- function(y, x, exo=NULL, resfun, start=list(resfun=NULL,exo=NULL), me
 ##' \deqn{\theta_h=g(h,\lambda),}
 ##' where \eqn{h=0,...,(k+1)m}. 
 ##' @export
-##' @import MASS
-hAh.test <- function(unrestricted,restricted,gr,...) {
+##' @import MASS,numDeriv
+hAh.test <- function(unrestricted,restricted,gr=NULL,...) {
 
+    if(is.null(gr))gr <- function(x,...)jacobian(restricted$restr.fun,x)
+    
     D0 <- gr(restricted$parameters,...)
 
     exonm <- grep("exo",colnames(restricted$data),value=TRUE)

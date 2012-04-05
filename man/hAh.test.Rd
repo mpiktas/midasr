@@ -2,7 +2,7 @@
 \alias{hAh.test}
 \title{Test restrictions on coefficients of MIDAS regression}
 \usage{
-  hAh.test(unrestricted, restricted, gr, ...)
+  hAh.test(unrestricted, restricted, gr = NULL, ...)
 }
 \arguments{
   \item{unrestricted}{the unrestricted model, estimated
@@ -15,9 +15,12 @@
   return the matrix with dimensions \eqn{d_k \times q},
   where \eqn{d_k} and \eqn{q} are the numbers of
   coefficients in unrestricted and restricted regressions
-  correspondingly.}
+  correspondingly. Default value is \code{NULL}, which
+  means that the numeric approximation of gradient is
+  calculated.}
 
-  \item{...}{the parameters supplied to gradient function}
+  \item{...}{the parameters supplied to gradient function,
+  if \code{gr} is not \code{NULL}}
 }
 \value{
   a \code{htest} object
@@ -63,19 +66,17 @@ mu <- midas.u(y,x,k=3)
 
 ##The gradient function
 grad.h0<-function(p, dk) {
-   alpha <- p[1]
-   beta <- p[2]
-   lambda <- c(p[3],p[4])
-   index <- c(1:dk)
-   i <- (index-1)
-   pol <- poly(i,2,raw=TRUE) \%*\%lambda
-   a <- (alpha+beta*i)*exp(pol)
-   cbind(a, a*i, a*i*(alpha+beta*i), a*i^2*(alpha+beta*i))
+   i <- (1:dk-1)
+   a <- exp(p[3]*i + p[4]*i^2)
+   cbind(a, a*i, a*i*(p[1]+p[2]*i), a*i^2*(p[1]+p[2]*i))
 }
 
 ##Perform test (the expected result should be the acceptance of null)
 
 hAh.test(mu,mr,grad.h0,dk=4*12)
+
+##Use numerical gradient instead of supplied one
+hAh.test(mu,mr)
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys
