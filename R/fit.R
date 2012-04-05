@@ -5,10 +5,12 @@
 ##' 
 ##' @param y the response low frequency variable, a \code{ts} object
 ##' @param x the predictor high frequency variable, a \code{ts} object
-##' @param exo the exogenous low frequency variables, a \code{ts} object.
-##' @param k the number of lags of predictor variable to include
+##' @param exo the exogenous low frequency variables, a \code{ts} object, vector or matrix. It is forcibly converted to \code{ts} object with exact properties of \code{y}. 
+##' @param k the number of lags of predictor variable to include. This can either be a number indicating the highest lag, or the vector with lags which should be included. Note that the here the lag is low frequency lag. Hence effectively high frequency variable is lagged \eqn{k\times m} times, where \eqn{m} is frequency ratio, which is calculated as \code{frequency(x) %/% frequency(y)}
 ##' @return a matrix
-##' @author Virmantas Kvedaras, Vaidotas Zemlys 
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @details Note that this function does not check whether data is conformable. If \code{exo} variable does not have the same \code{start}, \code{end} and \code{frequency} as response variable \code{y}, error is produced.
+##' 
 ##' @export
 ##' @import foreach
 mmatrix.midas <- function(y, x, exo=NULL, k=0) {
@@ -16,6 +18,15 @@ mmatrix.midas <- function(y, x, exo=NULL, k=0) {
     n <- length(y)
     m <- frequency(x) %/% frequency(y)
 
+    
+    if(length(k)>1) {
+        klags <- k
+        k <- max(k)
+    }
+    else {
+        klags <- 0:k
+    }
+        
     idx <- m*c((n.x/m-n+k+1):(n.x/m))    
     y <- y[(k+1):n]
         
@@ -27,6 +38,9 @@ mmatrix.midas <- function(y, x, exo=NULL, k=0) {
         exo.cn <- character()
     }
     else {
+        exo <- try(ts(exo,start=start(y),end=end(y),frequency=frequency(y)))
+        if(class(exo)=="try-error") stop("Failed to convert exogenous variables to time series object")
+        
         if(inherits(exo,"mts")) {
             exo <- exo[(k+1):n,]
             exo.cn <- paste("exo",1:ncol(exo),sep="")
@@ -38,7 +52,12 @@ mmatrix.midas <- function(y, x, exo=NULL, k=0) {
     }
     res <- cbind(y,X,exo)
     colnames(res) <- c("y", paste("X", rep(0:k, each=m), ".", rep(m:1, k+1), sep=""),exo.cn)
-    res
+
+    ###select only the lags needed
+    nmres <- colnames(res)
+    lagn <- unlist(lapply(klags,function(no) grep(paste("X",no,"[.]",sep=""),nmres,value=TRUE)))
+       
+    res[,c("y",lagn,exo.cn)]
 }
 ##' Unrestricted MIDAS regression
 ##'
