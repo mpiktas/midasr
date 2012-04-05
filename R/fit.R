@@ -266,7 +266,8 @@ mr <-
 ##' \deqn{\theta_h=g(h,\lambda),}
 ##' where \eqn{h=0,...,(k+1)m}. 
 ##' @export
-##' @import MASS,numDeriv
+##' @import MASS
+##' @import numDeriv
 hAh.test <- function(unrestricted,restricted,gr=NULL,...) {
 
     if(is.null(gr))gr <- function(x,...)jacobian(restricted$restr.fun,x)
