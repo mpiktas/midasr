@@ -1,6 +1,14 @@
-midasr 0.0.1
----------------------------------------------------------------
+midasr 0.0.2
+============
 
-Initial release. Very basic functionality. Currently only one predictor variable
-is allowed. Full functionality of the package is reflected in help page of
-function hAh.test.
+* Support for exogenous variables. Supply using `exo` parameter.
+
+* Option for using numerical gradients. New dependency on package numDeriv. 
+
+
+midasr 0.0.1
+============
+
+* Initial release. Very basic functionality. Currently only one predictor variable
+  is allowed. Full functionality of the package is reflected in help page of
+  function hAh.test.
