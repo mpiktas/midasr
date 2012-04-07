@@ -71,7 +71,11 @@ x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
 y <- midas.sim(500,theta0,x,1)
 
 ##Fit unrestricted model
-midas.u(y,x,k=3)
+mu <- midas.u(y,x,k=3)
+
+##Include intercept and trend in regression
+
+mu.it <- midas.u(y,x,exo=cbind(1,1:500),k=3)
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys
