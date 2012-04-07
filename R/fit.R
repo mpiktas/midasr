@@ -95,7 +95,11 @@ mmatrix.midas <- function(y, x, exo=NULL, k=0) {
 ##' y <- midas.sim(500,theta0,x,1)
 ##'
 ##' ##Fit unrestricted model
-##' midas.u(y,x,k=3)
+##' mu <- midas.u(y,x,k=3)
+##'
+##' ##Include intercept and trend in regression
+##'
+##' mu.it <- midas.u(y,x,exo=cbind(1,1:500),k=3)
 ##' 
 ##' @details MIDAS regression has the following form:
 ##' 
@@ -167,7 +171,11 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##' y <- midas.sim(500,theta0,x,1)
 ##'
 ##' ##Fit restricted model
-##' midas.r(y,x,resfun=theta.h0,start=list(resfun=c(-0.1,10,-10,-10)),dk=4*12)
+##' mr <- midas.r(y,x,resfun=theta.h0,start=list(resfun=c(-0.1,10,-10,-10)),dk=4*12)
+##'
+##' ##Include intercept and trend in regression
+##'
+##' mr.it <- midas.r(y,x,exo=cbind(1,1:500),resfun=theta.h0,start=list(resfun=c(-0.1,10,-10,-10),exo=c(0,0)),dk=4*12)
 ##' 
 ##' @details Given MIDAS regression:
 ##'
