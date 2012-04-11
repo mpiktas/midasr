@@ -143,6 +143,7 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##' \item{opt}{the output of call to \code{\link{optim}}}
 ##' \item{exo.coef}{the estimates of the coefficients of exogenous variables.}
 ##' \item{restr.fun}{the restriction function used in estimation.}
+##' \item{unrestricted}{unrestricted regression estimated using \code{\link{midas.u}}}
 ##' 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @examples
@@ -267,14 +268,19 @@ midas.r <- function(y, x, exo=NULL, k=NULL, resfun, start=list(resfun=NULL,exo=N
         resfun.param <- opt$par[1:np[1]]
         exo.coef <- opt$par[(np[1]+1):np[2]]
     }
-    list(coefficients=resfun(resfun.param,...),parameters=resfun.param,data=yx,opt=opt,exo.coef=exo.coef,restr.fun=rf)
+    list(coefficients=resfun(resfun.param,...),
+         parameters=resfun.param,
+         data=yx,
+         opt=opt,
+         exo.coef=exo.coef,
+         restr.fun=rf,
+         unrestricted=midas.u(y,X,exo=exo,k=klags))
 }
 
 ##' Test restrictions on coefficients of MIDAS regression
 ##'
 ##' Perform a test whether the restriction on MIDAS regression coefficients holds.
 ##' 
-##' @param unrestricted the unrestricted model, estimated with \code{\link{midas.u}}
 ##' @param restricted the restricted model, estimated with \code{\link{midas.r}}
 ##' @param gr the gradient of the restriction function. Must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. Default value is \code{NULL}, which means that the numeric approximation of gradient is calculated.
 ##' @param ... the parameters supplied to gradient function, if \code{gr} is not \code{NULL}
@@ -314,10 +320,10 @@ midas.r <- function(y, x, exo=NULL, k=NULL, resfun, start=list(resfun=NULL,exo=N
 ##'
 ##' ##Perform test (the expected result should be the acceptance of null)
 ##'
-##' hAh.test(mu,mr,grad.h0,dk=4*12)
+##' hAh.test(mr,grad.h0,dk=4*12)
 ##'
 ##' ##Use numerical gradient instead of supplied one 
-##' hAh.test(mu,mr)
+##' hAh.test(mr)
 ##' 
 ##' @details  Given MIDAS regression:
 ##'
@@ -330,8 +336,10 @@ midas.r <- function(y, x, exo=NULL, k=NULL, resfun, start=list(resfun=NULL,exo=N
 ##' @export
 ##' @import MASS
 ##' @import numDeriv
-hAh.test <- function(unrestricted,restricted,gr=NULL,...) {
+hAh.test <- function(restricted,gr=NULL,...) {
 
+    unrestricted <-  restricted$unrestricted
+      
     if(is.null(gr))gr <- function(x,...)jacobian(restricted$restr.fun,x)
     
     D0 <- gr(restricted$parameters,...)

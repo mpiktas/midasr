@@ -2,12 +2,9 @@
 \alias{hAh.test}
 \title{Test restrictions on coefficients of MIDAS regression}
 \usage{
-  hAh.test(unrestricted, restricted, gr = NULL, ...)
+  hAh.test(restricted, gr = NULL, ...)
 }
 \arguments{
-  \item{unrestricted}{the unrestricted model, estimated
-  with \code{\link{midas.u}}}
-
   \item{restricted}{the restricted model, estimated with
   \code{\link{midas.r}}}
 
@@ -73,10 +70,10 @@ grad.h0<-function(p, dk) {
 
 ##Perform test (the expected result should be the acceptance of null)
 
-hAh.test(mu,mr,grad.h0,dk=4*12)
+hAh.test(mr,grad.h0,dk=4*12)
 
 ##Use numerical gradient instead of supplied one
-hAh.test(mu,mr)
+hAh.test(mr)
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

@@ -58,7 +58,8 @@
   call to \code{\link{optim}}} \item{exo.coef}{the
   estimates of the coefficients of exogenous variables.}
   \item{restr.fun}{the restriction function used in
-  estimation.}
+  estimation.} \item{unrestricted}{unrestricted regression
+  estimated using \code{\link{midas.u}}}
 }
 \description{
   Estimate restricted MIDAS regression using non-linear
