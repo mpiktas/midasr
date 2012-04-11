@@ -63,5 +63,5 @@ par(mfrow=c(2,2))
 lapply(alli,with,{
     plot(coef(ur))
     points(coef(kz),pch=16,col="red")
-    points(coef(gh),pch=16,col="blue")
+    points(coef(al),pch=16,col="blue")
 })
