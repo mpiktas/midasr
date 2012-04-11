@@ -1,4 +1,4 @@
-citHeader("To cite package ’nlme’ in publications use:")
+citHeader("To cite package 'midasr' in publications use:")
 
 year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date, perl = TRUE) 
 
