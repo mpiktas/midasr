@@ -21,3 +21,15 @@ NULL
 ##' @source \href{http://data.bls.gov/timeseries/LNS14000000}{U.S. Bureau of Labor Statistics}
 ##' @keywords datasets
 NULL
+
+
+##' US annual gross domestic product in billions of chained 2005 dollars
+##'
+##' The annual gross domestic product in billions of chained 2005 dollars for US from 1948 to 2011.
+##' 
+##' @name USrealgdp
+##' @docType data
+##' @format A \code{\link{ts}} object.
+##' @source \href{http://www.bea.gov/national/xls/gdplev.xls}{U.S. Department of Commerce, Bureau of Economic Analysis}
+##' @keywords datasets
+NULL
