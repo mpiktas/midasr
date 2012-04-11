@@ -50,21 +50,15 @@
 \value{
   a list with the following elements:
 
-  \code{coefficients} - the estimates of restricted
-  coefficients
-
-  \code{parameters} - the estimates of parameters of the
-  restriction function \code{data} - output of
-  \code{\link{mmatrix.midas}}, the data matrix used for
-  fitting.
-
-  \code{opt} - the output of call to \code{\link{optim}}
-
-  \code{exo.coef} - the estimates of the coefficients of
-  exogenous variables
-
-  \code{restr.fun} - the restriction function used in
-  estimation
+  \item{coefficients}{the estimates of restricted
+  coefficients.} \item{parameters}{the estimates of
+  parameters of the restriction function.}
+  \item{data}{output of \code{\link{mmatrix.midas}}, the
+  data matrix used for fitting.} \item{opt}{the output of
+  call to \code{\link{optim}}} \item{exo.coef}{the
+  estimates of the coefficients of exogenous variables.}
+  \item{restr.fun}{the restriction function used in
+  estimation.}
 }
 \description{
   Estimate restricted MIDAS regression using non-linear
