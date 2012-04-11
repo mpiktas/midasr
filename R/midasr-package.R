@@ -6,7 +6,7 @@
 ##' @name midasr-package
 ##' @aliases midasr
 ##' @docType package
-##' @title One sentence summary of your package.
+##' @title Estimating and testing MIDAS regression
 ##' @author Virmantas Kvedaras \email{virmantas.kvedaras@@mif.vu.lt}, Vaidotas Zemlys (maintainer) \email{zemlys@@gmail.com}
 ##' @keywords package
 NULL

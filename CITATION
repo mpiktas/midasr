@@ -1,0 +1,12 @@
+citHeader("To cite package ’nlme’ in publications use:")
+
+year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date, perl = TRUE) 
+
+vers <- paste("R package version", meta$Version)
+
+citEntry(entry="Manual", 
+		 title = "midasr: Estimating and testing MIDAS regression", 
+	     author = personList(as.person("Virmantas Kvedaras"),
+						   	 			as.person("Vaidotas Zemlys")),
+		 year = year, note = vers,
+		 textVersion = paste("Virmantas Kvedaras, Vaidotas Zemlys (", year, "), midasr: Estimating and testing MIDAS regression. ", vers, ".",sep=""))

@@ -2,7 +2,7 @@
 \name{midasr-package}
 \alias{midasr}
 \alias{midasr-package}
-\title{One sentence summary of your package.}
+\title{Estimating and testing MIDAS regression}
 \description{
   Package for estimating and testing MIDAS regression.
 }
