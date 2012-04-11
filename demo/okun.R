@@ -4,9 +4,6 @@ library(midasr)
 data("USunempr")
 data("USrealgdp")
 
-y1<-ts(diff(log(a_yr[,2])),frequency=1)
-x1<-ts(diff((m_ur[,2]))[-11:-1],frequency=12)
-
 y <- diff(log(USrealgdp))
 x <- window(diff(USunempr),start=1949)
 
