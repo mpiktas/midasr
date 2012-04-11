@@ -32,7 +32,7 @@ alli <- foreach(k=c(0,1,2,3)) %do% {
 	mu <- midas.u(y,x,exo=exog,k)
 	mr <- midas.r(y,x,resfun=theta.h0,exo=exog,start=list(resfun=c(10,-10,-10,-10),exo=exos),dk=(k+1)*12)
 	mr1 <- midas.r(y,x,resfun=theta.h1,exo=exog,start=list(resfun=c(10,-10,-10,-10),exo=exos),dk=(k+1)*12)
-    list(ur=mu,kz=mr,al=mr1)
+    list(ur=mu,kz=mr,al=mr1,k=k)
 }
 
 ###Get p-values
@@ -61,7 +61,7 @@ dev.new()
 par(mfrow=c(2,2))
 
 lapply(alli,with,{
-    plot(coef(ur))
+    plot(coef(ur),xlab="Lags",ylab="Coefficients",main=paste("k = ",k,sep=""))
     points(coef(kz),pch=16,col="red")
     points(coef(al),pch=16,col="blue")
 })
