@@ -383,3 +383,219 @@ hAh.test <- function(restricted,gr=NULL,...) {
         class = "htest")
     
 }
+
+
+prunemds <- function(expr,funcn) {    
+    if(length(expr)>2) {      
+        a <- expr[[2]]
+        b <- expr[[3]]
+        if(length(a)>1) {
+            if(as.name(a[[1]])==funcn) {
+                if(length(grep(funcn,all.names(b)))>0) {
+                    return(prunemds(b,funcn))
+                }
+                if(length(b)==1) {
+                    if(as.character(b)=="1" & as.character(expr[[1]])=="-") {
+                        expr[[2]] <- NULL
+                        return(expr)
+                    }
+                    else return(b)
+                }
+                else return(b)
+            }
+        }
+        if(length(b)>1) {
+            if(as.name(b[[1]])==funcn) {
+                if(length(grep(funcn,all.names(a)))>0) {
+                    return(prunemds(a,funcn))
+                }
+                if(length(a)==1) {
+                    if(as.character(a)=="1" & as.character(expr[[1]])=="-") {
+                        expr[[3]] <- NULL
+                        return(expr)
+                    }
+                    else return(a)
+                }
+                else return(a)
+            }
+        }
+        
+        for(i in 2:length(expr)) {
+            expr[[i]] <- prunemds(expr[[i]],funcn)
+        }
+     }
+    return(expr)
+}
+
+selectmds <- function(expr,funcn) {
+    if(length(expr)>2) {
+        a <- expr[[2]]
+        b <- expr[[3]]
+        if(length(a)>1) {
+            if(as.name(a[[1]])==funcn) {
+                if(length(grep(funcn,all.names(b)))>0) {
+                    return(list(a,selectmds(b,funcn)))
+                }
+                else return(list(a))
+            }
+        }
+        if(length(b)>1) {
+            if(as.name(b[[1]])==funcn) {
+                if(length(grep(funcn,all.names(a)))>0) {
+                    return(list(b,selectmds(a,funcn)))
+                }
+                else return(list(b))
+            }
+        }
+        for(i in 2:length(expr)) {
+            if(length(grep(funcn,all.names(expr[[i]])))>0)return(selectmds(expr[[i]],funcn))
+        }
+    }
+    return(NULL)
+}
+
+mdsr <- function(formula,data,start=list(resfun=NULL,exo=NULL), method="BFGS", control.optim=list(), ...) {
+    
+    hfr <- unlist(selectmds(formula,"mdslag"))    
+    if(is.null(hfr))stop("No mixed lag in formula")
+    hfr <- hfr[length(hfr):1]
+
+    lfr <- prunemds(formula,"mdslag")
+    if(lfr==formula[[2]])lfr <- formula(y~1)
+
+    mf <- match.call(expand.dots = FALSE)
+    m <- match(c("formula", "data", "na.action"), names(mf), 0L)
+    mf <- mf[c(1L, m)]
+    mf[[1L]] <- as.name("model.frame")
+    mf[[2L]] <- lfr
+    
+    mf[[3L]] <- parse(text=paste(as.name(mf$data),"lowfreq",sep="$"))[[1]]
+    mf <- eval(mf,parent.frame())
+    mt <- attr(mf, "terms")
+
+    
+    y <- model.response(mf, "numeric")
+    exo <- model.matrix(mt, mf)    
+
+    
+    n <- length(y)
+    
+    kmax <- max(sapply(hfr,function(fr)max(eval(fr[[3]],parent.frame()))))
+
+    y <- y[(kmax+1):n]
+
+    if(ncol(exo)==0) {
+        exo <- NULL
+    }
+    else {
+        exo <- exo[(kmax+1):n,,drop=FALSE]
+    }
+    
+    X <- lapply(hfr,function(fr) {
+        args <- list(k=eval(fr[[3]],parent.frame()),
+                     m=eval(fr[[4]],parent.frame()))
+        argx <- eval(fr[[2]],as.list(data$highfreq))
+        attr(argx,"highfreqn") <- as.character(fr[[2]])
+        args <- c(list(x=argx),args)
+        res <- do.call("mdslag",args)
+        xkmax <- max(args$k)
+        nx <- nrow(res)
+        res[(kmax-xkmax+1):nx,]
+    })
+
+    cl <- match.call()
+
+    rf <- lapply(hfr,function(fr) {
+        ff <- eval(fr[[5]],parent.frame())
+        rf.arg <- formals(ff)
+        class(rf.arg) <- "list"
+        rf.argnm <-  intersect(names(rf.arg)[-1],names(cl))
+        
+        for(i in rf.argnm) {
+            rf.arg[[i]] <- eval(cl[[i]],parent.frame())
+        }
+        
+        rf.name <- as.character(fr[[5]])
+        rf <- function(p) {
+            rf.arg[[1]] <- p
+            do.call(rf.name,rf.arg)
+        }
+        rf
+    })
+
+    if(is.null(start$exo) & !is.null(exo)) start$exo <- rep(0,ncol(exo))
+    
+    np <- cumsum(sapply(start,length))
+    
+    pinds <- cbind(c(1,np[-length(np)]+1),np)
+    
+    XX <- X
+    rff <- rf
+
+    if(!is.null(exo))  {
+        rff <- c(rf,function(p,...)p)
+        XX <- c(X,list(exo))
+    }
+       
+    starto <- unlist(start)
+    
+    mdslhs <- function(p,...) {
+        pp <- apply(pinds,1,function(x)p[x[1]:x[2]])
+        coefs <- mapply(function(fun,param,...)fun(param,...),rff,pp,SIMPLIFY=FALSE)
+        
+        res <- mapply(function(x,beta)x%*%beta,XX,coefs,SIMPLIFY=FALSE)
+        Reduce("+",res)
+    }
+
+    aa <- try(mdslhs(starto))
+    
+    fn0 <- function(p,...) {
+        r <- y - mdslhs(p,...)
+        sum(r^2)
+    }
+    
+    opt <- optim(starto,fn0,method=method,control=control.optim,...)
+
+    pp <- apply(pinds,1,function(x)opt$p[x[1]:x[2]])
+    coefs <- mapply(function(fun,param,...)fun(param,...),rff,pp,SIMPLIFY=FALSE)
+        
+    list(coefficients=opt$par,
+         midas.coefficients=Reduce("c",coefs),
+         data=list(y=y,X=X,exo=exo),
+         opt=opt,
+         restr.fun=rf,
+         unrestricted=lm(y~.-1,data=data.frame(y=y,Reduce("cbind",X),exo)))
+}
+
+mdslag <- function(x,...)UseMethod("mdslag")
+
+mdslag.default <- function(x, k, m, ...) {
+    n.x <- length(x)
+    n <- n.x %/%m
+    if(length(k)>1) {
+        klags <- k
+        k <- max(k)
+    }
+    else {
+        klags <- 0:k
+    }
+        
+    idx <- m*c((n.x/m-n+k+1):(n.x/m))    
+
+    X <- foreach(h.x=0:((k+1)*m-1), .combine='cbind') %do% {
+        x[idx-h.x]
+    }   
+    nmx <- attr(x,"highfreqn")
+    if(is.null(nmx)) nmx <- "X"
+   
+    colnames(X) <- paste(nmx, ".", rep(0:k, each=m), ".", rep(m:1, k+1), sep="")
+
+    ###select only the lags needed
+    lagn <- unlist(lapply(klags,function(no) grep(paste(nmx,".",no,"[.]",sep=""),colnames(X),value=TRUE)))
+       
+    X[,lagn]
+}
+
+mdslag.function <- function(x,data,m,...) {
+    
+}
