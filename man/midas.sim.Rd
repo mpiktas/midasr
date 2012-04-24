@@ -21,8 +21,26 @@
 }
 \description{
   Given the predictor variable and the coefficients
-  calculate MIDAS regression response variable. It is
-  assumed that predictor variable has long enough history.
+  calculate MIDAS regression response variable.
+}
+\details{
+  MIDAS regression has the following form:
+
+  \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i}
+  x_{(t-j)m-i}+u_t}
+
+  or alternatively
+
+  \deqn{y_t=\sum_{h=0}^{(k+1)m}\theta_hx_{tm-h}+u_t,} where
+  \eqn{m} is the frequency ratio and \eqn{k} is the number
+  of lags included in the regression.
+
+  MIDAS regression involves times series with different
+  frequencies. In R the frequency property is set when
+  creating time series objects \code{\link{ts}}. Hence the
+  frequency ratio \eqn{m} which figures in MIDAS regression
+  is calculated from frequency property of time series
+  objects supplied.
 }
 \examples{
 ##The parameter function

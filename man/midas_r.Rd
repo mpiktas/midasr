@@ -15,10 +15,7 @@
   object}
 
   \item{start}{the starting values for optimisation. Must
-  be a list with named elements \code{resfun} containing
-  vector of starting values for restriction function and
-  \code{exo} containing vector of starting values for
-  exogenous variables.}
+  be a list with named elements.}
 
   \item{method}{the method used for optimisation, see
   \code{\link{optim}} documentation. All methods are
@@ -96,7 +93,7 @@ x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
 y <- midas.sim(500,theta0,x,1)
 
 ##Remove unnecessary history of x
-x <- window(x,start=c(1500-500+1,1))
+x <- window(x,start=start(y))
 
 ##Fit restricted model
 mr <- midas_r(y~mdslag(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)

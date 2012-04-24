@@ -58,7 +58,7 @@ x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
 y <- midas.sim(500,theta0,x,1)
 
 ##Remove unnecessary history of x
-x <- window(x,start=c(1500-500+1,1))
+x <- window(x,start=start(y))
 
 ##Fit restricted model
 mr <- midas_r(y~mdslag(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
