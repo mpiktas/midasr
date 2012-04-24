@@ -1,10 +1,8 @@
 \name{mdslag.default}
-\alias{mdslag}
 \alias{mdslag.default}
-\alias{mdslag.mds}
 \title{Lag a mixed data sampling time series}
 \usage{
-  mdslag.default(x, k, m, ...)
+  \method{mdslag}{default} (x, k, m, ...)
 }
 \arguments{
   \item{x}{a vector for which mixed data sampling lag has
@@ -16,7 +14,7 @@
 
   \item{m}{frequency ratio}
 
-  \item{...}{}
+  \item{...}{further arguments}
 }
 \value{
   a matrix containing the lags
@@ -27,5 +25,8 @@
 }
 \author{
   Vaidotas Zemlys
+}
+\seealso{
+  mdslag mdslag.mds
 }
 

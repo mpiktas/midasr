@@ -6,11 +6,13 @@
     control.optim = list(), ...)
 }
 \arguments{
-  \item{formula}{}
+  \item{formula}{formula for restricted MIDAS regression}
 
-  \item{ldata}{}
+  \item{ldata}{low frequency data, a \code{data.frame}
+  object}
 
-  \item{hdata}{}
+  \item{hdata}{high frequency data, a \code{data.frame}
+  object}
 
   \item{start}{the starting values for optimisation. Must
   be a list with named elements \code{resfun} containing
@@ -39,8 +41,8 @@
   \code{\link{optim}}} \item{restr.fun}{the restriction
   function used in estimation.}
   \item{unrestricted}{unrestricted regression estimated
-  using \code{\link{midas.u}} \item{restr.no}{the number of
-  parameters used in restriction function} }
+  using \code{\link{midas.u}}} \item{restr.no}{the number
+  of parameters used in restriction function}
 }
 \description{
   Estimate restricted MIDAS regression using non-linear
@@ -97,11 +99,11 @@ y <- midas.sim(500,theta0,x,1)
 x <- window(x,start=c(1500-500+1,1))
 
 ##Fit restricted model
-mr <- midas_r(y~mdslag(x,4,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
+mr <- midas_r(y~mdslag(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
 
 ##Include intercept and trend in regression
 
-mr.it <- midas_r(y~mdslag(x,4,theta0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
+mr.it <- midas_r(y~mdslag(x,3,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

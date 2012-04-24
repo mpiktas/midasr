@@ -1,7 +1,5 @@
 \name{mdslag}
 \alias{mdslag}
-\alias{mdslag.default}
-\alias{mdslag.mds}
 \title{Lag a mixed data sampling time series}
 \usage{
   mdslag(x, ...)
@@ -9,7 +7,7 @@
 \arguments{
   \item{x}{a vector}
 
-  \item{...}{}
+  \item{...}{further arguments}
 }
 \value{
   a matrix containing the lags
@@ -20,5 +18,8 @@
 }
 \author{
   Vaidotas Zemlys
+}
+\seealso{
+  mdslag.default mdslag.mds
 }
 

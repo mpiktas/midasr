@@ -125,9 +125,9 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##'
 ##' Estimate restricted MIDAS regression using non-linear least squares. Uses \code{optim} for optimisation. Currently only the estimates of the parameters are given, without their standard errors.
 ##' 
-##' @param formula 
-##' @param ldata 
-##' @param hdata 
+##' @param formula formula for restricted MIDAS regression
+##' @param ldata low frequency data, a \code{data.frame} object
+##' @param hdata high frequency data, a \code{data.frame} object
 ##' @param start the starting values for optimisation. Must be a list with named elements \code{resfun} containing vector of starting values for restriction function and \code{exo} containing vector of starting values for exogenous variables.
 ##' @param method the method used for optimisation, see \code{\link{optim}} documentation. All methods are suported except "L-BFGS-B" and "Brent". Default method is "BFGS".
 ##' @param control.optim a list of control parameters for \code{\link{optim}}.
@@ -139,9 +139,9 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##' \item{model}{model data}
 ##' \item{opt}{the output of call to \code{\link{optim}}}
 ##' \item{restr.fun}{the restriction function used in estimation.}
-##' \item{unrestricted}{unrestricted regression estimated using \code{\link{midas.u}}
+##' \item{unrestricted}{unrestricted regression estimated using \code{\link{midas.u}}}
 ##' \item{restr.no}{the number of parameters used in restriction function}
-##' }
+##' 
 ##' 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @examples
@@ -168,11 +168,11 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##' x <- window(x,start=c(1500-500+1,1))
 ##' 
 ##' ##Fit restricted model
-##' mr <- midas_r(y~mdslag(x,4,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
+##' mr <- midas_r(y~mdslag(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
 ##'
 ##' ##Include intercept and trend in regression
 ##'
-##' mr.it <- midas_r(y~mdslag(x,4,theta0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
+##' mr.it <- midas_r(y~mdslag(x,3,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
 ##' 
 ##' @details Given MIDAS regression:
 ##'
@@ -194,7 +194,7 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##' more in \code{\link{mmatrix.midas}}) make sure that the number of
 ##' coefficients returned by restriction function coincides with number
 ##' of columns of the lagged high frequency predictor variable matrix.
-##' 
+##'
 ##' @export
 midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=list(), ...) {
 
@@ -278,8 +278,9 @@ midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=l
     
     starto <- unlist(start_default)
 
-    restr_coef <- function(p,...) {
-        pp <- apply(pinds,1,function(x)p[x[1]:x[2]])
+    restr_coef <- function(p,...) {              
+        pp <- apply(pinds,1,function(x)list(p[x[1]:x[2]]))
+        pp <- lapply(pp,function(x)x[[1]])        
         res <- mapply(function(fun,param,...)fun(param,...),rf,pp,SIMPLIFY=FALSE)
         unlist(res)
     }
@@ -312,7 +313,7 @@ midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=l
 ##'
 ##' Perform a test whether the restriction on MIDAS regression coefficients holds.
 ##' 
-##' @param restricted the restricted model, estimated with \code{\link{midas.r}}
+##' @param restricted the restricted model, estimated with \code{\link{midas_r}}
 ##' @param gr the gradient of the restriction function. Must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. Default value is \code{NULL}, which means that the numeric approximation of gradient is calculated.
 ##' @param ... the parameters supplied to gradient function, if \code{gr} is not \code{NULL}
 ##' @return a \code{htest} object
@@ -342,7 +343,7 @@ midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=l
 ##' x <- window(x,start=c(1500-500+1,1))
 ##' 
 ##' ##Fit restricted model
-##' mr <- midas_r(y~mdslag(x,4,theta.h0),data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
+##' mr <- midas_r(y~mdslag(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
 ##' 
 ##' ##The gradient function
 ##' grad.h0<-function(p, dk) {

@@ -1,6 +1,4 @@
 \name{mdslag.mds}
-\alias{mdslag}
-\alias{mdslag.default}
 \alias{mdslag.mds}
 \title{Lag a mixed data sampling time series}
 \usage{
@@ -13,7 +11,7 @@
   either be a number indicating the highest lag, or the
   vector with lags which should be included.}
 
-  \item{...}{}
+  \item{...}{further arguments}
 }
 \value{
   a matrix containing lags
@@ -24,5 +22,8 @@
 }
 \author{
   Vaidotas Zemlys
+}
+\seealso{
+  mdslag mdslag.default
 }
 

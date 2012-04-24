@@ -6,7 +6,7 @@
 }
 \arguments{
   \item{restricted}{the restricted model, estimated with
-  \code{\link{midas.r}}}
+  \code{\link{midas_r}}}
 
   \item{gr}{the gradient of the restriction function. Must
   return the matrix with dimensions \eqn{d_k \times q},
@@ -61,7 +61,7 @@ y <- midas.sim(500,theta0,x,1)
 x <- window(x,start=c(1500-500+1,1))
 
 ##Fit restricted model
-mr <- midas_r(y~mdslag(x,4,theta.h0),data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
+mr <- midas_r(y~mdslag(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
 
 ##The gradient function
 grad.h0<-function(p, dk) {
