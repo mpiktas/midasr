@@ -125,25 +125,23 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##'
 ##' Estimate restricted MIDAS regression using non-linear least squares. Uses \code{optim} for optimisation. Currently only the estimates of the parameters are given, without their standard errors.
 ##' 
-##' @param y the response variable, \code{\link{ts}} object.
-##' @param x the predictor variable, \code{\link{ts}} object, such that \code{frequency(x) / frequency(y)} is an integer.
-##' @param exo exogenous variables, \code{\link{ts}} object, having the same properties as \code{y}. The default is NULL, meaning that no exogenous variables are used in the regressidon.
-##' @param k the number of lags to include in MIDAS regression. The default is \code{NULL} meaning that the number of lags is calculated depending on output of \code{resfun}. 
-##' @param resfun the function which returns restricted parameters given
-##' the restriction function. The parameters for the restriction function must be the supplied as numeric vector in the first argument of the function. Number of lags of the regression is calculated from the output of this function. 
+##' @param formula 
+##' @param ldata 
+##' @param hdata 
 ##' @param start the starting values for optimisation. Must be a list with named elements \code{resfun} containing vector of starting values for restriction function and \code{exo} containing vector of starting values for exogenous variables.
 ##' @param method the method used for optimisation, see \code{\link{optim}} documentation. All methods are suported except "L-BFGS-B" and "Brent". Default method is "BFGS".
 ##' @param control.optim a list of control parameters for \code{\link{optim}}.
 ##' @param ... additional arguments supplied for \code{resfun}
 ##' @return a list with the following elements:
 ##' 
-##' \item{coefficients}{the estimates of restricted coefficients.}
-##' \item{parameters}{the estimates of parameters of the restriction function.}
-##' \item{data}{output of \code{\link{mmatrix.midas}}, the data matrix used for fitting.}
+##' \item{coefficients}{the estimates of parameters of restrictions}
+##' \item{midas.coefficientas}{the estimates of restricted coefficients of MIDAS regression}
+##' \item{model}{model data}
 ##' \item{opt}{the output of call to \code{\link{optim}}}
-##' \item{exo.coef}{the estimates of the coefficients of exogenous variables.}
 ##' \item{restr.fun}{the restriction function used in estimation.}
-##' \item{unrestricted}{unrestricted regression estimated using \code{\link{midas.u}}}
+##' \item{unrestricted}{unrestricted regression estimated using \code{\link{midas.u}}
+##' \item{restr.no}{the number of parameters used in restriction function}
+##' }
 ##' 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @examples
@@ -166,12 +164,15 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##' ##Simulate the response variable
 ##' y <- midas.sim(500,theta0,x,1)
 ##'
+##' ##Remove unnecessary history of x
+##' x <- window(x,start=c(1500-500+1,1))
+##' 
 ##' ##Fit restricted model
-##' mr <- midas.r(y,x,resfun=theta.h0,start=list(resfun=c(-0.1,10,-10,-10)),dk=4*12)
+##' mr <- midas_r(y~mdslag(x,4,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
 ##'
 ##' ##Include intercept and trend in regression
 ##'
-##' mr.it <- midas.r(y,x,exo=cbind(1,1:500),resfun=theta.h0,start=list(resfun=c(-0.1,10,-10,-10),exo=c(0,0)),dk=4*12)
+##' mr.it <- midas_r(y~mdslag(x,4,theta0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
 ##' 
 ##' @details Given MIDAS regression:
 ##'
@@ -195,383 +196,7 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##' of columns of the lagged high frequency predictor variable matrix.
 ##' 
 ##' @export
-midas.r <- function(y, x, exo=NULL, k=NULL, resfun, start=list(resfun=NULL,exo=NULL), method="BFGS", control.optim=list(), ...) {
-
-    ###Prepare resfun for using it in hAh.test
-    cl <- match.call()
-    ff <- eval(cl$resfun,parent.frame())
-    rf.arg <- formals(ff)
-    class(rf.arg) <- "list"
-    rf.argnm <-  intersect(names(rf.arg)[-1],names(cl))
-    
-    for(i in rf.argnm) {
-         rf.arg[[i]] <- eval(cl[[i]],parent.frame())
-    }
-    
-    rf.name <- as.character(cl$resfun)
-    rf <- function(p) {
-        rf.arg[[1]] <- p
-        do.call(rf.name,rf.arg)
-    }
-    
-    crstart <- resfun(start$resfun,...)
-    if(sum(is.na(crstart))>0) stop("NA coefficients for the starting values")
-    m <- frequency(x) %/% frequency(y)
-    if(is.null(k)) {
-        k <- length(crstart) %/% m - 1
-        klags <- 0:k
-    }
-    else {
-        if(length(k)>1) {
-            klags <- k
-            k <- max(klags)
-        }
-        else {
-            klags <- 0:k
-        }
-        if(length(klags)*m != length(crstart)) stop("Fractional lags are not supported currently")
-    }   
-    
-    yx <- mmatrix.midas(y, x, exo, klags)
-
-    if(is.null(exo)) {
-        X <- yx[,-1]
-        y <- yx[,1]
-        fn0 <- function(p,...) {
-            r <- y-X%*%resfun(p,...)
-              sum(r^2)
-        }
-        starto <- start$resfun
-    }
-    else {
-        
-        exonm <- grep("exo",colnames(yx),value=TRUE)
-        
-        X <- yx[,setdiff(colnames(yx),c("y",exonm))]
-        y <- yx[,1]
-        exom <- yx[,exonm]
-        
-        np <- cumsum(sapply(start,length))
-        
-        fn0 <- function(p,...) {
-            r <- y-X%*%resfun(p[1:np[1]],...) - exom%*%p[(np[1]+1):np[2]]
-            sum(r^2)
-        }
-        starto <- unlist(start[c("resfun","exo")])
-    }
-    opt <- optim(starto,fn0,method=method,control=control.optim,...)
-    if(is.null(exo)) {
-        resfun.param <- opt$par
-        exo.coef <- NULL
-    }
-    else {
-        resfun.param <- opt$par[1:np[1]]
-        exo.coef <- opt$par[(np[1]+1):np[2]]
-    }
-    list(coefficients=resfun(resfun.param,...),
-         parameters=resfun.param,
-         data=yx,
-         opt=opt,
-         exo.coef=exo.coef,
-         restr.fun=rf,
-         unrestricted=midas.u(y,X,exo=exo,k=klags))
-}
-
-##' Test restrictions on coefficients of MIDAS regression
-##'
-##' Perform a test whether the restriction on MIDAS regression coefficients holds.
-##' 
-##' @param restricted the restricted model, estimated with \code{\link{midas.r}}
-##' @param gr the gradient of the restriction function. Must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. Default value is \code{NULL}, which means that the numeric approximation of gradient is calculated.
-##' @param ... the parameters supplied to gradient function, if \code{gr} is not \code{NULL}
-##' @return a \code{htest} object
-##' @author Virmantas Kvedaras, Vaidotas Zemlys
-##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254
-##' @examples
-##' ##The parameter function
-##' theta.h0 <- function(p, dk) {
-##'    i <- (1:dk-1)
-##'    (p[1] + p[2]*i)*exp(p[3]*i + p[4]*i^2)
-##' }
-##'
-##' ##Generate coefficients
-##' theta0 <- theta.h0(c(-0.1,0.1,-0.1,-0.001),4*12)
-##'
-##' ##Plot the coefficients
-##' plot(theta0)
-##'
-##' ##Generate the predictor variable
-##' set.seed(13)
-##' x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
-##'
-##' ##Simulate the response variable
-##' y <- midas.sim(500,theta0,x,1)
-##'
-##' ##Fit restricted model
-##' mr <- midas.r(y,x,resfun=theta.h0,start=list(resfun=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
-##' mu <- midas.u(y,x,k=3)
-##'
-##' ##The gradient function
-##' grad.h0<-function(p, dk) {
-##'    i <- (1:dk-1)
-##'    a <- exp(p[3]*i + p[4]*i^2)
-##'    cbind(a, a*i, a*i*(p[1]+p[2]*i), a*i^2*(p[1]+p[2]*i))
-##' }
-##'
-##' ##Perform test (the expected result should be the acceptance of null)
-##'
-##' hAh.test(mr,grad.h0,dk=4*12)
-##'
-##' ##Use numerical gradient instead of supplied one 
-##' hAh.test(mr)
-##' 
-##' @details  Given MIDAS regression:
-##'
-##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+u_t}
-##'
-##' test the null hypothesis that the following restriction holds:
-##'
-##' \deqn{\theta_h=g(h,\lambda),}
-##' where \eqn{h=0,...,(k+1)m}. 
-##' @export
-##' @import MASS
-##' @import numDeriv
-hAh.test <- function(restricted,gr=NULL,...) {
-
-    unrestricted <-  restricted$unrestricted
-      
-    if(is.null(gr))gr <- function(x,...)jacobian(restricted$restr.fun,x)
-    
-    D0 <- gr(restricted$parameters,...)
-
-    exonm <- grep("exo",colnames(restricted$data),value=TRUE)
-    if(length(exonm)>0) {
-        X <- restricted$data[,setdiff(colnames(restricted$data),c("y",exonm))]
-    }
-    else {
-        X <- restricted$data[,-1]
-    }
-    
-    XtX <- crossprod(X)
-
-    dk <- ncol(XtX)    
-
-    if(nrow(D0) != dk)stop("The gradient dimensions are incorrect. Number of rows does not equal number of unrestricted coefficients")
-    
-    P <- chol(XtX)
-
-    cfur <- coef(unrestricted)
-    cfur <- cfur[setdiff(names(cfur),exonm)]
-    
-    h.0 <- P%*%(cfur-coef(restricted))
-
-    Delta.0 <- D0%*%tcrossprod(ginv(crossprod(D0,XtX)%*%D0),D0)
-
-    A0<-diag(dk)-P%*%tcrossprod(Delta.0,P)
-
-    se2 <- sum(residuals(unrestricted)^2)/(nrow(restricted$data)-dk)
-    STATISTIC <- t(h.0)%*%A0%*%h.0/se2
-    
-    names(STATISTIC) <- "hAh"
-    METHOD <- "hAh restriction test"
-    PARAMETER <- dk-length(restricted$parameters)
-    PVAL <- 1-pchisq(STATISTIC,PARAMETER)
-    names(PARAMETER) <- "df"
-    
-    structure(list(statistic = STATISTIC, parameter = PARAMETER, 
-        p.value = PVAL, method = METHOD), 
-        class = "htest")
-    
-}
-
-
-prunemds <- function(expr,funcn) {    
-    if(length(expr)>2) {      
-        a <- expr[[2]]
-        b <- expr[[3]]
-        if(length(a)>1) {
-            if(as.name(a[[1]])==funcn) {
-                if(length(grep(funcn,all.names(b)))>0) {
-                    return(prunemds(b,funcn))
-                }
-                if(length(b)==1) {
-                    if(as.character(b)=="1" & as.character(expr[[1]])=="-") {
-                        expr[[2]] <- NULL
-                        return(expr)
-                    }
-                    else return(b)
-                }
-                else return(b)
-            }
-        }
-        if(length(b)>1) {
-            if(as.name(b[[1]])==funcn) {
-                if(length(grep(funcn,all.names(a)))>0) {
-                    return(prunemds(a,funcn))
-                }
-                if(length(a)==1) {
-                    if(as.character(a)=="1" & as.character(expr[[1]])=="-") {
-                        expr[[3]] <- NULL
-                        return(expr)
-                    }
-                    else return(a)
-                }
-                else return(a)
-            }
-        }
-        
-        for(i in 2:length(expr)) {
-            expr[[i]] <- prunemds(expr[[i]],funcn)
-        }
-     }
-    return(expr)
-}
-
-selectmds <- function(expr,funcn) {
-    if(length(expr)>2) {
-        a <- expr[[2]]
-        b <- expr[[3]]
-        if(length(a)>1) {
-            if(as.name(a[[1]])==funcn) {
-                if(length(grep(funcn,all.names(b)))>0) {
-                    return(list(a,selectmds(b,funcn)))
-                }
-                else return(list(a))
-            }
-        }
-        if(length(b)>1) {
-            if(as.name(b[[1]])==funcn) {
-                if(length(grep(funcn,all.names(a)))>0) {
-                    return(list(b,selectmds(a,funcn)))
-                }
-                else return(list(b))
-            }
-        }
-        for(i in 2:length(expr)) {
-            if(length(grep(funcn,all.names(expr[[i]])))>0)return(selectmds(expr[[i]],funcn))
-        }
-    }
-    return(NULL)
-}
-
-mdsr <- function(formula,data,start=list(resfun=NULL,exo=NULL), method="BFGS", control.optim=list(), ...) {
-    
-    hfr <- unlist(selectmds(formula,"mdslag"))    
-    if(is.null(hfr))stop("No mixed lag in formula")
-    hfr <- hfr[length(hfr):1]
-
-    lfr <- prunemds(formula,"mdslag")
-    if(lfr==formula[[2]])lfr <- formula(y~1)
-
-    mf <- match.call(expand.dots = FALSE)
-    m <- match(c("formula", "data", "na.action"), names(mf), 0L)
-    mf <- mf[c(1L, m)]
-    mf[[1L]] <- as.name("model.frame")
-    mf[[2L]] <- lfr
-    
-    mf[[3L]] <- parse(text=paste(as.name(mf$data),"lowfreq",sep="$"))[[1]]
-    mf <- eval(mf,parent.frame())
-    mt <- attr(mf, "terms")
-
-    
-    y <- model.response(mf, "numeric")
-    exo <- model.matrix(mt, mf)    
-
-    
-    n <- length(y)
-    
-    kmax <- max(sapply(hfr,function(fr)max(eval(fr[[3]],parent.frame()))))
-
-    y <- y[(kmax+1):n]
-
-    if(ncol(exo)==0) {
-        exo <- NULL
-    }
-    else {
-        exo <- exo[(kmax+1):n,,drop=FALSE]
-    }
-    
-    X <- lapply(hfr,function(fr) {
-        args <- list(k=eval(fr[[3]],parent.frame()),
-                     m=eval(fr[[4]],parent.frame()))
-        argx <- eval(fr[[2]],as.list(data$highfreq))
-        attr(argx,"highfreqn") <- as.character(fr[[2]])
-        args <- c(list(x=argx),args)
-        res <- do.call("mdslag",args)
-        xkmax <- max(args$k)
-        nx <- nrow(res)
-        res[(kmax-xkmax+1):nx,]
-    })
-
-    cl <- match.call()
-
-    rf <- lapply(hfr,function(fr) {
-        ff <- eval(fr[[5]],parent.frame())
-        rf.arg <- formals(ff)
-        class(rf.arg) <- "list"
-        rf.argnm <-  intersect(names(rf.arg)[-1],names(cl))
-        
-        for(i in rf.argnm) {
-            rf.arg[[i]] <- eval(cl[[i]],parent.frame())
-        }
-        
-        rf.name <- as.character(fr[[5]])
-        rf <- function(p) {
-            rf.arg[[1]] <- p
-            do.call(rf.name,rf.arg)
-        }
-        rf
-    })
-
-    if(is.null(start$exo) & !is.null(exo)) start$exo <- rep(0,ncol(exo))
-    
-    np <- cumsum(sapply(start,length))
-    
-    pinds <- cbind(c(1,np[-length(np)]+1),np)
-    
-    XX <- X
-    rff <- rf
-
-    if(!is.null(exo))  {
-        rff <- c(rf,function(p,...)p)
-        XX <- c(X,list(exo))
-    }
-       
-    starto <- unlist(start)
-    
-    mdslhs <- function(p,...) {
-        pp <- apply(pinds,1,function(x)p[x[1]:x[2]])
-        coefs <- mapply(function(fun,param,...)fun(param,...),rff,pp,SIMPLIFY=FALSE)
-        
-        res <- mapply(function(x,beta)x%*%beta,XX,coefs,SIMPLIFY=FALSE)
-        Reduce("+",res)
-    }
-
-    aa <- try(mdslhs(starto))
-    
-    fn0 <- function(p,...) {
-        r <- y - mdslhs(p,...)
-        sum(r^2)
-    }
-    
-    opt <- optim(starto,fn0,method=method,control=control.optim,...)
-
-    pp <- apply(pinds,1,function(x)opt$p[x[1]:x[2]])
-    coefs <- mapply(function(fun,param,...)fun(param,...),rff,pp,SIMPLIFY=FALSE)
-        
-    list(coefficients=opt$par,
-         midas.coefficients=Reduce("c",coefs),
-         data=list(y=y,X=X,exo=exo),
-         opt=opt,
-         restr.fun=rf,
-         unrestricted=lm(y~.-1,data=data.frame(y=y,Reduce("cbind",X),exo)))
-}
-
-
-
-
-
-mdsr2 <- function(formula,ldata,hdata,start=list(resfun=NULL,exo=NULL), method="BFGS", control.optim=list(), ...) {
+midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=list(), ...) {
 
     Zenv <- new.env(parent=environment(formula))
       
@@ -683,8 +308,68 @@ mdsr2 <- function(formula,ldata,hdata,start=list(resfun=NULL,exo=NULL), method="
 
 }
 
-
-hAh2.test <- function(restricted,gr=NULL,...) {
+##' Test restrictions on coefficients of MIDAS regression
+##'
+##' Perform a test whether the restriction on MIDAS regression coefficients holds.
+##' 
+##' @param restricted the restricted model, estimated with \code{\link{midas.r}}
+##' @param gr the gradient of the restriction function. Must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. Default value is \code{NULL}, which means that the numeric approximation of gradient is calculated.
+##' @param ... the parameters supplied to gradient function, if \code{gr} is not \code{NULL}
+##' @return a \code{htest} object
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254
+##' @examples
+##' ##The parameter function
+##' theta.h0 <- function(p, dk) {
+##'    i <- (1:dk-1)
+##'    (p[1] + p[2]*i)*exp(p[3]*i + p[4]*i^2)
+##' }
+##'
+##' ##Generate coefficients
+##' theta0 <- theta.h0(c(-0.1,0.1,-0.1,-0.001),4*12)
+##'
+##' ##Plot the coefficients
+##' plot(theta0)
+##'
+##' ##Generate the predictor variable
+##' set.seed(13)
+##' x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
+##'
+##' ##Simulate the response variable
+##' y <- midas.sim(500,theta0,x,1)
+##'
+##' ##Remove unnecessary history of x
+##' x <- window(x,start=c(1500-500+1,1))
+##' 
+##' ##Fit restricted model
+##' mr <- midas_r(y~mdslag(x,4,theta.h0),data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
+##' 
+##' ##The gradient function
+##' grad.h0<-function(p, dk) {
+##'    i <- (1:dk-1)
+##'    a <- exp(p[3]*i + p[4]*i^2)
+##'    cbind(a, a*i, a*i*(p[1]+p[2]*i), a*i^2*(p[1]+p[2]*i))
+##' }
+##'
+##' ##Perform test (the expected result should be the acceptance of null)
+##'
+##' hAh.test(mr,grad.h0,dk=4*12)
+##'
+##' ##Use numerical gradient instead of supplied one 
+##' hAh.test(mr)
+##' 
+##' @details  Given MIDAS regression:
+##'
+##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+u_t}
+##'
+##' test the null hypothesis that the following restriction holds:
+##'
+##' \deqn{\theta_h=g(h,\lambda),}
+##' where \eqn{h=0,...,(k+1)m}. 
+##' @export
+##' @import MASS
+##' @import numDeriv
+hAh.test <- function(restricted,gr=NULL,...) {
 
     unrestricted <-  restricted$unrestricted
       
