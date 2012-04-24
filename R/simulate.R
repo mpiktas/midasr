@@ -28,7 +28,6 @@ simplearma.sim <- function(model,n,innov.sd,frequency,n.start=300) {
 ##' Simulate MIDAS regresion response variable
 ##'
 ##' Given the predictor variable and the coefficients calculate MIDAS regression response variable.
-##' It is assumed that predictor variable has long enough history.
 ##' 
 ##' @param n The sample size
 ##' @param theta a vector with MIDAS regression coefficients 
@@ -55,7 +54,20 @@ simplearma.sim <- function(model,n,innov.sd,frequency,n.start=300) {
 ##'
 ##' ##Simulate the response variable
 ##' y <- midas.sim(500,theta0,x,1)
+##'
+##' @details MIDAS regression has the following form:
 ##' 
+##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+u_t}
+##'
+##' or alternatively
+##'
+##' \deqn{y_t=\sum_{h=0}^{(k+1)m}\theta_hx_{tm-h}+u_t,}
+##' where \eqn{m} is the frequency ratio and
+##' \eqn{k} is the number of lags included in the regression. 
+##'
+##' MIDAS regression involves times series with different frequencies. In R
+##' the frequency property is set when creating time series objects
+##' \code{\link{ts}}. Hence the frequency ratio \eqn{m} which figures in MIDAS regression is calculated from frequency property of time series objects supplied.
 ##' @export
 ##' @import foreach
 midas.sim <- function(n,theta,x,eps.sd) {
@@ -72,5 +84,6 @@ midas.sim <- function(n,theta,x,eps.sd) {
     y <- foreach(h.y = 1:n, .combine='c') %do% {
         t(x[1:(n.x-(n-h.y)*m)])%*%theta.d[((n-h.y)*m+1):n.x]
     }
-    ts(y+rnorm(n,sd=eps.sd),frequency=1)    
+    
+    ts(y+rnorm(n,sd=eps.sd),start=end(x)[1]-n+1,frequency=1)    
 }
