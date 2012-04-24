@@ -1,23 +1,28 @@
-##' Mixed data sampling lag
+##' Lag a mixed data sampling time series
 ##'
-##' .. content for \details{} ..
-##' @title 
-##' @param x 
+##' Compute a lagged version of mixed data sampling time series
+##' 
+##' @param x a vector
 ##' @param ... 
-##' @return 
+##' @return a matrix containing the lags
 ##' @author Vaidotas Zemlys
+##' @aliases mdslag.default mdslag.mds
+##' @export
 mdslag <- function(x,...)UseMethod("mdslag")
 
-##' .. content for \description{} (no empty lines) ..
+##' Lag a mixed data sampling time series
 ##'
-##' .. content for \details{} ..
-##' @title 
-##' @param x 
-##' @param k 
-##' @param m 
+##' Compute a lagged version of mixed data sampling time series
+##' 
+##'
+##' @param x a vector for which mixed data sampling lag has to be computed
+##' @param k the number of lags of low frequency. This can either be a number indicating the highest lag, or the vector with lags which should be included.
+##' @param m frequency ratio
 ##' @param ... 
-##' @return 
+##' @return a matrix containing the lags
 ##' @author Vaidotas Zemlys
+##' @aliases mdslag mdslag.mds
+##' @export
 mdslag.default <- function(x, k, m, ...) {
     n.x <- length(x)
     n <- n.x %/%m
@@ -44,15 +49,20 @@ mdslag.default <- function(x, k, m, ...) {
        
     X[,lagn]
 }
-##' .. content for \description{} (no empty lines) ..
+
+##' Lag a mixed data sampling time series
 ##'
-##' .. content for \details{} ..
-##' @title 
-##' @param x 
-##' @param k 
+##' Compute a lagged version of mixed data sampling time series
+##' 
+##'  
+##' @param x an object of class \code{\link{mds}}
+##' @param k the number of lags of low frequency. This can either be a number indicating the highest lag, or the vector with lags which should be included.
 ##' @param ... 
-##' @return 
+##' @return a matrix containing lags
 ##' @author Vaidotas Zemlys
+##' @export
+##' @method mdslag mds
+##' @aliases mdslag mdslag.default
 mdslag.mds <- function(x,k,...) {
     m <- attr(x,"frequency.ratio")    
     n.x <- length(x)

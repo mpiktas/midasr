@@ -57,9 +57,11 @@ x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
 ##Simulate the response variable
 y <- midas.sim(500,theta0,x,1)
 
+##Remove unnecessary history of x
+x <- window(x,start=c(1500-500+1,1))
+
 ##Fit restricted model
-mr <- midas.r(y,x,resfun=theta.h0,start=list(resfun=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
-mu <- midas.u(y,x,k=3)
+mr <- midas_r(y~mdslag(x,4,theta.h0),data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
 
 ##The gradient function
 grad.h0<-function(p, dk) {

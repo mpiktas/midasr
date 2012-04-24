@@ -19,3 +19,4 @@ Collate:
     'simulate.R'
     'fit.R'
     'midasr-package.R'
+    'mds.R'
