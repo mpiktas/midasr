@@ -1,76 +1,11 @@
-##' Combine one low and one high frequency time series objects
-##' 
-##' Given low and high frequency time series, combine them into matrix 
-##' suitable for MIDAS regresion estimation.
-##' 
-##' @param y the response low frequency variable, a \code{ts} object
-##' @param x the predictor high frequency variable, a \code{ts} object
-##' @param exo the exogenous low frequency variables, a \code{ts} object, vector or matrix. It is forcibly converted to \code{ts} object with exact properties of \code{y}. 
-##' @param k the number of lags of predictor variable to include. This can either be a number indicating the highest lag, or the vector with lags which should be included. Note that the here the lag is low frequency lag. Hence effectively high frequency variable is lagged \eqn{k\times m} times, where \eqn{m} is frequency ratio, which is calculated as \code{frequency(x) %/% frequency(y)}
-##' @return a matrix
-##' @author Virmantas Kvedaras, Vaidotas Zemlys
-##' @details Note that this function does not check whether data is conformable. If \code{exo} variable does not have the same \code{start}, \code{end} and \code{frequency} as response variable \code{y}, error is produced.
-##' 
-##' @export
-##' @import foreach
-mmatrix.midas <- function(y, x, exo=NULL, k=0) {
-    n.x <- length(x)
-    n <- length(y)
-    m <- frequency(x) %/% frequency(y)
-
-    
-    if(length(k)>1) {
-        klags <- k
-        k <- max(k)
-    }
-    else {
-        klags <- 0:k
-    }
-        
-    idx <- m*c((n.x/m-n+k+1):(n.x/m))    
-
-        
-    X <- foreach(h.x=0:((k+1)*m-1), .combine='cbind') %do% {
-        x[idx-h.x]
-    }   
-
-    if(is.null(exo)) {
-        exo.cn <- character()
-    }
-    else {
-        exo <- try(ts(exo,start=start(y),end=end(y),frequency=frequency(y)))       
-        if(inherits(class(exo),"try-error")) stop("Failed to convert exogenous variables to time series object")
-        
-        if(inherits(exo,"mts")) {
-            exo <- exo[(k+1):n,]
-            exo.cn <- paste("exo",1:ncol(exo),sep="")
-        }
-        else {
-            exo <- exo[(k+1):n]
-            exo.cn <- "exo1"
-        }
-    }
-
-    y <- y[(k+1):n]
-
-    
-    res <- cbind(y,X,exo)
-    colnames(res) <- c("y", paste("X", rep(0:k, each=m), ".", rep(m:1, k+1), sep=""),exo.cn)
-
-    ###select only the lags needed
-    nmres <- colnames(res)
-    lagn <- unlist(lapply(klags,function(no) grep(paste("X",no,"[.]",sep=""),nmres,value=TRUE)))
-       
-    res[,c("y",lagn,exo.cn)]
-}
-##' Unrestricted MIDAS regression
+##' Estimate unrestricted MIDAS regression
 ##'
-##' Estimate unrestricted MIDAS regression using OLS. This function is basically a wrapper for \code{lm}.
+##' Estimate unrestricted MIDAS regression using OLS. This function is a wrapper for \code{lm}.
 ##' 
-##' @param y the response variable, \code{\link{ts}} object.
-##' @param x the predictor variable, \code{\link{ts}} object, such that \code{frequency(x) / frequency(y)} is an integer. 
-##' @param exo exogenous variables, \code{\link{ts}} object, having the same properties as \code{y}. The default is NULL, meaning that no exogenous variables are used in the regression.
-##' @param k the number of lags to include in MIDAS regression. See \code{\link{mmatrix.midas}} for more details.
+##' @param formula MIDAS regression model formula
+##' @param ldata low frequency data
+##' @param hdata high frequency data
+##' @param ... further arguments, which could be passed to \code{\link{lm}} function.
 ##' @return \code{\link{lm}} object.
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254 
@@ -94,32 +29,50 @@ mmatrix.midas <- function(y, x, exo=NULL, k=0) {
 ##' ##Simulate the response variable
 ##' y <- midas.sim(500,theta0,x,1)
 ##'
+##' ##Create low frequency data.frame
+##' ldt <- data.frame(y=y,trend=1:length(y))
+##'
+##' ##Create high frequency data.frame
+##'
+##' hdt <- data.frame(x=window(x, start=start(y)))
+##' 
 ##' ##Fit unrestricted model
-##' mu <- midas.u(y,x,k=3)
+##' mu <- midas_u(y~mdslag(x,3)-1, ldt, hdt)
 ##'
 ##' ##Include intercept and trend in regression
 ##'
-##' mu.it <- midas.u(y,x,exo=cbind(1,1:500),k=3)
+##' mu.it <- midas_u(y~mdslag(x,3)+trend, ldt, hdt)
 ##' 
 ##' @details MIDAS regression has the following form:
 ##' 
-##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+u_t}
+##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+\mathbf{z_t}\mathbf{\beta}+u_t}
 ##'
 ##' or alternatively
 ##'
-##' \deqn{y_t=\sum_{h=0}^{(k+1)m}\theta_hx_{tm-h}+u_t,}
+##' \deqn{y_t=\sum_{h=0}^{(k+1)m}\theta_hx_{tm-h}+\mathbf{z_t}\mathbf{\beta}+u_t,}
 ##' where \eqn{m} is the frequency ratio and
 ##' \eqn{k} is the number of lags included in the regression. 
 ##'
 ##' Given certain assumptions the coefficients can be estimated using usual OLS and they have the familiar properties associated with simple linear regression.
 ##'
-##' MIDAS regression involves times series with different frequencies. In R
-##' the frequency property is set when creating time series objects
-##' \code{\link{ts}}. Hence the frequency ratio \eqn{m} which figures in MIDAS regression is calculated from frequency property of time series objects supplied.
+##' MIDAS regression involves times series with different frequencies.
+##' 
 ##' @export
-midas.u <- function(y, x, exo = NULL, k) {
-    mm <- mmatrix.midas(y, x, exo, k)
-    lm(y~.-1,data=data.frame(mm))
+midas_u <- function(formula, ldata, hdata,...) {
+    Zenv <- new.env(parent=environment(formula))
+      
+    data <- mds(ldata,hdata)
+
+    ee <- as.environment(c(as.list(data$lowfreq),as.list(data$highfreq)))
+    parent.env(ee) <- parent.frame()
+    assign("ee",ee,Zenv)
+    
+    mf <- match.call(expand.dots = TRUE)
+    mf <- mf[-4]
+    mf[[1L]] <- as.name("lm")
+    names(mf)[3] <- "data"
+    mf[[3L]] <- as.name("ee")   
+    eval(mf,Zenv)
 }
 ##' Restricted MIDAS regression
 ##'
@@ -128,7 +81,7 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##' @param formula formula for restricted MIDAS regression
 ##' @param ldata low frequency data, a \code{data.frame} object
 ##' @param hdata high frequency data, a \code{data.frame} object
-##' @param start the starting values for optimisation. Must be a list with named elements \code{resfun} containing vector of starting values for restriction function and \code{exo} containing vector of starting values for exogenous variables.
+##' @param start the starting values for optimisation. Must be a list with named elements.
 ##' @param method the method used for optimisation, see \code{\link{optim}} documentation. All methods are suported except "L-BFGS-B" and "Brent". Default method is "BFGS".
 ##' @param control.optim a list of control parameters for \code{\link{optim}}.
 ##' @param ... additional arguments supplied for \code{resfun}
@@ -165,7 +118,7 @@ midas.u <- function(y, x, exo = NULL, k) {
 ##' y <- midas.sim(500,theta0,x,1)
 ##'
 ##' ##Remove unnecessary history of x
-##' x <- window(x,start=c(1500-500+1,1))
+##' x <- window(x,start=start(y))
 ##' 
 ##' ##Fit restricted model
 ##' mr <- midas_r(y~mdslag(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
@@ -340,7 +293,7 @@ midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=l
 ##' y <- midas.sim(500,theta0,x,1)
 ##'
 ##' ##Remove unnecessary history of x
-##' x <- window(x,start=c(1500-500+1,1))
+##' x <- window(x,start=start(y))
 ##' 
 ##' ##Fit restricted model
 ##' mr <- midas_r(y~mdslag(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
