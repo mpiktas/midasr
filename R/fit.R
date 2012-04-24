@@ -571,99 +571,99 @@ mdsr <- function(formula,data,start=list(resfun=NULL,exo=NULL), method="BFGS", c
 
 
 
-mdsr2 <- function(formula,data,start=list(resfun=NULL,exo=NULL), method="BFGS", control.optim=list(), ...) {
+mdsr2 <- function(formula,ldata,hdata,start=list(resfun=NULL,exo=NULL), method="BFGS", control.optim=list(), ...) {
+
+    Zenv <- new.env(parent=environment(formula))
+      
+    data <- mds(ldata,hdata)
+
+    ee <- as.environment(c(as.list(data$lowfreq),as.list(data$highfreq)))
+    parent.env(ee) <- parent.frame()
+    assign("ee",ee,Zenv)
     
-    hfr <- unlist(selectmds(formula,"mdslag"))    
-    if(is.null(hfr))stop("No mixed lag in formula")
-    hfr <- hfr[length(hfr):1]
-
-    lfr <- prunemds(formula,"mdslag")
-    if(lfr==formula[[2]])lfr <- formula(y~1)
-
     mf <- match.call(expand.dots = FALSE)
-    m <- match(c("formula", "data", "na.action"), names(mf), 0L)
+    m <- match(c("formula", "ldata", "na.action"), names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf[[1L]] <- as.name("model.frame")
-    mf[[2L]] <- lfr
-    
-    mf[[3L]] <- parse(text=paste(as.name(mf$data),"lowfreq",sep="$"))[[1]]
-    mf <- eval(mf,parent.frame())
+    names(mf)[3] <- "data"
+    mf[[3L]] <- as.name("ee")   
+    mf <- eval(mf,Zenv)
     mt <- attr(mf, "terms")
-
-    
+  
     y <- model.response(mf, "numeric")
-    exo <- model.matrix(mt, mf)    
-
+    X <- model.matrix(mt, mf)    
     
-    n <- length(y)
-    
-    kmax <- max(sapply(hfr,function(fr)max(eval(fr[[3]],parent.frame()))))
-
-    y <- y[(kmax+1):n]
-
-    if(ncol(exo)==0) {
-        exo <- NULL
-    }
-    else {
-        exo <- exo[(kmax+1):n,,drop=FALSE]
-    }
-    
-    X <- lapply(hfr,function(fr) {
-        args <- list(k=eval(fr[[3]],parent.frame()),
-                     m=eval(fr[[4]],parent.frame()))
-        argx <- eval(fr[[2]],as.list(data$highfreq))
-        attr(argx,"highfreqn") <- as.character(fr[[2]])
-        args <- c(list(x=argx),args)
-        res <- do.call("mdslag",args)
-        xkmax <- max(args$k)
-        nx <- nrow(res)
-        res[(kmax-xkmax+1):nx,]
-    })
-
     cl <- match.call()
 
-    rf <- lapply(hfr,function(fr) {
-        ff <- eval(fr[[5]],parent.frame())
-        rf.arg <- formals(ff)
-        class(rf.arg) <- "list"
-        rf.argnm <-  intersect(names(rf.arg)[-1],names(cl))
-        
-        for(i in rf.argnm) {
-            rf.arg[[i]] <- eval(cl[[i]],parent.frame())
+    ##High frequency variables can enter to formula
+    ##only within mdslag function
+    terms.lhs <- attr(mt,"term.labels") 
+    if(attr(mt,"intercept")==1) terms.lhs <- c("(Intercept)",terms.lhs)
+    
+    rf <- lapply(terms.lhs,function(fr) {     
+        if(length(grep("mdslag",fr))>0) {
+            fr <- parse(text=fr)[[1]]
+            ff <- eval(fr[[4]],parent.frame())
+            rf.arg <- formals(ff)
+            class(rf.arg) <- "list"
+            rf.argnm <-  intersect(names(rf.arg)[-1],names(cl))
+            
+            for(i in rf.argnm) {
+                rf.arg[[i]] <- eval(cl[[i]],parent.frame())
+            }
+            
+            rf.name <- as.character(fr[[4]])
+            rf <- function(p) {
+                rf.arg[[1]] <- p
+                do.call(rf.name,rf.arg)
+            }
+            return(rf)
+            
         }
-        
-        rf.name <- as.character(fr[[5]])
-        rf <- function(p) {
-            rf.arg[[1]] <- p
-            do.call(rf.name,rf.arg)
+        else {
+            return(function(p)p)
         }
-        rf
     })
 
-    if(is.null(start$exo) & !is.null(exo)) start$exo <- rep(0,ncol(exo))
+    nm.rf <- sapply(terms.lhs,function(fr) {
+        if(length(grep("mdslag",fr))>0) {
+            fr <- parse(text=fr)[[1]]
+            as.character(fr[[4]])
+        }
+        else {
+            fr
+        }
+    })
     
-    np <- cumsum(sapply(start,length))
+    names(rf) <- nm.rf
+   
+    start_default<- as.list(rep(0,length(rf)))
+    names(start_default) <- names(rf)
+    
+    start_default[names(start)] <- start
+
+    ##Get number of restrictions
+    restr.no <- sum(sapply(start_default[setdiff(names(start_default), terms.lhs)], length))
+    
+    np <- cumsum(sapply(start_default,length))
     
     pinds <- cbind(c(1,np[-length(np)]+1),np)
+    colnames(pinds) <- NULL
+    rownames(pinds) <- NULL
     
-    XX <- X
-    rff <- rf
+    starto <- unlist(start_default)
 
-    if(!is.null(exo))  {
-        rff <- c(rf,function(p,...)p)
-        XX <- c(X,list(exo))
-    }
-       
-    starto <- unlist(start)
-    
-    mdslhs <- function(p,...) {
+    restr_coef <- function(p,...) {
         pp <- apply(pinds,1,function(x)p[x[1]:x[2]])
-        coefs <- mapply(function(fun,param,...)fun(param,...),rff,pp,SIMPLIFY=FALSE)
-        
-        res <- mapply(function(x,beta)x%*%beta,XX,coefs,SIMPLIFY=FALSE)
-        Reduce("+",res)
+        res <- mapply(function(fun,param,...)fun(param,...),rf,pp,SIMPLIFY=FALSE)
+        unlist(res)
     }
-
+    
+    mdslhs <- function(p,...) {       
+        coefs <- restr_coef(p,...)
+        X%*%coefs
+    }
+  
     aa <- try(mdslhs(starto))
     
     fn0 <- function(p,...) {
@@ -671,15 +671,57 @@ mdsr2 <- function(formula,data,start=list(resfun=NULL,exo=NULL), method="BFGS", 
         sum(r^2)
     }
     
-    opt <- optim(starto,fn0,method=method,control=control.optim,...)
-
-    pp <- apply(pinds,1,function(x)opt$p[x[1]:x[2]])
-    coefs <- mapply(function(fun,param,...)fun(param,...),rff,pp,SIMPLIFY=FALSE)
+    opt <- optim(starto,fn0,method=method,control=control.optim,...)    
         
     list(coefficients=opt$par,
-         midas.coefficients=Reduce("c",coefs),
-         data=list(y=y,X=X,exo=exo),
+         midas.coefficients=restr_coef(opt$par,...),
+         model=cbind(y,X),
          opt=opt,
-         restr.fun=rf,
-         unrestricted=lm(y~.-1,data=data.frame(y=y,Reduce("cbind",X),exo)))
+         restr.fun=restr_coef,
+         unrestricted=lm(y~.-1,data=data.frame(cbind(y,X),check.names=FALSE)),
+         restr.no=restr.no)
+
+}
+
+
+hAh2.test <- function(restricted,gr=NULL,...) {
+
+    unrestricted <-  restricted$unrestricted
+      
+    if(is.null(gr))gr <- function(x,...)jacobian(restricted$restr.fun,x)
+    
+    D0 <- gr(coef(restricted),...)
+
+    X <- restricted$model[,-1]
+    
+    XtX <- crossprod(X)
+
+    dk <- ncol(XtX)    
+
+    if(nrow(D0) != dk)stop("The gradient dimensions are incorrect. Number of rows does not equal number of unrestricted coefficients")
+    
+    P <- chol(XtX)
+
+    cfur <- coef(unrestricted)
+   
+    
+    h.0 <- P%*%(cfur-restricted$midas.coefficients)
+
+    Delta.0 <- D0%*%tcrossprod(ginv(crossprod(D0,XtX)%*%D0),D0)
+
+    A0<-diag(dk)-P%*%tcrossprod(Delta.0,P)
+
+    se2 <- sum(residuals(unrestricted)^2)/(nrow(restricted$model)-dk)
+    STATISTIC <- t(h.0)%*%A0%*%h.0/se2
+    
+    names(STATISTIC) <- "hAh"
+    METHOD <- "hAh restriction test"
+    PARAMETER <- dk-restricted$restr.no
+    PVAL <- 1-pchisq(STATISTIC,PARAMETER)
+    names(PARAMETER) <- "df"
+    
+    structure(list(statistic = STATISTIC, parameter = PARAMETER, 
+        p.value = PVAL, method = METHOD), 
+        class = "htest")
+    
 }
