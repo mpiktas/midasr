@@ -20,18 +20,18 @@ theta.h1 <- function(p, dk) {
 
 }
 
-##Additional variables: intercept and trend
-exog<-ts(cbind(rep(1,length(y)),1:length(y)),start=start(y),frequency=frequency(y))
+##Low freqency variables:
+ldt <- data.frame(y=y,trend=1:length(y))
 
-##Starting zero values for additional variables
-exos<-rep(0,ncol(exog))
+##High frequency variables
+hdt <- data.frame(x=x)
 
 ###Estimate unrestricted and restricted models with different number of lags
 
 alli <- foreach(k=c(0,1,2,3)) %do% {	
 	mu <- midas.u(y,x,exo=exog,k)
-	mr <- midas.r(y,x,resfun=theta.h0,exo=exog,start=list(resfun=c(10,-10,-10,-10),exo=exos),dk=(k+1)*12)
-	mr1 <- midas.r(y,x,resfun=theta.h1,exo=exog,start=list(resfun=c(10,-10,-10,-10),exo=exos),dk=(k+1)*12)
+	mr <- midas.r(y~mdslag(x,k,theta.h0)+trend,ldt,hdt,start=list(theta.h0=c(10,-10,-10,-10)),dk=(k+1)*12)
+	mr1 <- midas.r(y~mdslag(x,k,theta.h1)+trend,ldt,hdt,start=list(theta.h1=c(10,-10,-10,-10)),dk=(k+1)*12)
     list(ur=mu,kz=mr,al=mr1,k=k)
 }
 
@@ -39,21 +39,20 @@ alli <- foreach(k=c(0,1,2,3)) %do% {
 
 sapply(alli,with,c(hAh.test(kz)$p.value,hAh.test(al)$p.value))
 
-###Get coefficients
+###Get coefficients of MIDAS regression
 
-##Unrestricted
-lapply(alli,with,coef(ur))
+lapply(alli,with,ur$midas.coefficients)
 ##KZ restriction
-lapply(alli,with,coef(kz))
+lapply(alli,with,kz$midas.coefficients)
 ##GH restriction
-lapply(alli,with,coef(al))
+lapply(alli,with,al$midas.coefficients)
 
 ###Get restriction parameters
 
 #Kvedaras, Zemlys
-sapply(alli,with,kz$parameters)
+sapply(alli,with,coef)
 #Almon lag
-sapply(alli,with,al$parameters)
+sapply(alli,with,coef)
 
 ##Plot the coefficients
 
@@ -62,6 +61,6 @@ par(mfrow=c(2,2))
 
 lapply(alli,with,{
     plot(coef(ur),xlab="Lags",ylab="Coefficients",main=paste("k = ",k,sep=""))
-    points(coef(kz),pch=16,col="red")
-    points(coef(al),pch=16,col="blue")
+    points(kz$midas.coefficients,pch=16,col="red")
+    points(al$midas.coefficients,pch=16,col="blue")
 })
