@@ -1,5 +1,3 @@
-rm(list=ls())
-
 library(midasr)
 data("USunempr")
 data("USrealgdp")
