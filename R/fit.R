@@ -129,18 +129,14 @@ midas_u <- function(formula, ldata, hdata,...) {
 ##' 
 ##' @details Given MIDAS regression:
 ##'
-##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+u_t}
+##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+\mathbf{z_t}\beta+u_t}
 ##'
 ##' estimate the parameters of the restriction
 ##'
 ##' \deqn{\theta_h=g(h,\lambda),}
-##' where \eqn{h=0,...,(k+1)m}.
+##' where \eqn{h=0,...,(k+1)m}, together with coefficients \eqn{\beta} corresponding to additional low frequency regressors.
 ##'
-##' MIDAS regression involves times series with different frequencies. In R
-##' the frequency property is set when creating time series objects
-##' \code{\link{ts}}. Hence the frequency ratio \eqn{m} which figures in
-##' MIDAS regression is calculated from frequency property of time series
-##' objects supplied.
+##' MIDAS regression involves times series with different frequencies. 
 ##'
 ##' The restriction function must return the restricted coefficients of
 ##' the MIDAS regression. If specific lag structure is needed (see
