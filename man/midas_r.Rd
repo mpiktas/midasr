@@ -38,7 +38,7 @@
   \code{\link{optim}}} \item{restr.fun}{the restriction
   function used in estimation.}
   \item{unrestricted}{unrestricted regression estimated
-  using \code{\link{midas.u}}} \item{restr.no}{the number
+  using \code{\link{midas_u}}} \item{restr.no}{the number
   of parameters used in restriction function}
 }
 \description{
@@ -63,12 +63,7 @@
   frequencies.
 
   The restriction function must return the restricted
-  coefficients of the MIDAS regression. If specific lag
-  structure is needed (see more in
-  \code{\link{mmatrix.midas}}) make sure that the number of
-  coefficients returned by restriction function coincides
-  with number of columns of the lagged high frequency
-  predictor variable matrix.
+  coefficients of the MIDAS regression.
 }
 \examples{
 ##The parameter function

@@ -2,11 +2,11 @@
 \alias{hAh.test}
 \title{Test restrictions on coefficients of MIDAS regression}
 \usage{
-  hAh.test(restricted, gr = NULL, ...)
+  hAh.test(x, gr = NULL, ...)
 }
 \arguments{
-  \item{restricted}{the restricted model, estimated with
-  \code{\link{midas_r}}}
+  \item{x}{MIDAS regression model with restricted
+  coefficients, estimated with \code{\link{midas_r}}}
 
   \item{gr}{the gradient of the restriction function. Must
   return the matrix with dimensions \eqn{d_k \times q},
@@ -72,7 +72,7 @@ grad.h0<-function(p, dk) {
 
 ##Perform test (the expected result should be the acceptance of null)
 
-hAh.test(mr,grad.h0,dk=4*12)
+hAh.test(mr,list(theta.h0=grad.h0),dk=4*12)
 
 ##Use numerical gradient instead of supplied one
 hAh.test(mr)

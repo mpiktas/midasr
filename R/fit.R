@@ -333,7 +333,7 @@ mdslag_coef <- function(x) {
 ##'
 ##' ##Perform test (the expected result should be the acceptance of null)
 ##'
-##' hAh.test(mr,grad.h0,dk=4*12)
+##' hAh.test(mr,list(theta.h0=grad.h0),dk=4*12)
 ##'
 ##' ##Use numerical gradient instead of supplied one 
 ##' hAh.test(mr)
@@ -362,17 +362,22 @@ hAh.test <- function(x,gr=NULL,...) {
         rf[names(x$restrictions)] <- x$restrictions            
     }
     else {
-        if(any(!names(x$restrictions)%in% names(gr)))stop("Gradient function(s) not supplied")
-        rf[names(x$restrictions)] <- gr[names(x$restrictions)]
+        if(is.function(gr) & length(x$restrictions)==1) {
+            rf[[names(x$restrictions)]] <- gr
+        }
+        else {
+            if(any(!names(x$restrictions)%in% names(gr)))stop("Gradient function(s) not supplied")
+            rf[names(x$restrictions)] <- gr[names(x$restrictions)]
+        }
     }
 
     all_coef <- function(p,...) {
              pp <- lapply(x$param.map,function(x)p[x])     
-             res <- mapply(function(fun,param,...)fun(param,...),rf,pp,SIMPLIFY=FALSE)
+             res <- mapply(function(fun,param,MoreArgs=...)fun(param,...),rf,pp,SIMPLIFY=FALSE)
              unlist(res)
          }
 
-    gr <- function(x,...)jacobian(all_coef,x)
+    gr <- function(x,...)jacobian(all_coef,x,...)
     
   #  restr.no <- sum(sapply(x$param.map[names(x$restrictions)],length))    
     
