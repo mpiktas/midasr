@@ -41,7 +41,7 @@ sapply(alli,with,c(hAh.test(kz)$p.value,hAh.test(al)$p.value))
 
 ###Get coefficients of MIDAS regression
 
-lapply(alli,with,ur$midas.coefficients)
+lapply(alli,with,coef(ur))
 ##KZ restriction
 lapply(alli,with,kz$midas.coefficients)
 ##GH restriction
@@ -50,9 +50,9 @@ lapply(alli,with,al$midas.coefficients)
 ###Get restriction parameters
 
 #Kvedaras, Zemlys
-sapply(alli,with,coef)
+sapply(alli,with,coef(kz))
 #Almon lag
-sapply(alli,with,coef)
+sapply(alli,with,coef(al))
 
 ##Plot the coefficients
 

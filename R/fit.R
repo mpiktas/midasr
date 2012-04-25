@@ -92,7 +92,7 @@ midas_u <- function(formula, ldata, hdata,...) {
 ##' \item{model}{model data}
 ##' \item{opt}{the output of call to \code{\link{optim}}}
 ##' \item{restr.fun}{the restriction function used in estimation.}
-##' \item{unrestricted}{unrestricted regression estimated using \code{\link{midas.u}}}
+##' \item{unrestricted}{unrestricted regression estimated using \code{\link{midas_u}}}
 ##' \item{restr.no}{the number of parameters used in restriction function}
 ##' 
 ##' 
@@ -139,10 +139,7 @@ midas_u <- function(formula, ldata, hdata,...) {
 ##' MIDAS regression involves times series with different frequencies. 
 ##'
 ##' The restriction function must return the restricted coefficients of
-##' the MIDAS regression. If specific lag structure is needed (see
-##' more in \code{\link{mmatrix.midas}}) make sure that the number of
-##' coefficients returned by restriction function coincides with number
-##' of columns of the lagged high frequency predictor variable matrix.
+##' the MIDAS regression.
 ##'
 ##' @export
 midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=list(), ...) {
