@@ -4,9 +4,6 @@ library(midasr)
 data("USunempr")
 data("USrealgdp")
 
-source("midasr/R/fit.R")
-source("midasr/R/mds.R")
-
 y <- diff(log(USrealgdp))
 x <- window(diff(USunempr),start=1949)
 
