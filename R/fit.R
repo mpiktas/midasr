@@ -196,7 +196,7 @@ midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=l
         }
     })
 
-    nm.rf <- sapply(terms.lhs,function(fr) {
+    names(rf) <- sapply(terms.lhs,function(fr) {
         if(length(grep("mdslag",fr))>0) {
             fr <- parse(text=fr)[[1]]
             as.character(fr[[4]])
@@ -206,33 +206,36 @@ midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=l
         }
     })
     
-    names(rf) <- nm.rf
-   
+    restr.name <- setdiff(names(rf), terms.lhs)
+    
     start_default<- as.list(rep(0,length(rf)))
     names(start_default) <- names(rf)
+
+    if(any(!restr.name%in% names(start)))stop("Starting values are not supplied for restriction function(s)")
     
     start_default[names(start)] <- start
 
-    ##Get number of restrictions
-    restr.no <- sum(sapply(start_default[setdiff(names(start_default), terms.lhs)], length))
+    restr.name <- setdiff(names(start_default), terms.lhs)
+    
+    restr.no <- sum(sapply(start_default[restr.name], length))
     
     np <- cumsum(sapply(start_default,length))
     
     pinds <- cbind(c(1,np[-length(np)]+1),np)
-    colnames(pinds) <- NULL
-    rownames(pinds) <- NULL
+    pinds <- apply(pinds,1,function(x)list(x[1]:x[2]))
+    pinds <- lapply(pinds,function(x)x[[1]])
+    names(pinds) <- names(start_default)
     
     starto <- unlist(start_default)
 
-    restr_coef <- function(p,...) {              
-        pp <- apply(pinds,1,function(x)list(p[x[1]:x[2]]))
-        pp <- lapply(pp,function(x)x[[1]])        
+    all_coef <- function(p,...) {              
+        pp <- lapply(pinds,function(x)p[x])     
         res <- mapply(function(fun,param,...)fun(param,...),rf,pp,SIMPLIFY=FALSE)
         unlist(res)
-    }
+    }   
     
     mdslhs <- function(p,...) {       
-        coefs <- restr_coef(p,...)
+        coefs <- all_coef(p,...)
         X%*%coefs
     }
   
@@ -245,21 +248,23 @@ midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=l
     
     opt <- optim(starto,fn0,method=method,control=control.optim,...)    
         
-    list(coefficients=opt$par,
-         midas.coefficients=restr_coef(opt$par,...),
+    res <- list(coefficients=opt$par,
+         midas.coefficients=all_coef(opt$par,...),
          model=cbind(y,X),
          opt=opt,
-         restr.fun=restr_coef,
+         restrictions=rf[restr.name],
          unrestricted=lm(y~.-1,data=data.frame(cbind(y,X),check.names=FALSE)),
-         restr.no=restr.no)
-
+         param.map=pinds)
+    class(res) <- "midas_r"
+    res
 }
+
 
 ##' Test restrictions on coefficients of MIDAS regression
 ##'
 ##' Perform a test whether the restriction on MIDAS regression coefficients holds.
 ##' 
-##' @param restricted the restricted model, estimated with \code{\link{midas_r}}
+##' @param x MIDAS regression model with restricted coefficients, estimated with \code{\link{midas_r}}
 ##' @param gr the gradient of the restriction function. Must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. Default value is \code{NULL}, which means that the numeric approximation of gradient is calculated.
 ##' @param ... the parameters supplied to gradient function, if \code{gr} is not \code{NULL}
 ##' @return a \code{htest} object
@@ -316,15 +321,36 @@ midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=l
 ##' @export
 ##' @import MASS
 ##' @import numDeriv
-hAh.test <- function(restricted,gr=NULL,...) {
+hAh.test <- function(x,gr=NULL,...) {
 
-    unrestricted <-  restricted$unrestricted
-      
-    if(is.null(gr))gr <- function(x,...)jacobian(restricted$restr.fun,x)
+    unrestricted <-  x$unrestricted
+
+    rf <- lapply(x$param.map,function(x)return(function(p,...)p)) 
+    names(rf) <- names(x$param.map)
+
+    restr.name <- names(x$restrictions)   
     
-    D0 <- gr(coef(restricted),...)
+    if(is.null(gr)) {
+        rf[names(x$restrictions)] <- x$restrictions            
+    }
+    else {
+        if(any(!names(x$restrictions)%in% names(gr)))stop("Gradient function(s) not supplied")
+        rf[names(x$restrictions)] <- gr[names(x$restrictions)]
+    }
 
-    X <- restricted$model[,-1]
+    all_coef <- function(p,...) {
+             pp <- lapply(x$param.map,function(x)p[x])     
+             res <- mapply(function(fun,param,...)fun(param,...),rf,pp,SIMPLIFY=FALSE)
+             unlist(res)
+         }
+
+    gr <- function(x,...)jacobian(all_coef,x)
+    
+  #  restr.no <- sum(sapply(x$param.map[names(x$restrictions)],length))    
+    
+    D0 <- gr(coef(x),...)
+
+    X <- x$model[,-1]
     
     XtX <- crossprod(X)
 
@@ -337,18 +363,18 @@ hAh.test <- function(restricted,gr=NULL,...) {
     cfur <- coef(unrestricted)
    
     
-    h.0 <- P%*%(cfur-restricted$midas.coefficients)
+    h.0 <- P%*%(cfur-x$midas.coefficients)
 
     Delta.0 <- D0%*%tcrossprod(ginv(crossprod(D0,XtX)%*%D0),D0)
 
     A0<-diag(dk)-P%*%tcrossprod(Delta.0,P)
 
-    se2 <- sum(residuals(unrestricted)^2)/(nrow(restricted$model)-dk)
+    se2 <- sum(residuals(unrestricted)^2)/(nrow(x$model)-dk)
     STATISTIC <- t(h.0)%*%A0%*%h.0/se2
     
     names(STATISTIC) <- "hAh"
     METHOD <- "hAh restriction test"
-    PARAMETER <- dk-restricted$restr.no
+    PARAMETER <- dk-length(coef(x))
     PVAL <- 1-pchisq(STATISTIC,PARAMETER)
     names(PARAMETER) <- "df"
     
