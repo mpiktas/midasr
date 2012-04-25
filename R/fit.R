@@ -259,6 +259,34 @@ midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=l
     res
 }
 
+midas_coef <- function(x) {
+    x$midas.coefficients
+}
+
+restr_param <- function(x,name=restr_names(x)) {
+    if(!any(name %in% names(x$param.map))) stop("Supply valid name(s) of the restriction function")
+    res <- lapply(name,function(nm)coef(x)[x$param.map[[nm]]])
+    names(res) <- name
+    if(length(res)==1)res <- res[[1]]
+    res
+}
+
+restr_coef <- function(x,name=restr_names(x)) {
+    if(!any(name %in% names(x$param.map))) stop("Supply valid name(s) of the restriction function")
+    res <- lapply(name,function(nm)x$restrictions[[nm]](restr_param(x,nm)))
+    names(res) <- name
+    if(length(res)==1)res <- res[[1]] 
+    res
+}
+
+restr_names <- function(x) {
+    names(x$restrictions)
+}
+
+mdslag_coef <- function(x) {
+    cf <- coef(x)
+    cf[grep("mdslag",names(cf))]
+}
 
 ##' Test restrictions on coefficients of MIDAS regression
 ##'

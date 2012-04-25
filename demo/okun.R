@@ -4,6 +4,9 @@ library(midasr)
 data("USunempr")
 data("USrealgdp")
 
+source("midasr/R/fit.R")
+source("midasr/R/mds.R")
+
 y <- diff(log(USrealgdp))
 x <- window(diff(USunempr),start=1949)
 
@@ -41,18 +44,18 @@ sapply(alli,with,c(hAh.test(kz)$p.value,hAh.test(al)$p.value))
 
 ###Get coefficients of MIDAS regression
 
-lapply(alli,with,coef(ur))
+lapply(alli,with,mdslag_coef(ur))
 ##KZ restriction
-lapply(alli,with,kz$midas.coefficients)
+lapply(alli,with,restr_coef(kz))
 ##GH restriction
-lapply(alli,with,al$midas.coefficients)
+lapply(alli,with,restr_coef(al))
 
 ###Get restriction parameters
 
 #Kvedaras, Zemlys
-sapply(alli,with,coef(kz))
+sapply(alli,with,restr_param(kz))
 #Almon lag
-sapply(alli,with,coef(al))
+sapply(alli,with,restr_param(al))
 
 ##Plot the coefficients
 
@@ -60,7 +63,7 @@ dev.new()
 par(mfrow=c(2,2))
 
 lapply(alli,with,{
-    plot(coef(ur),xlab="Lags",ylab="Coefficients",main=paste("k = ",k,sep=""))
-    points(kz$midas.coefficients,pch=16,col="red")
-    points(al$midas.coefficients,pch=16,col="blue")
+    plot(mdslag_coef(ur),xlab="Lags",ylab="Coefficients",main=paste("k = ",k,sep=""))
+    points(restr_coef(kz),pch=16,col="red")
+    points(restr_coef(al),pch=16,col="blue")
 })
