@@ -189,7 +189,6 @@ midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=l
                 do.call(rf.name,rf.arg)
             }
             return(rf)
-            
         }
         else {
             return(function(p)p)
@@ -228,28 +227,28 @@ midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=l
     
     starto <- unlist(start_default)
 
-    all_coef <- function(p,...) {              
+    all_coef <- function(p) {              
         pp <- lapply(pinds,function(x)p[x])     
-        res <- mapply(function(fun,param,...)fun(param,...),rf,pp,SIMPLIFY=FALSE)
+        res <- mapply(function(fun,param)fun(param),rf,pp,SIMPLIFY=FALSE)
         unlist(res)
     }   
     
-    mdslhs <- function(p,...) {       
-        coefs <- all_coef(p,...)
+    mdslhs <- function(p) {       
+        coefs <- all_coef(p)
         X%*%coefs
     }
   
     aa <- try(mdslhs(starto))
     
     fn0 <- function(p,...) {
-        r <- y - mdslhs(p,...)
+        r <- y - mdslhs(p)
         sum(r^2)
     }
     
     opt <- optim(starto,fn0,method=method,control=control.optim,...)    
         
     res <- list(coefficients=opt$par,
-         midas.coefficients=all_coef(opt$par,...),
+         midas.coefficients=all_coef(opt$par),
          model=cbind(y,X),
          opt=opt,
          restrictions=rf[restr.name],
@@ -359,27 +358,54 @@ hAh.test <- function(x,gr=NULL,...) {
     restr.name <- names(x$restrictions)   
     
     if(is.null(gr)) {
-        rf[names(x$restrictions)] <- x$restrictions            
-    }
-    else {
-        if(is.function(gr) & length(x$restrictions)==1) {
-            rf[[names(x$restrictions)]] <- gr
-        }
-        else {
-            if(any(!names(x$restrictions)%in% names(gr)))stop("Gradient function(s) not supplied")
-            rf[names(x$restrictions)] <- gr[names(x$restrictions)]
-        }
-    }
-
-    all_coef <- function(p,...) {
+        rf[names(x$restrictions)] <- x$restrictions
+        all_coef <- function(p,...) {
              pp <- lapply(x$param.map,function(x)p[x])     
              res <- mapply(function(fun,param,MoreArgs=...)fun(param,...),rf,pp,SIMPLIFY=FALSE)
              unlist(res)
          }
 
-    gr <- function(x,...)jacobian(all_coef,x,...)
-    
-  #  restr.no <- sum(sapply(x$param.map[names(x$restrictions)],length))    
+        gr <- function(x,...)jacobian(all_coef,x,...)
+        
+    }
+    else {
+        if(is.function(gr) & length(x$restrictions)==1) {
+            grf <- list(gr)
+            names(grf) <- names(x$restrictions)
+        }
+        else {
+            if(is.null(names(gr)) | !is.list(gr)) stop("Argument gr must be a named list")
+            if(any(!names(gr) %in% names(x$restrictions))) stop("The names of the list must coincide with the names of the restriction functions")
+            grf <- lapply(x$param.map,function(x)return(function(p)return(matrix(1))))
+            grf[names(x$restrictions)] <- gr[names(x$restrictions)]
+        }
+        pp0 <- lapply(x$param.map,function(xx)coef(x)[xx])            
+        grmat0 <- mapply(function(fun,param,MoreArgs=...)fun(param,...),grf,pp0,SIMPLIFY=FALSE)
+        colnos <- sapply(grmat0,ncol)
+        rownos <- sapply(grmat0,nrow)
+        np <- length(colnos)
+        ccol <- cumsum(colnos)
+        rrow <- cumsum(rownos)
+        pinds <- cbind(c(1,rrow[-np]+1),rrow,
+                       c(1,ccol[-np]+1),ccol)
+        pinds <- apply(pinds,1,function(x)list(row=x[1]:x[2],col=x[3]:x[4]))            
+        gr <- function(p,...) {
+            pp <- lapply(x$param.map,function(x)p[x])
+            grmat <- mapply(function(fun,param,MoreArgs=...)fun(param,...),grf,pp,SIMPLIFY=FALSE)
+            if(length(grmat)==1) {
+                res <- grmat[[1]]
+            }
+            else {
+                res <- matrix(0,nrow=sum(rownos),ncol=sum(colnos))
+                mapply(function(m,ind){res[ind$row,ind$col] <- m},
+                       grmat,pinds)
+                   
+            }
+            res
+        }
+    }
+  
+##  restr.no <- sum(sapply(x$param.map[names(x$restrictions)],length))    
     
     D0 <- gr(coef(x),...)
 
