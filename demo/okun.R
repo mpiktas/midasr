@@ -28,8 +28,8 @@ hdt <- data.frame(x=x)
 
 alli <- foreach(k=c(0,1,2,3)) %do% {	
 	mu <- midas_u(y~mdslag(x,k)+trend,ldt,hdt)
-	mr <- midas_r(y~mdslag(x,k,theta.h0)+trend,ldt,hdt,start=list(theta.h0=c(10,-10,-10,-10)),dk=(k+1)*12)
-	mr1 <- midas_r(y~mdslag(x,k,theta.h1)+trend,ldt,hdt,start=list(theta.h1=c(10,-10,-10,-10)),dk=(k+1)*12)
+	mr <- midas_r(y~mdslag(x,k,theta.h0)+trend,ldt,hdt,start=list(theta.h0=c(10,-10,-10,-10)),dk=(k+1)*12,control=list(maxit=1000))
+	mr1 <- midas_r(y~mdslag(x,k,theta.h1)+trend,ldt,hdt,start=list(theta.h1=c(10,-10,-10,-10)),dk=(k+1)*12,control=list(maxit=1000))
     list(ur=mu,kz=mr,al=mr1,k=k)
 }
 
