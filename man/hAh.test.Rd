@@ -16,7 +16,7 @@
   means that the numeric approximation of gradient is
   calculated.}
 
-  \item{...}{the parameters supplied to gradient function,
+  \item{...}{the arguments supplied to gradient function,
   if \code{gr} is not \code{NULL}}
 }
 \value{
@@ -72,7 +72,7 @@ grad.h0<-function(p, dk) {
 
 ##Perform test (the expected result should be the acceptance of null)
 
-hAh.test(mr,list(theta.h0=grad.h0),dk=4*12)
+hAh.test(mr,grad.h0,dk=4*12)
 
 ##Use numerical gradient instead of supplied one
 hAh.test(mr)
