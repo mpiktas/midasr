@@ -5,7 +5,7 @@
   midas_coef(x)
 }
 \arguments{
-  \item{x}{an output from \code\{\link{midas_r}}}
+  \item{x}{an output from \code{\link{midas_r}}}
 }
 \value{
   vector with coefficients of MIDAS regression

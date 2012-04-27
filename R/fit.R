@@ -261,7 +261,7 @@ midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=l
 ##'
 ##' A helper function for working with output of \code{\link{midas_r}}. Returns the regression coefficients.
 ##' 
-##' @param x an output from \code\{\link{midas_r}}
+##' @param x an output from \code{\link{midas_r}}
 ##' @return vector with coefficients of MIDAS regression
 ##' @author Vaidotas Zemlys
 midas_coef <- function(x) {
