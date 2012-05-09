@@ -253,7 +253,8 @@ midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=l
          opt=opt,
          restrictions=rf[restr.name],
          unrestricted=lm(y~.-1,data=data.frame(cbind(y,X),check.names=FALSE)),
-         param.map=pinds)
+         param.map=pinds,
+                fn0=fn0)
     class(res) <- "midas_r"
     res
 }
