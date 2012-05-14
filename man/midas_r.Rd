@@ -1,11 +1,17 @@
 \name{midas_r}
 \alias{midas_r}
+\alias{midas_r.formula}
 \title{Restricted MIDAS regression}
 \usage{
-  midas_r(formula, ldata, hdata, start, method = "BFGS",
-    control.optim = list(), ...)
+  midas_r(x, ...)
+
+  \method{midas_r}{formula} (formula, ldata, hdata, start,
+    optim = list(func = "optim", method = "BFGS"), ...)
 }
 \arguments{
+  \item{x}{either formula for restricted MIDAS regression
+  or \code{midas__r} object.}
+
   \item{formula}{formula for restricted MIDAS regression}
 
   \item{ldata}{low frequency data, a \code{data.frame}
@@ -17,35 +23,40 @@
   \item{start}{the starting values for optimisation. Must
   be a list with named elements.}
 
-  \item{method}{the method used for optimisation, see
-  \code{\link{optim}} documentation. All methods are
-  suported except "L-BFGS-B" and "Brent". Default method is
-  "BFGS".}
-
-  \item{control.optim}{a list of control parameters for
-  \code{\link{optim}}.}
+  \item{optim}{the list containing the name of optimisation
+  function and its arguments. The default is to use
+  \code{\link{optim}} with \code{method="BFGS"}}
 
   \item{...}{additional arguments supplied for
   \code{resfun}}
 }
 \value{
-  a list with the following elements:
+  a \code{midas_r} object which is the list with the
+  following elements:
 
   \item{coefficients}{the estimates of parameters of
   restrictions} \item{midas.coefficientas}{the estimates of
   restricted coefficients of MIDAS regression}
-  \item{model}{model data} \item{opt}{the output of call to
-  \code{\link{optim}}} \item{restr.fun}{the restriction
-  function used in estimation.}
+  \item{model}{model data} \item{restrictions}{the
+  restriction function(s) used in estimation.}
   \item{unrestricted}{unrestricted regression estimated
-  using \code{\link{midas_u}}} \item{restr.no}{the number
-  of parameters used in restriction function}
+  using \code{\link{midas_u}}} \item{param.map}{parameter
+  map for optimisation function} \item{fn0}{optimisation
+  function for non-linear least squares problem solved in
+  restricted MIDAS regression} \item{rhs}{the function
+  which evaluates the right-hand side of the MIDAS
+  regression} \item{allcoef}{the function which evaluates
+  the restricted coefficientsof MIDAS regression}
+  \item{opt}{the output of optimisation procedure}
+  \item{argmap.opt}{the list containing the name of
+  optimisation function together with arguments for
+  optimisation function} \item{start.opt}{the starting
+  values used in optimisation}
 }
 \description{
   Estimate restricted MIDAS regression using non-linear
-  least squares. Uses \code{optim} for optimisation.
-  Currently only the estimates of the parameters are given,
-  without their standard errors.
+  least squares. Currently only the estimates of the
+  parameters are given, without their standard errors.
 }
 \details{
   Given MIDAS regression:
@@ -97,5 +108,8 @@ mr.it <- midas_r(y~mdslag(x,3,theta.h0)+trend,data.frame(y=y,trend=1:500),data.f
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys
+}
+\seealso{
+  midas_r.midas_r
 }
 
