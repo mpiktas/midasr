@@ -76,27 +76,34 @@ midas_u <- function(formula, ldata, hdata,...) {
 }
 ##' Restricted MIDAS regression
 ##'
-##' Estimate restricted MIDAS regression using non-linear least squares. Uses \code{optim} for optimisation. Currently only the estimates of the parameters are given, without their standard errors.
-##' 
+##' Estimate restricted MIDAS regression using non-linear least squares. Currently only the estimates of the parameters are given, without their standard errors.
+##'
+##' @param x either formula for restricted MIDAS regression or \code{midas__r} object. 
 ##' @param formula formula for restricted MIDAS regression
 ##' @param ldata low frequency data, a \code{data.frame} object
 ##' @param hdata high frequency data, a \code{data.frame} object
 ##' @param start the starting values for optimisation. Must be a list with named elements.
-##' @param method the method used for optimisation, see \code{\link{optim}} documentation. All methods are suported except "L-BFGS-B" and "Brent". Default method is "BFGS".
-##' @param control.optim a list of control parameters for \code{\link{optim}}.
+##' @param optim the list containing the name of optimisation function and its arguments. The default is to use \code{\link{optim}} with \code{method="BFGS"}
 ##' @param ... additional arguments supplied for \code{resfun}
-##' @return a list with the following elements:
+##' @return a \code{midas_r} object which is the list with the following elements:
 ##' 
 ##' \item{coefficients}{the estimates of parameters of restrictions}
 ##' \item{midas.coefficientas}{the estimates of restricted coefficients of MIDAS regression}
 ##' \item{model}{model data}
-##' \item{opt}{the output of call to \code{\link{optim}}}
-##' \item{restr.fun}{the restriction function used in estimation.}
+##' \item{restrictions}{the restriction function(s) used in estimation.}
 ##' \item{unrestricted}{unrestricted regression estimated using \code{\link{midas_u}}}
-##' \item{restr.no}{the number of parameters used in restriction function}
+##' \item{param.map}{parameter map for optimisation function}
+##' \item{fn0}{optimisation function for non-linear least squares problem solved in restricted MIDAS regression}
+##' \item{rhs}{the function which evaluates the right-hand side of the MIDAS regression}
+##' \item{allcoef}{the function which evaluates the restricted coefficientsof MIDAS regression}
+##' \item{opt}{the output of optimisation procedure}
+##' \item{argmap.opt}{the list containing the name of optimisation function together with arguments for optimisation function}
+##' \item{start.opt}{the starting values used in optimisation}
 ##' 
 ##' 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @rdname midas_r
+##' @seealso midas_r.midas_r
 ##' @examples
 ##' ##The parameter function
 ##' theta.h0 <- function(p, dk) {
@@ -140,9 +147,14 @@ midas_u <- function(formula, ldata, hdata,...) {
 ##'
 ##' The restriction function must return the restricted coefficients of
 ##' the MIDAS regression.
-##'
+##' 
 ##' @export
-midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=list(), ...) {
+midas_r <- function(x,...)UseMethod("midas_r")
+
+#' @rdname midas_r
+#' @method midas_r formula
+#' @export
+midas_r.formula <- function(formula, ldata, hdata, start, optim=list(func="optim",method="BFGS"), ...) {
 
     Zenv <- new.env(parent=environment(formula))
       
@@ -233,31 +245,174 @@ midas_r <- function(formula, ldata, hdata, start, method="BFGS", control.optim=l
         unlist(res)
     }   
     
-    mdslhs <- function(p) {       
+    mdsrhs <- function(p) {       
         coefs <- all_coef(p)
         X%*%coefs
     }
   
-    aa <- try(mdslhs(starto))
+    aa <- try(mdsrhs(starto))
     
     fn0 <- function(p,...) {
-        r <- y - mdslhs(p)
+        r <- y - mdsrhs(p)
+#        print(fn2(p)-sum(r^2))
         sum(r^2)
     }
     
-    opt <- optim(starto,fn0,method=method,control=control.optim,...)    
-        
-    res <- list(coefficients=opt$par,
-         midas.coefficients=all_coef(opt$par),
-         model=cbind(y,X),
-         opt=opt,
-         restrictions=rf[restr.name],
-         unrestricted=lm(y~.-1,data=data.frame(cbind(y,X),check.names=FALSE)),
-         param.map=pinds,
-                fn0=fn0)
-    class(res) <- "midas_r"
-    res
+  #  opt <- optim(starto,fn0,method=method,control=control.optim,...)    
+
+    prepmd <- list(coefficients=starto,
+                midas.coefficients=all_coef(starto),
+                model=cbind(y,X),
+                restrictions=rf[restr.name],
+                unrestricted=lm(y~.-1,data=data.frame(cbind(y,X),check.names=FALSE)),
+                param.map=pinds,
+                fn0=fn0,
+                rhs=mdsrhs,
+                allcoef=all_coef,
+                opt=NULL,
+                argmap.opt=optim,
+                start.opt=starto)
+    class(prepmd) <- "midas_r"
+    midas_r.fit(prepmd)    
 }
+##' Restricted MIDAS regression
+##'
+##' Reestimate the MIDAS regression with different starting values
+##' 
+##' @param x \code{midas_r} object 
+##' @param start the starting values
+##' @param optim.func a character string of the optimisation function to use. The default value is to use the function of previous optimisation.
+##' @param ... further arguments to optimisation function. If none are supplied, the arguments of previous optimisation are used.
+##' @return \code{midas_r} object
+##' @method midas_r midas_r
+##' @seealso midas_r.formula
+##' @author Vaidotas Zemlys
+##' @export
+midas_r.midas_r <- function(x,start=coef(x),optim.func=x$argmap.opt$func,...) {
+   
+    cl <- match.call(expand.dots=TRUE)
+    dotargnm <- setdiff(names(cl)[-1],c("x","start","optim.func"))
+
+    ##Perform check whether arguments are ok and eval them
+    if(length(dotargnm)>0) {
+        offending <- dotargnm[!dotargnm %in% names(formals(optim.func))]
+        if(length(offending)>0)  {
+            stop(paste("The function ",optim.func," does not have the following arguments: ", paste(offending,collapse=", "),sep=""))
+        }
+        else {
+            oarg <- as.list(cl[[dotargnm]])
+            names(oarg) <- dotargnm
+            for(i in dotargnm) {
+                oarg[[i]] <- eval(oarg[[i]],parent.frame())
+            }
+        }
+    }
+    else {
+        oarg <- NULL
+    }
+
+    if(optim.func!=x$argmap.opt$func) {
+        argmap <- c(list(func=optim.func),oarg)
+    }              
+    else {
+         argmap <- x$argmap.opt
+         argmap$func <- NULL
+         argnm <- union(names(argmap),names(oarg))
+         marg <- vector("list",length(argnm))
+         names(marg) <- argnm
+         ##New supplied arguments override the old ones
+         marg[names(oarg)] <- oarg
+         ##Already set arguments are left intact
+         oldarg <- setdiff(names(argmap),names(oarg))
+         marg[oldarg] <- argmap[oldarg]
+         argmap <- c(list(func=optim.func),marg)
+    }
+    
+    x$start.opt <- start
+    x$argmap.opt <- argmap
+    
+    midas_r.fit(x)
+}
+
+##' Fit restricted MIDAS regression
+##'
+##' Workhorse function for fitting restricted MIDAS regression
+##'  
+##' @param x \code{midas_r} object
+##' @return \code{\link{midas_r}} object
+##' @author Vaidotas Zemlys
+midas_r.fit <- function(x) {
+    args <- x$argmap.opt
+    function.opt <- args$func
+    args$func <- NULL
+    if(function.opt=="optim" | function.opt=="spg") {  
+        args$p <- x$start.opt
+        args$fn <- x$fn0
+        opt <- do.call(function.opt,args)
+        par <- opt$par
+        names(par) <- names(coef(x))
+    }
+    if(function.opt=="nls") {
+        rhs <- x$rhs
+        y <- x$model[,1]
+        args$formula <- formula(y~rhs(p))
+        args$start <- list(p=x$start.opt)
+        opt <- do.call("nls",args)
+        par <- coef(opt)
+        names(par) <- names(coef(x))
+    }
+    x$opt <- opt
+    x$coefficients <- par
+    x$midas.coefficients <- x$allcoef(par)
+    x
+}
+                        
+                        
+
+##' Calculate numerical approximation of gradient of RSS of
+##' MIDAS regression 
+##'
+##' Calculate nummerical approximation of gradient of residual sum of
+##' squares function of estimated MIDAS regression
+##' 
+##' @param x a \code{\link{midas_r}} object
+##' @param ... further arguments to function \code{\link{grad}} from package \code{numDeriv}
+##' @return numeric vector
+##' @author Vaidotas Zemlys
+##' @seealso midas_r.formula 
+##' @rdname gradient
+##' @export
+gradient <- function(x,...)UseMethod("mdslag")
+
+#' @rdname gradient
+#' @method gradient midas_r
+#' @export
+gradient.midas_r <- function(x) {
+    grad(x$fn0,coef(x),...)
+}
+
+##' Calculate numerical approximation of gradient of RSS of
+##' MIDAS regression 
+##'
+##' Calculate nummerical approximation of gradient of residual sum of
+##' squares function of estimated MIDAS regression
+##' 
+##' @param x a \code{\link{midas_r}} object
+##' @param ... further arguments to function \code{\link{hessian}} from package \code{numDeriv}
+##' @return numeric vector
+##' @author Vaidotas Zemlys
+##' @rdname hessian 
+##' @seealso midas_r.formula
+##' @export
+hessian <- function(x,...)UseMethod("hessian")
+
+#' @rdname hessian
+#' @method hessian midas_r
+#' @export
+hessian.midas_r <- function(x,...) {
+    hessian(x$fn0,coef(x),...)
+}
+
 ##' Return the coefficients of MIDAS regression
 ##'
 ##' A helper function for working with output of \code{\link{midas_r}}. Returns the regression coefficients.
