@@ -1,0 +1,32 @@
+\name{deriv_tests}
+\alias{deriv_tests}
+\alias{deriv_tests.midas_r}
+\title{Check whether non-linear least squares restricted MIDAS regression problem has converged}
+\usage{
+  deriv_tests(x, tol = 1e-06)
+
+  \method{check_convergence}{midas_r} (x, tol = 1e-06)
+}
+\arguments{
+  \item{x}{\code{\link{midas_r}} object}
+
+  \item{tol}{a tolerance, values below the tolerance are
+  considered zero}
+}
+\value{
+  a list with gradient, hessian of optimisation function
+  and convergence message
+}
+\description{
+  Computes the gradient and hessian of the optimisation
+  function of restricted MIDAS regression and checks
+  whether the conditions of local optimum are met.
+  Numerical estimates are used.
+}
+\author{
+  Vaidotas Zemlys
+}
+\seealso{
+  midas_r
+}
+

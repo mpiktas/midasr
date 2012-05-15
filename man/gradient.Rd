@@ -6,7 +6,7 @@ MIDAS regression}
 \usage{
   gradient(x, ...)
 
-  \method{gradient}{midas_r} (x)
+  \method{gradient}{midas_r} (x, ...)
 }
 \arguments{
   \item{x}{a \code{\link{midas_r}} object}
