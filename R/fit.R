@@ -448,6 +448,7 @@ deriv_tests.midas_r <- function(x,tol=1e-6) {
 ##' @param x an output from \code{\link{midas_r}}
 ##' @return vector with coefficients of MIDAS regression
 ##' @author Vaidotas Zemlys
+##' @export
 midas_coef <- function(x) {
     x$midas.coefficients
 }
@@ -459,6 +460,7 @@ midas_coef <- function(x) {
 ##' @param name name of the restriction function, the default value is the names of the restriction functions supplied to \code{\link{midas_r}}
 ##' @return a list if \code{length(name)>1}, a vector otherwise
 ##' @author Vaidotas Zemlys
+##' @export
 restr_param <- function(x,name=restr_names(x)) {
     if(!any(name %in% names(x$param.map))) stop("Supply valid name(s) of the restriction function")
     res <- lapply(name,function(nm)coef(x)[x$param.map[[nm]]])
@@ -474,6 +476,7 @@ restr_param <- function(x,name=restr_names(x)) {
 ##' @param name name(s) of the restriction function(s), the default value is the name(s) of the restriction function(s) supplied to \code{\link{midas_r}}
 ##' @return a list if \code{length(name)>1}, a vector otherwise
 ##' @author Vaidotas Zemlys
+##' @export
 restr_coef <- function(x,name=restr_names(x)) {
     if(!any(name %in% names(x$param.map))) stop("Supply valid name(s) of the restriction function")
     res <- lapply(name,function(nm)x$restrictions[[nm]](restr_param(x,nm)))
@@ -488,6 +491,7 @@ restr_coef <- function(x,name=restr_names(x)) {
 ##' @param x an output from \code{\link{midas_r}}
 ##' @return a character vector
 ##' @author Vaidotas Zemlys
+##' @export
 restr_names <- function(x) {
     names(x$restrictions)
 }
@@ -498,6 +502,7 @@ restr_names <- function(x) {
 ##' @param x an output from \code{\link{midas_u}}
 ##' @return a vector
 ##' @author Vaidotas Zemlys
+##' @export
 mdslag_coef <- function(x) {
     cf <- coef(x)
     cf[grep("mdslag",names(cf))]
