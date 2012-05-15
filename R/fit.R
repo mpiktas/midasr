@@ -422,14 +422,14 @@ hessian.midas_r <- function(x,...) {
 ##' @param x \code{\link{midas_r}} object
 ##' @param tol a tolerance, values below the tolerance are considered zero
 ##' @return a list with gradient, hessian of optimisation function and convergence message
-##' @rdname check_convergence
+##' @rdname deriv_tests
 ##' @seealso midas_r
 ##' @export
 ##' @author Vaidotas Zemlys
 deriv_tests<- function(x,tol=1e-6) UseMethod("deriv_tests")
 
-#' @rdname check_convergence
-#' @method check_convergence midas_r
+#' @rdname deriv_tests
+#' @method deriv_tests midas_r
 #' @export
 deriv_tests.midas_r <- function(x,tol=1e-6) {
     gr <- gradient(x)

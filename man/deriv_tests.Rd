@@ -5,7 +5,7 @@
 \usage{
   deriv_tests(x, tol = 1e-06)
 
-  \method{check_convergence}{midas_r} (x, tol = 1e-06)
+  \method{deriv_tests}{midas_r} (x, tol = 1e-06)
 }
 \arguments{
   \item{x}{\code{\link{midas_r}} object}
