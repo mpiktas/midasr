@@ -437,7 +437,7 @@ deriv_tests.midas_r <- function(x,tol=1e-6) {
     egh <- eigen(hess)$values
 
     first <- sum(abs(gr))<tol
-    second <- !any(egh<0) & any(abs(egh)<tol)
+    second <- !any(egh<0) & !any(abs(egh)<tol)
     list(first=first,second=second,gradient=gr,eigenval=egh)
 }
 
