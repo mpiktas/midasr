@@ -37,11 +37,11 @@
 ##' hdt <- data.frame(x=window(x, start=start(y)))
 ##' 
 ##' ##Fit unrestricted model
-##' mu <- midas_u(y~mdslag(x,3)-1, ldt, hdt)
+##' mu <- midas_u(y~embedlf(x,3)-1, ldt, hdt)
 ##'
 ##' ##Include intercept and trend in regression
 ##'
-##' mu.it <- midas_u(y~mdslag(x,3)+trend, ldt, hdt)
+##' mu.it <- midas_u(y~embedlf(x,3)+trend, ldt, hdt)
 ##' 
 ##' @details MIDAS regression has the following form:
 ##' 
@@ -58,20 +58,25 @@
 ##' MIDAS regression involves times series with different frequencies.
 ##' 
 ##' @export
-midas_u <- function(formula, ldata, hdata,...) {
+midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
     Zenv <- new.env(parent=environment(formula))
-      
-    data <- mds(ldata,hdata)
 
-    ee <- as.environment(c(as.list(data$lowfreq),as.list(data$highfreq)))
-    parent.env(ee) <- parent.frame()
-    assign("ee",ee,Zenv)
+    if(missing(ldata) | missing(hdata)) {
+        ee <- NULL
+    }
+    else {
+        data <- mds(ldata,hdata)
+
+        ee <- as.environment(c(as.list(data$lowfreq),as.list(data$highfreq)))
+        parent.env(ee) <- parent.frame()
+    }
     
+    assign("ee",ee,Zenv)    
     mf <- match.call(expand.dots = TRUE)
     mf <- mf[-4]
     mf[[1L]] <- as.name("lm")
-    names(mf)[3] <- "data"
     mf[[3L]] <- as.name("ee")   
+    names(mf)[3] <- "data"    
     eval(mf,Zenv)
 }
 ##' Restricted MIDAS regression
@@ -128,11 +133,11 @@ midas_u <- function(formula, ldata, hdata,...) {
 ##' x <- window(x,start=start(y))
 ##' 
 ##' ##Fit restricted model
-##' mr <- midas_r(y~mdslag(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
+##' mr <- midas_r(y~embedlf(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
 ##'
 ##' ##Include intercept and trend in regression
 ##'
-##' mr.it <- midas_r(y~mdslag(x,3,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
+##' mr.it <- midas_r(y~embedlf(x,3,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
 ##' 
 ##' @details Given MIDAS regression:
 ##'
@@ -179,12 +184,12 @@ midas_r.formula <- function(formula, ldata, hdata, start, optim=list(func="optim
     cl <- match.call()
 
     ##High frequency variables can enter to formula
-    ##only within mdslag function
+    ##only within embedlf function
     terms.lhs <- attr(mt,"term.labels") 
     if(attr(mt,"intercept")==1) terms.lhs <- c("(Intercept)",terms.lhs)
     
     rf <- lapply(terms.lhs,function(fr) {     
-        if(length(grep("mdslag",fr))>0) {
+        if(length(grep("embedlf",fr))>0) {
             fr <- parse(text=fr)[[1]]
             ff <- eval(fr[[4]],parent.frame())
             rf.arg <- formals(ff)
@@ -208,7 +213,7 @@ midas_r.formula <- function(formula, ldata, hdata, start, optim=list(func="optim
     })
 
     names(rf) <- sapply(terms.lhs,function(fr) {
-        if(length(grep("mdslag",fr))>0) {
+        if(length(grep("embedlf",fr))>0) {
             fr <- parse(text=fr)[[1]]
             as.character(fr[[4]])
         }
@@ -495,17 +500,17 @@ restr_coef <- function(x,name=restr_names(x)) {
 restr_names <- function(x) {
     names(x$restrictions)
 }
-##' Return the coefficients for mdslag variables
+##' Return the coefficients for embedlf variables
 ##'
-##' Extracts the coefficients and returns those coefficients which name has string \code{mdslag} in it.
+##' Extracts the coefficients and returns those coefficients which name has string \code{embedlf} in it.
 ##' 
 ##' @param x an output from \code{\link{midas_u}}
 ##' @return a vector
 ##' @author Vaidotas Zemlys
 ##' @export
-mdslag_coef <- function(x) {
+embedlf_coef <- function(x) {
     cf <- coef(x)
-    cf[grep("mdslag",names(cf))]
+    cf[grep("embedlf",names(cf))]
 }
 
 ##' Test restrictions on coefficients of MIDAS regression
@@ -542,7 +547,7 @@ mdslag_coef <- function(x) {
 ##' x <- window(x,start=start(y))
 ##' 
 ##' ##Fit restricted model
-##' mr <- midas_r(y~mdslag(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
+##' mr <- midas_r(y~embedlf(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
 ##' 
 ##' ##The gradient function
 ##' grad.h0<-function(p, dk) {

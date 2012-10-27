@@ -6,9 +6,9 @@
 ##' @param ... further arguments
 ##' @return a matrix containing the lags
 ##' @author Vaidotas Zemlys
-##' @seealso mdslag.default mdslag.mds
+##' @seealso embedlf.default embedlf.mds
 ##' @export
-mdslag <- function(x,...)UseMethod("mdslag")
+embedlf <- function(x,...)UseMethod("embedlf")
 
 ##' Lag a mixed data sampling time series
 ##'
@@ -16,39 +16,30 @@ mdslag <- function(x,...)UseMethod("mdslag")
 ##' 
 ##'
 ##' @param x a vector for which mixed data sampling lag has to be computed
-##' @param k the number of lags of low frequency. This can either be a number indicating the highest lag, or the vector with lags which should be included.
+##' @param k the number of high frequency lags plus 1.
 ##' @param m frequency ratio
 ##' @param ... further arguments
 ##' @return a matrix containing the lags
 ##' @author Vaidotas Zemlys
-##' @method mdslag default
-##' @seealso mdslag mdslag.mds
+##' @method embedlf default
+##' @seealso embedlf embedlf.mds
 ##' @export
-mdslag.default <- function(x, k, m, ...) {
+embedlf.default <- function(x, k, m, ...) {
     n.x <- length(x)
     n <- n.x %/%m
-    if(length(k)>1) {
-        klags <- k
-        k <- max(k)
-    }
-    else {
-        klags <- 0:k
-    }
-        
-    idx <- m*c((n.x/m-n+k+1):(n.x/m))    
-
-    X <- foreach(h.x=0:((k+1)*m-1), .combine='cbind') %do% {
-        x[idx-h.x]
+             
+    X <- foreach(t=ceiling(k/m):n, .combine='rbind') %do% {
+        x[(m * t):(m * t - k + 1)]
     }   
-    nmx <- attr(x,"highfreqn")
-    if(is.null(nmx)) nmx <- "X"
-   
-    colnames(X) <- paste(nmx, ".", rep(0:k, each=m), ".", rep(m:1, k+1), sep="")
 
-    ###select only the lags needed
-    lagn <- unlist(lapply(klags,function(no) grep(paste(nmx,".",no,"[.]",sep=""),colnames(X),value=TRUE)))
-       
-    X[,lagn]
+    #nmx <- attr(x,"highfreqn")
+    #if(is.null(nmx)) nmx <- "X"
+
+    colnames(X) <- paste0("X", ".", 1:k-1,"/","m")
+
+    padd <- matrix(NA,nrow=n-nrow(X),ncol=ncol(X))
+    rbind(padd,X)
+    
 }
 
 ##' Lag a mixed data sampling time series
@@ -62,9 +53,9 @@ mdslag.default <- function(x, k, m, ...) {
 ##' @return a matrix containing lags
 ##' @author Vaidotas Zemlys
 ##' @export
-##' @method mdslag mds
-##' @seealso mdslag mdslag.default
-mdslag.mds <- function(x,k,...) {
+##' @method embedlf mds
+##' @seealso embedlf embedlf.default
+embedlf.mds <- function(x,k,...) {
     m <- attr(x,"frequency.ratio")    
     n.x <- length(x)
         n <- n.x %/%m
