@@ -27,16 +27,17 @@ embedlf <- function(x,...)UseMethod("embedlf")
 embedlf.default <- function(x, k, m, ...) {
     n.x <- length(x)
     n <- n.x %/%m
-             
-    X <- foreach(t=ceiling(k/m):n, .combine='rbind') %do% {
-        x[(m * t):(m * t - k + 1)]
-    }   
 
-    #nmx <- attr(x,"highfreqn")
-    #if(is.null(nmx)) nmx <- "X"
+    if(n.x%%m != 0) stop("Incomplete high frequency data")
+    idx <- m*(((k-1)%/%m+1):n)    
+    
+    X <- foreach(h.x=0:(k-1), .combine='cbind') %do% {
+        x[idx-h.x]
+    }
 
+    if(k==1) X <- matrix(X,ncol=1)
+    
     colnames(X) <- paste0("X", ".", 1:k-1,"/","m")
-
     padd <- matrix(NA,nrow=n-nrow(X),ncol=ncol(X))
     rbind(padd,X)
     
