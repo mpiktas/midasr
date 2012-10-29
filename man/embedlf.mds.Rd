@@ -1,8 +1,8 @@
-\name{mdslag.mds}
-\alias{mdslag.mds}
+\name{embedlf.mds}
+\alias{embedlf.mds}
 \title{Lag a mixed data sampling time series}
 \usage{
-  \method{mdslag}{mds} (x, k, ...)
+  \method{embedlf}{mds} (x, k, ...)
 }
 \arguments{
   \item{x}{an object of class \code{\link{mds}}}
@@ -24,6 +24,6 @@
   Vaidotas Zemlys
 }
 \seealso{
-  mdslag mdslag.default
+  embedlf embedlf.default
 }
 

@@ -61,7 +61,7 @@ y <- midas.sim(500,theta0,x,1)
 x <- window(x,start=start(y))
 
 ##Fit restricted model
-mr <- midas_r(y~mdslag(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
+mr <- midas_r(y~embedlf(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
 
 ##The gradient function
 grad.h0<-function(p, dk) {

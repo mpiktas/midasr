@@ -1,16 +1,14 @@
-\name{mdslag.default}
-\alias{mdslag.default}
+\name{embedlf.default}
+\alias{embedlf.default}
 \title{Lag a mixed data sampling time series}
 \usage{
-  \method{mdslag}{default} (x, k, m, ...)
+  \method{embedlf}{default} (x, k, m, ...)
 }
 \arguments{
   \item{x}{a vector for which mixed data sampling lag has
   to be computed}
 
-  \item{k}{the number of lags of low frequency. This can
-  either be a number indicating the highest lag, or the
-  vector with lags which should be included.}
+  \item{k}{the number of high frequency lags plus 1.}
 
   \item{m}{frequency ratio}
 
@@ -27,6 +25,6 @@
   Vaidotas Zemlys
 }
 \seealso{
-  mdslag mdslag.mds
+  embedlf embedlf.mds
 }
 

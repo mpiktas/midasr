@@ -2,7 +2,7 @@
 \alias{midas_u}
 \title{Estimate unrestricted MIDAS regression}
 \usage{
-  midas_u(formula, ldata, hdata, ...)
+  midas_u(formula, ldata = NULL, hdata = NULL, ...)
 }
 \arguments{
   \item{formula}{MIDAS regression model formula}
@@ -68,11 +68,11 @@ ldt <- data.frame(y=y,trend=1:length(y))
 hdt <- data.frame(x=window(x, start=start(y)))
 
 ##Fit unrestricted model
-mu <- midas_u(y~mdslag(x,3)-1, ldt, hdt)
+mu <- midas_u(y~embedlf(x,3)-1, ldt, hdt)
 
 ##Include intercept and trend in regression
 
-mu.it <- midas_u(y~mdslag(x,3)+trend, ldt, hdt)
+mu.it <- midas_u(y~embedlf(x,3)+trend, ldt, hdt)
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

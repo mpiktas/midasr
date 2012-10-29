@@ -1,8 +1,8 @@
-\name{mdslag}
-\alias{mdslag}
+\name{embedlf}
+\alias{embedlf}
 \title{Lag a mixed data sampling time series}
 \usage{
-  mdslag(x, ...)
+  embedlf(x, ...)
 }
 \arguments{
   \item{x}{a vector}
@@ -20,6 +20,6 @@
   Vaidotas Zemlys
 }
 \seealso{
-  mdslag.default mdslag.mds
+  embedlf.default embedlf.mds
 }
 

@@ -1,8 +1,8 @@
-\name{mdslag_coef}
-\alias{mdslag_coef}
-\title{Return the coefficients for mdslag variables}
+\name{embedlf_coef}
+\alias{embedlf_coef}
+\title{Return the coefficients for embedlf variables}
 \usage{
-  mdslag_coef(x)
+  embedlf_coef(x)
 }
 \arguments{
   \item{x}{an output from \code{\link{midas_u}}}
@@ -12,7 +12,7 @@
 }
 \description{
   Extracts the coefficients and returns those coefficients
-  which name has string \code{mdslag} in it.
+  which name has string \code{embedlf} in it.
 }
 \author{
   Vaidotas Zemlys
