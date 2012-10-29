@@ -159,22 +159,30 @@ midas_r <- function(x,...)UseMethod("midas_r")
 #' @rdname midas_r
 #' @method midas_r formula
 #' @export
-midas_r.formula <- function(formula, ldata, hdata, start, optim=list(func="optim",method="BFGS"), ...) {
+midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(func="optim",method="BFGS"), ...) {
 
     Zenv <- new.env(parent=environment(formula))
       
-    data <- mds(ldata,hdata)
+    if(missing(ldata)|missing(hdata)) {
+        ee <- NULL
+    }
+    else {
+        data <- mds(ldata,hdata)
 
-    ee <- as.environment(c(as.list(data$lowfreq),as.list(data$highfreq)))
-    parent.env(ee) <- parent.frame()
+        ee <- as.environment(c(as.list(data$lowfreq),as.list(data$highfreq)))
+        parent.env(ee) <- parent.frame()
+    }
     assign("ee",ee,Zenv)
     
     mf <- match.call(expand.dots = FALSE)
-    m <- match(c("formula", "ldata", "na.action"), names(mf), 0L)
+    ##Fix this!!
+    m <- match(c("formula", "ldata"), names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf[[1L]] <- as.name("model.frame")
-    names(mf)[3] <- "data"
     mf[[3L]] <- as.name("ee")   
+    mf[[4L]] <- as.name("na.omit")
+    names(mf)[c(3,4)] <- c("data","na.action")
+    
     mf <- eval(mf,Zenv)
     mt <- attr(mf, "terms")
   
@@ -191,7 +199,7 @@ midas_r.formula <- function(formula, ldata, hdata, start, optim=list(func="optim
     rf <- lapply(terms.lhs,function(fr) {     
         if(length(grep("embedlf",fr))>0) {
             fr <- parse(text=fr)[[1]]
-            ff <- eval(fr[[4]],parent.frame())
+            ff <- eval(fr[[5]],parent.frame())
             rf.arg <- formals(ff)
             class(rf.arg) <- "list"
             rf.argnm <-  intersect(names(rf.arg)[-1],names(cl))
@@ -200,7 +208,7 @@ midas_r.formula <- function(formula, ldata, hdata, start, optim=list(func="optim
                 rf.arg[[i]] <- eval(cl[[i]],parent.frame())
             }
             
-            rf.name <- as.character(fr[[4]])
+            rf.name <- as.character(fr[[5]])
             rf <- function(p) {
                 rf.arg[[1]] <- p
                 do.call(rf.name,rf.arg)
@@ -215,7 +223,7 @@ midas_r.formula <- function(formula, ldata, hdata, start, optim=list(func="optim
     names(rf) <- sapply(terms.lhs,function(fr) {
         if(length(grep("embedlf",fr))>0) {
             fr <- parse(text=fr)[[1]]
-            as.character(fr[[4]])
+            as.character(fr[[5]])
         }
         else {
             fr
