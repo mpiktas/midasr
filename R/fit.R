@@ -65,7 +65,7 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
         ee <- NULL
     }
     else {
-        data <- mds(ldata,hdata)
+        data <- check_mixfreq(ldata,hdata)
 
         ee <- as.environment(c(as.list(data$lowfreq),as.list(data$highfreq)))
         parent.env(ee) <- parent.frame()
@@ -167,7 +167,7 @@ midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(f
         ee <- NULL
     }
     else {
-        data <- mds(ldata,hdata)
+        data <- check_mixfreq(ldata,hdata)
 
         ee <- as.environment(c(as.list(data$lowfreq),as.list(data$highfreq)))
         parent.env(ee) <- parent.frame()

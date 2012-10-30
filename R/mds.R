@@ -43,18 +43,19 @@ embedlf.default <- function(x, k, m, ...) {
     
 }
 
-##' Prepare data for MIDAS regression 
+##' Check data for MIDAS regression
 ##'
-##' Given low and high frequency data calculate frequency ratio and store this information. 
+##' Given low and high frequency data check whether high frequency data can be converted to low frequency.
 ##' 
 ##' @param lowfreq \code{data.frame} object containing low frequency data 
 ##' @param highfreq \code{data.frame} object containing high frequency data
 ##' @return a list with elements \code{lowfreq} and \code{highfreq}
-##' @details This function converts each column of the given \code{data.frame} to \code{mds} object. This means adding attribute \code{frequency.ratio}. This function is used to prepare data for MIDAS regression and in general should not be interesting to ordinary users.
+##' @details If m is a frequency ratio, and n is the number of data points for low frequency data, then there should be n*m data points for high frequency data. This function checks whether this is the case. 
+##' This function is used to prepare data for MIDAS regression and in general should not be interesting to ordinary users.
 ##' 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-mds <- function(lowfreq,highfreq) {
+check_mixfreq <- function(lowfreq,highfreq) {
     nl <- nrow(lowfreq)
     nh <- nrow(highfreq)
 
