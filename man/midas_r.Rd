@@ -5,7 +5,8 @@
 \usage{
   midas_r(x, ...)
 
-  \method{midas_r}{formula} (formula, ldata, hdata, start,
+  \method{midas_r}{formula} (formula, ldata = NULL,
+    hdata = NULL, start,
     optim = list(func = "optim", method = "BFGS"), ...)
 }
 \arguments{
@@ -100,11 +101,11 @@ y <- midas.sim(500,theta0,x,1)
 x <- window(x,start=start(y))
 
 ##Fit restricted model
-mr <- midas_r(y~embedlf(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
+mr <- midas_r(y~embedlf(x,4*12,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
 
 ##Include intercept and trend in regression
 
-mr.it <- midas_r(y~embedlf(x,3,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
+mr.it <- midas_r(y~embedlf(x,4*12,12,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

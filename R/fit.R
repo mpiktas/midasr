@@ -37,11 +37,11 @@
 ##' hdt <- data.frame(x=window(x, start=start(y)))
 ##' 
 ##' ##Fit unrestricted model
-##' mu <- midas_u(y~embedlf(x,3)-1, ldt, hdt)
+##' mu <- midas_u(y~embedlf(x,3,12)-1, ldt, hdt)
 ##'
 ##' ##Include intercept and trend in regression
 ##'
-##' mu.it <- midas_u(y~embedlf(x,3)+trend, ldt, hdt)
+##' mu.it <- midas_u(y~embedlf(x,3,12)+trend, ldt, hdt)
 ##' 
 ##' @details MIDAS regression has the following form:
 ##' 
@@ -133,11 +133,11 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
 ##' x <- window(x,start=start(y))
 ##' 
 ##' ##Fit restricted model
-##' mr <- midas_r(y~embedlf(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
+##' mr <- midas_r(y~embedlf(x,4*12,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
 ##'
 ##' ##Include intercept and trend in regression
 ##'
-##' mr.it <- midas_r(y~embedlf(x,3,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
+##' mr.it <- midas_r(y~embedlf(x,4*12,12,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
 ##' 
 ##' @details Given MIDAS regression:
 ##'
@@ -555,7 +555,7 @@ embedlf_coef <- function(x) {
 ##' x <- window(x,start=start(y))
 ##' 
 ##' ##Fit restricted model
-##' mr <- midas_r(y~embedlf(x,3,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
+##' mr <- midas_r(y~embedlf(x,4*12,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
 ##' 
 ##' ##The gradient function
 ##' grad.h0<-function(p, dk) {
