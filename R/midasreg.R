@@ -526,6 +526,7 @@ embedlf_coef <- function(x) {
 ##' Perform a test whether the restriction on MIDAS regression coefficients holds.
 ##' 
 ##' @param x MIDAS regression model with restricted coefficients, estimated with \code{\link{midas_r}}
+##' @param robust logical variable, TRUE for test version with robust covariance matrix, FALSE for diagonal covariance matrix. Defaults to FALSE.
 ##' @param gr the gradient of the restriction function. Must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. Default value is \code{NULL}, which means that the numeric approximation of gradient is calculated.
 ##' @param ... the arguments supplied to gradient function, if \code{gr} is not \code{NULL}
 ##' @return a \code{htest} object
@@ -566,10 +567,14 @@ embedlf_coef <- function(x) {
 ##'
 ##' ##Perform test (the expected result should be the acceptance of null)
 ##'
-##' hAh.test(mr,grad.h0,dk=4*12)
+##' hAh.test(mr,gr=grad.h0,dk=4*12)
 ##'
 ##' ##Use numerical gradient instead of supplied one 
 ##' hAh.test(mr)
+##'
+##' ##Calculate the robust version of the test
+##'
+##' hAh.test(mr,robust=TRUE)
 ##' 
 ##' @details  Given MIDAS regression:
 ##'
@@ -582,7 +587,7 @@ embedlf_coef <- function(x) {
 ##' @export
 ##' @import MASS
 ##' @import numDeriv
-hAh.test <- function(x,gr=NULL,...) {
+hAh.test <- function(x,robust=FALSE,gr=NULL,...) {
 
     unrestricted <-  x$unrestricted
 
@@ -659,11 +664,20 @@ hAh.test <- function(x,gr=NULL,...) {
     h.0 <- P%*%(cfur-x$midas.coefficients)
 
     Delta.0 <- D0%*%tcrossprod(ginv(crossprod(D0,XtX)%*%D0),D0)
-
-    A0<-diag(dk)-P%*%tcrossprod(Delta.0,P)
-
     se2 <- sum(residuals(unrestricted)^2)/(nrow(x$model)-dk)
-    STATISTIC <- t(h.0)%*%A0%*%h.0/se2
+    
+    if(robust) {
+        PHI <- vcovHAC(unrestricted, sandwich = F)
+        nyx <- nrow(x$model)
+        nkx <- ncol(x$model)-1
+        II <- diag(nkx)-XtX %*% Delta.0
+        A0 <- ginv(nyx * ginv(t(P)) %*% II %*% PHI %*% t(II) %*% ginv(P))
+    } else {      
+        A0 <- (diag(dk)-P%*%tcrossprod(Delta.0,P))/se2        
+    }
+
+    
+    STATISTIC <- t(h.0)%*%A0%*%h.0
     
     names(STATISTIC) <- "hAh"
     METHOD <- "hAh restriction test"
