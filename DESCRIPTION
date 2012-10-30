@@ -17,6 +17,6 @@ License: MIT
 BugReports: https://github.com/mpiktas/midasr/issues
 Collate:
     'simulate.R'
-    'fit.R'
     'midasr-package.R'
     'mds.R'
+    'midasreg.R'
