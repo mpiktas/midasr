@@ -203,12 +203,7 @@ midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(f
             rf.arg <- formals(ff)
             class(rf.arg) <- "list"
             rf.argnm <-  intersect(names(rf.arg)[-1],names(cl))
-
-            rf.arg[rf.argnm] <- cl[rf.argnm]
-#            for(i in rf.argnm) {
-#                rf.arg[[i]] <- eval(cl[[i]],parent.frame())
-#            }
-            
+            rf.arg[rf.argnm] <- cl[rf.argnm]            
             rf.name <- as.character(fr[[5]])
             rf <- function(p) {
                 rf.arg[[1]] <- p
@@ -600,7 +595,6 @@ hAh.test <- function(x,robust=FALSE,gr=NULL,...) {
          }
 
         gr <- function(p,...)jacobian(all_coef,p)
-        
     }
     else {
         if(is.function(gr) & length(x$restrictions)==1) {
@@ -655,12 +649,10 @@ hAh.test <- function(x,robust=FALSE,gr=NULL,...) {
 
     cfur <- coef(unrestricted)
    
-    
     h.0 <- P%*%(cfur-x$midas.coefficients)
 
     Delta.0 <- D0%*%tcrossprod(ginv(crossprod(D0,XtX)%*%D0),D0)
-    se2 <- sum(residuals(unrestricted)^2)/(nrow(x$model)-dk)
-    
+
     if(robust) {
         PHI <- vcovHAC(unrestricted, sandwich = F)
         nyx <- nrow(x$model)
@@ -668,9 +660,9 @@ hAh.test <- function(x,robust=FALSE,gr=NULL,...) {
         II <- diag(nkx)-XtX %*% Delta.0
         A0 <- ginv(nyx * ginv(t(P)) %*% II %*% PHI %*% t(II) %*% ginv(P))
     } else {      
+        se2 <- sum(residuals(unrestricted)^2)/(nrow(x$model)-dk)
         A0 <- (diag(dk)-P%*%tcrossprod(Delta.0,P))/se2        
     }
-
     
     STATISTIC <- t(h.0)%*%A0%*%h.0
     
@@ -681,7 +673,6 @@ hAh.test <- function(x,robust=FALSE,gr=NULL,...) {
     names(PARAMETER) <- "df"
     
     structure(list(statistic = STATISTIC, parameter = PARAMETER, 
-        p.value = PVAL, method = METHOD,aa=list(D0=D0,P=P,XtX=XtX,h.0=h.0,Delta.0=Delta.0,A0=A0,se2=se2)), 
+        p.value = PVAL, method = METHOD), 
         class = "htest")
-    
 }
