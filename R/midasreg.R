@@ -189,13 +189,13 @@ midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(f
     y <- model.response(mf, "numeric")
     X <- model.matrix(mt, mf)    
     
-    cl <- match.call()
+    cl <- list(...)
 
     ##High frequency variables can enter to formula
     ##only within embedlf function
     terms.lhs <- attr(mt,"term.labels") 
     if(attr(mt,"intercept")==1) terms.lhs <- c("(Intercept)",terms.lhs)
-    
+  
     rf <- lapply(terms.lhs,function(fr) {     
         if(length(grep("embedlf",fr))>0) {
             fr <- parse(text=fr)[[1]]
@@ -203,10 +203,11 @@ midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(f
             rf.arg <- formals(ff)
             class(rf.arg) <- "list"
             rf.argnm <-  intersect(names(rf.arg)[-1],names(cl))
-            
-            for(i in rf.argnm) {
-                rf.arg[[i]] <- eval(cl[[i]],parent.frame())
-            }
+
+            rf.arg[rf.argnm] <- cl[rf.argnm]
+#            for(i in rf.argnm) {
+#                rf.arg[[i]] <- eval(cl[[i]],parent.frame())
+#            }
             
             rf.name <- as.character(fr[[5]])
             rf <- function(p) {
@@ -303,21 +304,15 @@ midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(f
 ##' @export
 midas_r.midas_r <- function(x,start=coef(x),optim.func=x$argmap.opt$func,...) {
    
-    cl <- match.call(expand.dots=TRUE)
-    dotargnm <- setdiff(names(cl)[-1],c("x","start","optim.func"))
+    oarg <- list(...)
 
+    dotargnm <- names(oarg)
+    
     ##Perform check whether arguments are ok and eval them
     if(length(dotargnm)>0) {
         offending <- dotargnm[!dotargnm %in% names(formals(optim.func))]
         if(length(offending)>0)  {
             stop(paste("The function ",optim.func," does not have the following arguments: ", paste(offending,collapse=", "),sep=""))
-        }
-        else {
-            oarg <- as.list(cl[[dotargnm]])
-            names(oarg) <- dotargnm
-            for(i in dotargnm) {
-                oarg[[i]] <- eval(oarg[[i]],parent.frame())
-            }
         }
     }
     else {
