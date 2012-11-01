@@ -2,10 +2,12 @@
 \alias{residuals.midas_r}
 \title{Calculate residuals of MIDAS regression}
 \usage{
-  residuals.midas_r(x)
+  \method{residuals}{midas_r} (object, ...)
 }
 \arguments{
-  \item{x}{a \code{\link{midas_r}} object}
+  \item{object}{a \code{\link{midas_r}} object}
+
+  \item{...}{currently nothing}
 }
 \value{
   a vector of residuals of MIDAS regression

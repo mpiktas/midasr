@@ -373,10 +373,14 @@ midas_r.fit <- function(x) {
 ##' Calculate residuals of MIDAS regression
 ##'
 ##' Calculate residuals of MIDAS regression
-##' @param x a \code{\link{midas_r}} object
+##' @param object a \code{\link{midas_r}} object
+##' @param ... currently nothing
 ##' @return a vector of residuals of MIDAS regression
 ##' @author Vaidotas Zemlys
-residuals.midas_r <- function(x) {
+##' @rdname residuals
+##' @method residuals midas_r
+##' @export
+residuals.midas_r <- function(object,...) {
     res <- x$model[,1]-x$model[,-1]%*%midas_coef(x)
     res[,,drop=TRUE]
 }
