@@ -381,7 +381,7 @@ midas_r.fit <- function(x) {
 ##' @method residuals midas_r
 ##' @export
 residuals.midas_r <- function(object,...) {
-    res <- x$model[,1]-x$model[,-1]%*%midas_coef(x)
+    res <- object$model[,1]-object$model[,-1]%*%midas_coef(object)
     res[,,drop=TRUE]
 }
 
