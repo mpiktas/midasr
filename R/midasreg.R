@@ -370,7 +370,16 @@ midas_r.fit <- function(x) {
     x
 }
                         
-                        
+##' Calculate residuals of MIDAS regression
+##'
+##' Calculate residuals of MIDAS regression
+##' @param x a \code{\link{midas_r}} object
+##' @return a vector of residuals of MIDAS regression
+##' @author Vaidotas Zemlys
+residuals.midas_r <- function(x) {
+    res <- x$model[,1]-x$model[,-1]%*%midas_coef(x)
+    res[,,drop=TRUE]
+}
 
 ##' Calculate numerical approximation of gradient of RSS of
 ##' MIDAS regression 
@@ -516,12 +525,12 @@ embedlf_coef <- function(x) {
 ##' Perform a test whether the restriction on MIDAS regression coefficients holds.
 ##' 
 ##' @param x MIDAS regression model with restricted coefficients, estimated with \code{\link{midas_r}}
-##' @param robust logical variable, TRUE for test version with robust covariance matrix, FALSE for diagonal covariance matrix. Defaults to FALSE.
 ##' @param gr the gradient of the restriction function. Must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. Default value is \code{NULL}, which means that the numeric approximation of gradient is calculated.
 ##' @param ... the arguments supplied to gradient function, if \code{gr} is not \code{NULL}
 ##' @return a \code{htest} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254
+##' @seealso hAhr.test
 ##' @examples
 ##' ##The parameter function
 ##' theta.h0 <- function(p, dk) {
@@ -562,9 +571,6 @@ embedlf_coef <- function(x) {
 ##' ##Use numerical gradient instead of supplied one 
 ##' hAh.test(mr)
 ##'
-##' ##Calculate the robust version of the test
-##'
-##' hAh.test(mr,robust=TRUE)
 ##' 
 ##' @details  Given MIDAS regression:
 ##'
@@ -577,10 +583,123 @@ embedlf_coef <- function(x) {
 ##' @export
 ##' @import MASS
 ##' @import numDeriv
-hAh.test <- function(x,robust=FALSE,gr=NULL,...) {
+hAh.test <- function(x,gr=NULL,...) {
 
-    unrestricted <-  x$unrestricted
+    prep <- prep_hAh(x,gr,...)
+    
+    unrestricted <- x$unrestricted
 
+    se2 <- sum(residuals(unrestricted)^2)/(nrow(x$model)-prep$dk)
+    A0 <- (diag(prep$dk)-prep$P%*%tcrossprod(prep$Delta.0,prep$P))/se2        
+    STATISTIC <- t(prep$h.0)%*%A0%*%prep$h.0
+    
+    names(STATISTIC) <- "hAh"
+    METHOD <- "hAh restriction test"
+    PARAMETER <- prep$dk-length(coef(x))
+    PVAL <- 1-pchisq(STATISTIC,PARAMETER)
+    names(PARAMETER) <- "df"
+    
+    structure(list(statistic = STATISTIC, parameter = PARAMETER, 
+        p.value = PVAL, method = METHOD), 
+        class = "htest")
+}
+##' Test restrictions on coefficients of MIDAS regression using robust version of the test
+##'
+##' Perform a test whether the restriction on MIDAS regression coefficients holds.
+##' @param x MIDAS regression model with restricted coefficients, estimated with \code{\link{midas_r}}
+##' @param PHI the "meat" covariance matrix, defaults to \code{vcovHAC(x$unrestricted, sandwich=FALSE)}
+##' @param gr the gradient of the restriction function. Must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. Default value is \code{NULL}, which means that the numeric approximation of gradient is calculated.
+##' @param ... the arguments supplied to gradient function, if \code{gr} is not \code{NULL}
+##' @return a \code{htest} object
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @references Kvedaras V., Zemlys, V. \emph{The statistical content and empirical testing of the MIDAS restrictions}
+##' @seealso hAh.test
+##' @examples
+##'##The parameter function
+##' theta.h0 <- function(p, dk) {
+##'    i <- (1:dk-1)
+##'    (p[1] + p[2]*i)*exp(p[3]*i + p[4]*i^2)
+##' }
+##'
+##' ##Generate coefficients
+##' theta0 <- theta.h0(c(-0.1,0.1,-0.1,-0.001),4*12)
+##'
+##' ##Plot the coefficients
+##' plot(theta0)
+##'
+##' ##Generate the predictor variable
+##' set.seed(13)
+##' x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
+##'
+##' ##Simulate the response variable
+##' y <- midas.sim(500,theta0,x,1)
+##'
+##' ##Remove unnecessary history of x
+##' x <- window(x,start=start(y))
+##' 
+##' ##Fit restricted model
+##' mr <- midas_r(y~embedlf(x,4*12,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
+##' 
+##' ##The gradient function
+##' grad.h0<-function(p, dk) {
+##'    i <- (1:dk-1)
+##'    a <- exp(p[3]*i + p[4]*i^2)
+##'    cbind(a, a*i, a*i*(p[1]+p[2]*i), a*i^2*(p[1]+p[2]*i))
+##' }
+##'
+##' ##Perform test (the expected result should be the acceptance of null)
+##'
+##' hAhr.test(mr,gr=grad.h0,dk=4*12)
+##'
+##' ##Use numerical gradient instead of supplied one 
+##' hAhr.test(mr)
+##' 
+##' @details  Given MIDAS regression:
+##'
+##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+u_t}
+##'
+##' test the null hypothesis that the following restriction holds:
+##'
+##' \deqn{\theta_h=g(h,\lambda),}
+##' where \eqn{h=0,...,(k+1)m}. 
+##' @export
+##' @import MASS
+##' @import numDeriv
+##' @import sandwich
+hAhr.test <- function(x,PHI=vcovHAC(x$unrestricted,sandwich=FALSE),gr=NULL,...) {
+    prep <- prep_hAh(x,gr,...)
+    
+    unrestricted <- x$unrestricted
+
+    nyx <- nrow(x$model)
+    nkx <- ncol(x$model)-1
+    II <- diag(nkx)-prep$XtX %*% prep$Delta.0
+    A0 <- ginv(nyx * ginv(t(prep$P)) %*% II %*% PHI %*% t(II) %*% ginv(prep$P))
+
+    STATISTIC <- t(prep$h.0)%*%A0%*%prep$h.0
+    
+    names(STATISTIC) <- "hAhr"
+    METHOD <- "hAh restriction test (robust version)"
+    PARAMETER <- prep$dk-length(coef(x))
+    PVAL <- 1-pchisq(STATISTIC,PARAMETER)
+    names(PARAMETER) <- "df"
+    
+    structure(list(statistic = STATISTIC, parameter = PARAMETER, 
+        p.value = PVAL, method = METHOD), 
+        class = "htest")
+}
+##' Calculate data for \link{hAh.test} and \link{hAhr.test}
+##'
+##' Workhorse function for calculating necessary matrices for \link{hAh.test} and \link{hAhr.test}. Takes the same parameters as \link{hAh.test}
+##' @param x \code{midas_r} object
+##' @param gr a function or a list of functions for each restriction.
+##' @param ... arguments supplied to gradient function(s)
+##' @return a list with necessary matrices
+##' @author Virmantas Kvedara, Vaidotas Zemlys
+##' @seealso hAh.test, hAhr.test
+prep_hAh <- function(x,gr,...) {
+
+    unrestricted <- x$unrestricted
     rf <- lapply(x$param.map,function(x)return(function(p,...)p)) 
     names(rf) <- names(x$param.map)
 
@@ -616,7 +735,8 @@ hAh.test <- function(x,robust=FALSE,gr=NULL,...) {
         rrow <- cumsum(rownos)
         pinds <- cbind(c(1,rrow[-np]+1),rrow,
                        c(1,ccol[-np]+1),ccol)
-        pinds <- apply(pinds,1,function(x)list(row=x[1]:x[2],col=x[3]:x[4]))            
+        pinds <- apply(pinds,1,function(x)list(row=x[1]:x[2],col=x[3]:x[4]))
+                
         gr <- function(p,...) {
             pp <- lapply(x$param.map,function(x)p[x])
             grmat <- mapply(function(fun,param,MoreArgs=...)fun(param,...),grf,pp,SIMPLIFY=FALSE)
@@ -632,8 +752,6 @@ hAh.test <- function(x,robust=FALSE,gr=NULL,...) {
             res
         }
     }
-  
-##  restr.no <- sum(sapply(x$param.map[names(x$restrictions)],length))    
     
     D0 <- gr(coef(x),...)
 
@@ -652,27 +770,7 @@ hAh.test <- function(x,robust=FALSE,gr=NULL,...) {
     h.0 <- P%*%(cfur-x$midas.coefficients)
 
     Delta.0 <- D0%*%tcrossprod(ginv(crossprod(D0,XtX)%*%D0),D0)
-
-    if(robust) {
-        PHI <- vcovHAC(unrestricted, sandwich = F)
-        nyx <- nrow(x$model)
-        nkx <- ncol(x$model)-1
-        II <- diag(nkx)-XtX %*% Delta.0
-        A0 <- ginv(nyx * ginv(t(P)) %*% II %*% PHI %*% t(II) %*% ginv(P))
-    } else {      
-        se2 <- sum(residuals(unrestricted)^2)/(nrow(x$model)-dk)
-        A0 <- (diag(dk)-P%*%tcrossprod(Delta.0,P))/se2        
-    }
     
-    STATISTIC <- t(h.0)%*%A0%*%h.0
-    
-    names(STATISTIC) <- "hAh"
-    METHOD <- "hAh restriction test"
-    PARAMETER <- dk-length(coef(x))
-    PVAL <- 1-pchisq(STATISTIC,PARAMETER)
-    names(PARAMETER) <- "df"
-    
-    structure(list(statistic = STATISTIC, parameter = PARAMETER, 
-        p.value = PVAL, method = METHOD), 
-        class = "htest")
+    list(P=P,XtX=XtX,dk=dk,Delta.0=Delta.0,h.0=h.0)
 }
+

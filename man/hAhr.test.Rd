@@ -1,12 +1,17 @@
-\name{hAh.test}
-\alias{hAh.test}
-\title{Test restrictions on coefficients of MIDAS regression}
+\name{hAhr.test}
+\alias{hAhr.test}
+\title{Test restrictions on coefficients of MIDAS regression using robust version of the test}
 \usage{
-  hAh.test(x, gr = NULL, ...)
+  hAhr.test(x,
+    PHI = vcovHAC(x$unrestricted, sandwich = FALSE),
+    gr = NULL, ...)
 }
 \arguments{
   \item{x}{MIDAS regression model with restricted
   coefficients, estimated with \code{\link{midas_r}}}
+
+  \item{PHI}{the "meat" covariance matrix, defaults to
+  \code{vcovHAC(x$unrestricted, sandwich=FALSE)}}
 
   \item{gr}{the gradient of the restriction function. Must
   return the matrix with dimensions \eqn{d_k \times q},
@@ -72,21 +77,19 @@ grad.h0<-function(p, dk) {
 
 ##Perform test (the expected result should be the acceptance of null)
 
-hAh.test(mr,gr=grad.h0,dk=4*12)
+hAhr.test(mr,gr=grad.h0,dk=4*12)
 
 ##Use numerical gradient instead of supplied one
-hAh.test(mr)
+hAhr.test(mr)
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys
 }
 \references{
-  Kvedaras V., Zemlys, V. \emph{Testing the functional
-  constraints on parameters in regressions with variables
-  of different frequency} Economics Letters 116 (2012)
-  250-254
+  Kvedaras V., Zemlys, V. \emph{The statistical content and
+  empirical testing of the MIDAS restrictions}
 }
 \seealso{
-  hAhr.test
+  hAh.test
 }
 
