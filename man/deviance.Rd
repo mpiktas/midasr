@@ -1,0 +1,21 @@
+\name{deviance.midas_r}
+\alias{deviance.midas_r}
+\title{MIDAS regression model deviance}
+\usage{
+  \method{deviance}{midas_r} (object, ...)
+}
+\arguments{
+  \item{object}{a \code{\link{midas_r}} object}
+
+  \item{...}{currently nothing}
+}
+\value{
+  The sum of squared residuals
+}
+\description{
+  Returns the deviance of a fitted MIDAS regression object
+}
+\author{
+  Virmantas Kvedaras.Vaidotas Zemlys
+}
+

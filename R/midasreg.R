@@ -173,7 +173,7 @@ midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(f
         parent.env(ee) <- parent.frame()
     }
     assign("ee",ee,Zenv)
-    
+    cll <- match.call()
     mf <- match.call(expand.dots = FALSE)
     ##Fix this!!
     m <- match(c("formula", "ldata"), names(mf), 0L)
@@ -247,7 +247,7 @@ midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(f
     names(pinds) <- names(start_default)
     
     starto <- unlist(start_default)
-
+   
     all_coef <- function(p) {              
         pp <- lapply(pinds,function(x)p[x])     
         res <- mapply(function(fun,param)fun(param),rf,pp,SIMPLIFY=FALSE)
@@ -270,17 +270,19 @@ midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(f
   #  opt <- optim(starto,fn0,method=method,control=control.optim,...)    
 
     prepmd <- list(coefficients=starto,
-                midas.coefficients=all_coef(starto),
-                model=cbind(y,X),
-                restrictions=rf[restr.name],
-                unrestricted=lm(y~.-1,data=data.frame(cbind(y,X),check.names=FALSE)),
-                param.map=pinds,
-                fn0=fn0,
-                rhs=mdsrhs,
-                allcoef=all_coef,
-                opt=NULL,
-                argmap.opt=optim,
-                start.opt=starto)
+                   midas.coefficients=all_coef(starto),
+                   model=cbind(y,X),
+                   restrictions=rf[restr.name],
+                   unrestricted=lm(y~.-1,data=data.frame(cbind(y,X),check.names=FALSE)),
+                   param.map=pinds,
+                   fn0=fn0,
+                   rhs=mdsrhs,
+                   allcoef=all_coef,
+                   opt=NULL,
+                   argmap.opt=optim,
+                   start.opt=starto,
+                   call=cll,
+                   terms=mt)
     class(prepmd) <- "midas_r"
     midas_r.fit(prepmd)    
 }
@@ -300,7 +302,7 @@ midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(f
 midas_r.midas_r <- function(x,start=coef(x),optim.func=x$argmap.opt$func,...) {
    
     oarg <- list(...)
-
+    cl <- match.call()
     dotargnm <- names(oarg)
     
     ##Perform check whether arguments are ok and eval them
@@ -333,7 +335,7 @@ midas_r.midas_r <- function(x,start=coef(x),optim.func=x$argmap.opt$func,...) {
     
     x$start.opt <- start
     x$argmap.opt <- argmap
-    
+    x$call <- cl
     midas_r.fit(x)
 }
 
@@ -367,22 +369,55 @@ midas_r.fit <- function(x) {
     x$opt <- opt
     x$coefficients <- par
     x$midas.coefficients <- x$allcoef(par)
+    x$fitted.values <- x$model[,-1]%*%x$midas.coefficients
+    x$residuals <- x$model[,1]-x$fitted.values
     x
 }
-                        
-##' Calculate residuals of MIDAS regression
+
+##' MIDAS regression model deviance
 ##'
-##' Calculate residuals of MIDAS regression
+##' Returns the deviance of a fitted MIDAS regression object
 ##' @param object a \code{\link{midas_r}} object
 ##' @param ... currently nothing
-##' @return a vector of residuals of MIDAS regression
-##' @author Vaidotas Zemlys
-##' @rdname residuals
-##' @method residuals midas_r
-##' @export
-residuals.midas_r <- function(object,...) {
-    res <- object$model[,1]-object$model[,-1]%*%midas_coef(object)
-    res[,,drop=TRUE]
+##' @return The sum of squared residuals
+##' @author Virmantas Kvedaras.Vaidotas Zemlys
+##' @rdname deviance
+##' @method deviance midas_r
+deviance.midas_r <- function(object,...) {
+    sum(residuals(object)^2,na.rm=TRUE)
+}
+
+##' Summarizing MIDAS regression fit
+##'
+##' summary method for class \code{midas_r}
+##' 
+##' @param x \code{\link{midas_r}} object
+##' @return The function \code{summary.midas_r} computes a list of summary statistics of fitted model given in \code{x}
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @rdname summary
+##' @method summary midas_r
+summary.midas_r <- function(x){
+    r <- as.vector(residuals(x))
+    param <- coef(x)
+    pnames <- names(param)
+    n <- length(r)
+    p <- length(param)
+    rdf <- n - p
+    resvar <- deviance(x)/rdf
+    XD <- x$model[,-1]%*%gradD(x)(coef(x))
+    R <- qr.R(qr(XD))
+    XDtXDinv <- chol2inv(R)
+    dimnames(XDtXDinv) <- list(pnames,pnames)
+    se <- sqrt(diag(XDtXDinv)*resvar)
+    tval <- param/se
+    param <- cbind(param,se,tval,2*pt(abs(tval),rdf,lower.tail=FALSE))
+    dimnames(param) <- list(pnames, c("Estimate", "Std. Error", 
+        "t value", "Pr(>|t|)"))
+    ans <- list(formula=formula(x$terms),residuals=r,sigma=sqrt(resvar),
+                df=c(p,rdf), cov.unscaled=XDtXDinv, call=x$call,
+                coefficients=param,midas.coefficients=midas_coef(x))
+    class(ans) <- "summary.midas_r"
+    ans
 }
 
 ##' Calculate numerical approximation of gradient of RSS of
@@ -701,9 +736,48 @@ hAhr.test <- function(x,PHI=vcovHAC(x$unrestricted,sandwich=FALSE),gr=NULL,...) 
 ##' @return a list with necessary matrices
 ##' @author Virmantas Kvedara, Vaidotas Zemlys
 ##' @seealso hAh.test, hAhr.test
-prep_hAh <- function(x,gr,...) {
+prep_hAh <- function(x,gr=NULL,...) {
 
     unrestricted <- x$unrestricted
+        
+    D0 <- gradD(x,gr=gr,...)(coef(x),...)
+
+    X <- x$model[,-1]
+    
+    XtX <- crossprod(X)
+
+    dk <- ncol(XtX)    
+
+    if(nrow(D0) != dk)stop("The gradient dimensions are incorrect. Number of rows does not equal number of unrestricted coefficients")
+    
+    P <- chol(XtX)
+
+    cfur <- coef(unrestricted)
+   
+    h.0 <- P%*%(cfur-x$midas.coefficients)
+
+    Delta.0 <- D0%*%tcrossprod(ginv(crossprod(D0,XtX)%*%D0),D0)
+    
+    list(P=P,XtX=XtX,dk=dk,Delta.0=Delta.0,h.0=h.0)
+}
+##' Gradient function of coefficient function in MIDAS regression
+##'
+##' Returns gradient function of coefficient function
+##' 
+##' @param x \code{\link{midas_r}} object
+##' @param gr a function or a list of functions for each restriction.
+##' @param ... arguments supplied to gradient function(s)
+##' @return a function
+##' @author Vaidotas Zemlys
+##' @details MIDAS regression can be written in the following form:
+##'
+##' \deqn{y=Xf(\eta)+u}
+##'
+##' This function calculates
+##'
+##' \deqn{\frac{\partial f}{\partial \eta}}
+##' 
+gradD <- function(x,gr=NULL,...) {
     rf <- lapply(x$param.map,function(x)return(function(p,...)p)) 
     names(rf) <- names(x$param.map)
 
@@ -756,25 +830,5 @@ prep_hAh <- function(x,gr,...) {
             res
         }
     }
-    
-    D0 <- gr(coef(x),...)
-
-    X <- x$model[,-1]
-    
-    XtX <- crossprod(X)
-
-    dk <- ncol(XtX)    
-
-    if(nrow(D0) != dk)stop("The gradient dimensions are incorrect. Number of rows does not equal number of unrestricted coefficients")
-    
-    P <- chol(XtX)
-
-    cfur <- coef(unrestricted)
-   
-    h.0 <- P%*%(cfur-x$midas.coefficients)
-
-    Delta.0 <- D0%*%tcrossprod(ginv(crossprod(D0,XtX)%*%D0),D0)
-    
-    list(P=P,XtX=XtX,dk=dk,Delta.0=Delta.0,h.0=h.0)
+    function(p,...)gr(p,...)
 }
-

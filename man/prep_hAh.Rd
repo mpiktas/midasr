@@ -2,7 +2,7 @@
 \alias{prep_hAh}
 \title{Calculate data for \link{hAh.test} and \link{hAhr.test}}
 \usage{
-  prep_hAh(x, gr, ...)
+  prep_hAh(x, gr = NULL, ...)
 }
 \arguments{
   \item{x}{\code{midas_r} object}
