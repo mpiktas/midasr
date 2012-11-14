@@ -6,12 +6,14 @@
   midas_r(x, ...)
 
   \method{midas_r}{default} (x, ldata = NULL, hdata = NULL,
-    start, optim = list(func = "optim", method = "BFGS"),
+    start,
+    control = list(Rfunction = "optim", method = "BFGS"),
     ...)
 }
 \arguments{
   \item{x}{either formula for restricted MIDAS regression
-  or \code{midas_r} object.}
+  or \code{midas_r} object. Formula must include
+  \code{\link{embedlf}} function}
 
   \item{ldata}{low frequency data, a \code{data.frame}
   object}
@@ -22,12 +24,17 @@
   \item{start}{the starting values for optimisation. Must
   be a list with named elements.}
 
-  \item{optim}{the list containing the name of optimisation
-  function and its arguments. The default is to use
-  \code{\link{optim}} with \code{method="BFGS"}}
+  \item{control}{the list with information which R function
+  to use for optimisation. The list must have element named
+  \code{Rfunction} which contains character string of
+  chosen R function. Other elements of the list are
+  thearguments passed to this function.  The default
+  optimisation function is \code{\link{optim}} with
+  argument \code{method="BFGS"}. Other supported functions
+  are \code{\link{nls}}}
 
-  \item{...}{additional arguments supplied for
-  \code{resfun}}
+  \item{...}{additional arguments supplied to restriction
+  function(s)}
 }
 \value{
   a \code{midas_r} object which is the list with the
@@ -54,8 +61,7 @@
 }
 \description{
   Estimate restricted MIDAS regression using non-linear
-  least squares. Currently only the estimates of the
-  parameters are given, without their standard errors.
+  least squares.
 }
 \details{
   Given MIDAS regression:

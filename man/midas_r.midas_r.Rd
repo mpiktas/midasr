@@ -3,14 +3,14 @@
 \title{Restricted MIDAS regression}
 \usage{
   \method{midas_r}{midas_r} (x, start = coef(x),
-    optim.func = x$argmap.opt$func, ...)
+    Rfunction = x$argmap.opt$Rfunction, ...)
 }
 \arguments{
   \item{x}{\code{midas_r} object}
 
   \item{start}{the starting values}
 
-  \item{optim.func}{a character string of the optimisation
+  \item{Rfunction}{a character string of the optimisation
   function to use. The default value is to use the function
   of previous optimisation.}
 

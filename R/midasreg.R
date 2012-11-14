@@ -81,14 +81,14 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
 }
 ##' Restricted MIDAS regression
 ##'
-##' Estimate restricted MIDAS regression using non-linear least squares. Currently only the estimates of the parameters are given, without their standard errors.
+##' Estimate restricted MIDAS regression using non-linear least squares.
 ##'
-##' @param x either formula for restricted MIDAS regression or \code{midas_r} object.
+##' @param x either formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{embedlf}} function
 ##' @param ldata low frequency data, a \code{data.frame} object
 ##' @param hdata high frequency data, a \code{data.frame} object
 ##' @param start the starting values for optimisation. Must be a list with named elements.
-##' @param optim the list containing the name of optimisation function and its arguments. The default is to use \code{\link{optim}} with \code{method="BFGS"}
-##' @param ... additional arguments supplied for \code{resfun}
+##' @param control the list with information which R function to use for optimisation. The list must have element named \code{Rfunction} which contains character string of chosen R function. Other elements of the list are thearguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
+##' @param ... additional arguments supplied to restriction function(s)
 ##' @return a \code{midas_r} object which is the list with the following elements:
 ##' 
 ##' \item{coefficients}{the estimates of parameters of restrictions}
@@ -160,7 +160,7 @@ is.midas_r <- function(x) inherits(x,"midas_r")
 #' @rdname midas_r
 #' @method midas_r default
 #' @export
-midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, optim=list(func="optim",method="BFGS"), ...) {
+midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, control=list(Rfunction="optim",method="BFGS"), ...) {
 
     Zenv <- new.env(parent=environment(x))
       
@@ -283,7 +283,7 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, optim=list(func="o
                    rhs=mdsrhs,
                    allcoef=all_coef,
                    opt=NULL,
-                   argmap.opt=optim,
+                   argmap.opt=control,
                    start.opt=starto,
                    call=cll,
                    terms=mt)
@@ -297,14 +297,14 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, optim=list(func="o
 ##' 
 ##' @param x \code{midas_r} object 
 ##' @param start the starting values
-##' @param optim.func a character string of the optimisation function to use. The default value is to use the function of previous optimisation.
+##' @param Rfunction a character string of the optimisation function to use. The default value is to use the function of previous optimisation.
 ##' @param ... further arguments to optimisation function. If none are supplied, the arguments of previous optimisation are used.
 ##' @return \code{midas_r} object
 ##' @method midas_r midas_r
 ##' @seealso midas_r
 ##' @author Vaidotas Zemlys
 ##' @export
-midas_r.midas_r <- function(x,start=coef(x),optim.func=x$argmap.opt$func,...) {
+midas_r.midas_r <- function(x,start=coef(x),Rfunction=x$argmap.opt$Rfunction,...) {
    
     oarg <- list(...)
     cl <- match.call()
@@ -312,17 +312,17 @@ midas_r.midas_r <- function(x,start=coef(x),optim.func=x$argmap.opt$func,...) {
     
     ##Perform check whether arguments are ok and eval them
     if(length(dotargnm)>0) {
-        offending <- dotargnm[!dotargnm %in% names(formals(optim.func))]
+        offending <- dotargnm[!dotargnm %in% names(formals(Rfunction))]
         if(length(offending)>0)  {
-            stop(paste("The function ",optim.func," does not have the following arguments: ", paste(offending,collapse=", "),sep=""))
+            stop(paste("The function ",Rfunction," does not have the following arguments: ", paste(offending,collapse=", "),sep=""))
         }
     }
     else {
         oarg <- NULL
     }
 
-    if(optim.func!=x$argmap.opt$func) {
-        argmap <- c(list(func=optim.func),oarg)
+    if(Rfunction!=x$argmap.opt$Rfunction) {
+        argmap <- c(list(Rfunction=Rfunction),oarg)
     }              
     else {
          argmap <- x$argmap.opt
@@ -335,7 +335,7 @@ midas_r.midas_r <- function(x,start=coef(x),optim.func=x$argmap.opt$func,...) {
          ##Already set arguments are left intact
          oldarg <- setdiff(names(argmap),names(oarg))
          marg[oldarg] <- argmap[oldarg]
-         argmap <- c(list(func=optim.func),marg)
+         argmap <- c(list(Rfunction=Rfunction),marg)
     }
     
     x$start.opt <- start
@@ -353,8 +353,8 @@ midas_r.midas_r <- function(x,start=coef(x),optim.func=x$argmap.opt$func,...) {
 ##' @author Vaidotas Zemlys
 midas_r.fit <- function(x) {
     args <- x$argmap.opt
-    function.opt <- args$func
-    args$func <- NULL
+    function.opt <- args$Rfunction
+    args$Rfunction <- NULL
     if(function.opt=="optim" | function.opt=="spg") {  
         args$p <- x$start.opt
         args$fn <- x$fn0
