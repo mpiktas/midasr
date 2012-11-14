@@ -29,6 +29,6 @@
   Vaidotas Zemlys
 }
 \seealso{
-  midas_r.formula
+  midas_r
 }
 
