@@ -83,7 +83,7 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
 ##'
 ##' Estimate restricted MIDAS regression using non-linear least squares. Currently only the estimates of the parameters are given, without their standard errors.
 ##'
-##' @param x either formula for restricted MIDAS regression or \code{midas__r} object. 
+##' @param x either formula for restricted MIDAS regression or \code{midas__r} object.
 ##' @param formula formula for restricted MIDAS regression
 ##' @param ldata low frequency data, a \code{data.frame} object
 ##' @param hdata high frequency data, a \code{data.frame} object
@@ -245,6 +245,8 @@ midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(f
     pinds <- apply(pinds,1,function(x)list(x[1]:x[2]))
     pinds <- lapply(pinds,function(x)x[[1]])
     names(pinds) <- names(start_default)
+
+    for(i in 1:length(start_default))names(start_default[[i]]) <- NULL
     
     starto <- unlist(start_default)
    
@@ -263,17 +265,18 @@ midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(f
     
     fn0 <- function(p,...) {
         r <- y - mdsrhs(p)
-#        print(fn2(p)-sum(r^2))
         sum(r^2)
     }
     
-  #  opt <- optim(starto,fn0,method=method,control=control.optim,...)    
 
+    unrestricted <- NULL
+    if(ncol(X)<nrow(X)) unrestricted <- lm(y~.-1,data=data.frame(cbind(y,X),check.names=FALSE))
+    
     prepmd <- list(coefficients=starto,
                    midas.coefficients=all_coef(starto),
                    model=cbind(y,X),
                    restrictions=rf[restr.name],
-                   unrestricted=lm(y~.-1,data=data.frame(cbind(y,X),check.names=FALSE)),
+                   unrestricted=unrestricted,
                    param.map=pinds,
                    fn0=fn0,
                    rhs=mdsrhs,
@@ -296,7 +299,7 @@ midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(f
 ##' @param ... further arguments to optimisation function. If none are supplied, the arguments of previous optimisation are used.
 ##' @return \code{midas_r} object
 ##' @method midas_r midas_r
-##' @seealso midas_r.formula
+##' @seealso midas_r
 ##' @author Vaidotas Zemlys
 ##' @export
 midas_r.midas_r <- function(x,start=coef(x),optim.func=x$argmap.opt$func,...) {
@@ -387,16 +390,8 @@ deviance.midas_r <- function(object,...) {
     sum(residuals(object)^2,na.rm=TRUE)
 }
 
-##' Summarizing MIDAS regression fit
-##'
-##' summary method for class \code{midas_r}
-##' 
-##' @param x \code{\link{midas_r}} object
-##' @return The function \code{summary.midas_r} computes a list of summary statistics of fitted model given in \code{x}
-##' @author Virmantas Kvedaras, Vaidotas Zemlys
-##' @rdname summary
-##' @method summary midas_r
-summary.midas_r <- function(x){
+
+summary.midas_r <- function(x) {
     r <- as.vector(residuals(x))
     param <- coef(x)
     pnames <- names(param)
@@ -419,6 +414,26 @@ summary.midas_r <- function(x){
     class(ans) <- "summary.midas_r"
     ans
 }
+
+print.summary.midas_r <- function(x, digits=max(3, getOption("digits") - 3 ), signif.stars = getOption("show.signif.stars"), ...) {
+    cat("\n Formula", deparse(formula(x)),"\n")
+    df <- x$df
+    rdf <- df[2L]
+    cat("\n Parameters:\n")
+    printCoefmat(x$coefficients,digits=digits,signif.stars=signif.stars,...)
+    cat("\n Residual standard error:", format(signif(x$sigma,digits)), "on", rdf , "degrees of freedom\n")
+    invisible(x)
+}
+
+print.midas_r <- function(x, digits=max(3,getOption("digits")-3),...) {
+    cat("MIDAS regression model\n")
+    cat(" model:", deparse(formula(x)),"\n")
+    print(coef(x),digits = digits, ...)
+    cat("\n")
+    cat("Function ", x$argmap.opt$func, " was used for fitting\n")
+    invisible(x)
+}
+
 
 ##' Calculate numerical approximation of gradient of RSS of
 ##' MIDAS regression 
@@ -739,7 +754,8 @@ hAhr.test <- function(x,PHI=vcovHAC(x$unrestricted,sandwich=FALSE),gr=NULL,...) 
 prep_hAh <- function(x,gr=NULL,...) {
 
     unrestricted <- x$unrestricted
-        
+    if(is.null(unrestricted))stop("Unrestricted model cannot be estimated due to the lack of degrees of freedom, testing the restriction is not possible")
+    
     D0 <- gradD(x,gr=gr,...)(coef(x))
 
     X <- x$model[,-1]
