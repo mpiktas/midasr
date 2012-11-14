@@ -1,19 +1,17 @@
 \name{midas_r}
 \alias{midas_r}
-\alias{midas_r.formula}
+\alias{midas_r.default}
 \title{Restricted MIDAS regression}
 \usage{
   midas_r(x, ...)
 
-  \method{midas_r}{formula} (formula, ldata = NULL,
-    hdata = NULL, start,
-    optim = list(func = "optim", method = "BFGS"), ...)
+  \method{midas_r}{default} (x, ldata = NULL, hdata = NULL,
+    start, optim = list(func = "optim", method = "BFGS"),
+    ...)
 }
 \arguments{
   \item{x}{either formula for restricted MIDAS regression
   or \code{midas_r} object.}
-
-  \item{formula}{formula for restricted MIDAS regression}
 
   \item{ldata}{low frequency data, a \code{data.frame}
   object}

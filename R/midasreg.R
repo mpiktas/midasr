@@ -84,7 +84,6 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
 ##' Estimate restricted MIDAS regression using non-linear least squares. Currently only the estimates of the parameters are given, without their standard errors.
 ##'
 ##' @param x either formula for restricted MIDAS regression or \code{midas_r} object.
-##' @param formula formula for restricted MIDAS regression
 ##' @param ldata low frequency data, a \code{data.frame} object
 ##' @param hdata high frequency data, a \code{data.frame} object
 ##' @param start the starting values for optimisation. Must be a list with named elements.
@@ -159,11 +158,11 @@ midas_r <- function(x,...)UseMethod("midas_r")
 is.midas_r <- function(x) inherits(x,"midas_r")
 
 #' @rdname midas_r
-#' @method midas_r formula
+#' @method midas_r default
 #' @export
-midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(func="optim",method="BFGS"), ...) {
+midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, optim=list(func="optim",method="BFGS"), ...) {
 
-    Zenv <- new.env(parent=environment(formula))
+    Zenv <- new.env(parent=environment(x))
       
     if(missing(ldata)|missing(hdata)) {
         ee <- NULL
@@ -178,12 +177,12 @@ midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(f
     cll <- match.call()
     mf <- match.call(expand.dots = FALSE)
     ##Fix this!!
-    m <- match(c("formula", "ldata"), names(mf), 0L)
+    m <- match(c("x", "ldata"), names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf[[1L]] <- as.name("model.frame")
     mf[[3L]] <- as.name("ee")   
     mf[[4L]] <- as.name("na.omit")
-    names(mf)[c(3,4)] <- c("data","na.action")
+    names(mf)[c(2,3,4)] <- c("formula","data","na.action")
     
     mf <- eval(mf,Zenv)
     mt <- attr(mf, "terms")
