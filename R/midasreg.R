@@ -83,7 +83,7 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
 ##'
 ##' Estimate restricted MIDAS regression using non-linear least squares. Currently only the estimates of the parameters are given, without their standard errors.
 ##'
-##' @param x either formula for restricted MIDAS regression or \code{midas__r} object.
+##' @param x either formula for restricted MIDAS regression or \code{midas_r} object.
 ##' @param formula formula for restricted MIDAS regression
 ##' @param ldata low frequency data, a \code{data.frame} object
 ##' @param hdata high frequency data, a \code{data.frame} object
@@ -155,6 +155,8 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
 ##' 
 ##' @export
 midas_r <- function(x,...)UseMethod("midas_r")
+
+is.midas_r <- function(x) inherits(x,"midas_r")
 
 #' @rdname midas_r
 #' @method midas_r formula
@@ -289,6 +291,7 @@ midas_r.formula <- function(formula, ldata=NULL, hdata=NULL, start, optim=list(f
     class(prepmd) <- "midas_r"
     midas_r.fit(prepmd)    
 }
+
 ##' Restricted MIDAS regression
 ##'
 ##' Reestimate the MIDAS regression with different starting values
@@ -372,8 +375,8 @@ midas_r.fit <- function(x) {
     x$opt <- opt
     x$coefficients <- par
     x$midas.coefficients <- x$allcoef(par)
-    x$fitted.values <- x$model[,-1]%*%x$midas.coefficients
-    x$residuals <- x$model[,1]-x$fitted.values
+    x$fitted.values <- as.vector(x$model[,-1]%*%x$midas.coefficients)
+    x$residuals <- as.vector(x$model[,1]-x$fitted.values)
     x
 }
 
@@ -390,6 +393,45 @@ deviance.midas_r <- function(object,...) {
     sum(residuals(object)^2,na.rm=TRUE)
 }
 
+##' Predict method for MIDAS regression fit
+##'
+##' Predicted values based on MIDAS regression object
+##' @param object \code{\link{midas_r}} object
+##' @param newldata new low frequency data, must be \code{data.frame}
+##' @param newhdata new high frequency data, must be \code{data.frame}
+##' @param ... additional arguments, not used
+##' @return a vector of predicted values
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @method predict midas_r
+##' @export
+predict.midas_r <- function(object, newldata, newhdata, ... ) {
+    if(missing(newldata) | missing(newhdata))
+      return(as.vector(fitted(object)))
+
+    if(!is.data.frame(newldata)| !is.data.frame(newhdata)) stop("New data must supplied as data.frame")
+    
+    Zenv <- new.env(parent=parent.frame())
+
+    ee <- as.environment(c(as.list(newldata),as.list(newhdata)))
+    parent.env(ee) <- parent.frame()
+    
+    assign("ee",ee,Zenv)
+    cll <- match.call()
+    mf <- match.call(expand.dots = FALSE)
+    m <- match(c("object", "newldata"), names(mf), 0L)
+    mf <- mf[c(1L, m)]
+    mf[[1L]] <- as.name("model.frame")
+    mf[[2L]] <- formula(object)
+    mf[[3L]] <- as.name("ee")   
+    mf[[4L]] <- as.name("na.omit")
+    names(mf)[c(2,3,4)] <- c("formula","data","na.action")
+    
+    mf <- eval(mf,Zenv)
+    mt <- attr(mf, "terms")
+
+    X <- model.matrix(mt, mf)
+    as.vector(X %*% midas_coef(object))
+}
 
 summary.midas_r <- function(x) {
     r <- as.vector(residuals(x))

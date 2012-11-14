@@ -11,7 +11,7 @@
 }
 \arguments{
   \item{x}{either formula for restricted MIDAS regression
-  or \code{midas__r} object.}
+  or \code{midas_r} object.}
 
   \item{formula}{formula for restricted MIDAS regression}
 
