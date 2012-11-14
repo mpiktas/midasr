@@ -740,7 +740,7 @@ prep_hAh <- function(x,gr=NULL,...) {
 
     unrestricted <- x$unrestricted
         
-    D0 <- gradD(x,gr=gr,...)(coef(x),...)
+    D0 <- gradD(x,gr=gr,...)(coef(x))
 
     X <- x$model[,-1]
     
@@ -830,5 +830,5 @@ gradD <- function(x,gr=NULL,...) {
             res
         }
     }
-    function(p,...)gr(p,...)
+    function(p)gr(p,...)
 }
