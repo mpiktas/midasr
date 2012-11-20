@@ -432,15 +432,17 @@ predict.midas_r <- function(object, newldata, newhdata, ... ) {
     as.vector(X %*% midas_coef(object))
 }
 
-summary.midas_r <- function(x) {
-    r <- as.vector(residuals(x))
-    param <- coef(x)
+##' @export
+##' @method summary midas_r
+summary.midas_r <- function(object, ...) {
+    r <- as.vector(residuals(object))
+    param <- coef(object)
     pnames <- names(param)
     n <- length(r)
     p <- length(param)
     rdf <- n - p
-    resvar <- deviance(x)/rdf
-    XD <- x$model[,-1]%*%gradD(x)(coef(x))
+    resvar <- deviance(object)/rdf
+    XD <- object$model[,-1]%*%gradD(object)(coef(object))
     R <- qr.R(qr(XD))
     XDtXDinv <- chol2inv(R)
     dimnames(XDtXDinv) <- list(pnames,pnames)
@@ -449,13 +451,15 @@ summary.midas_r <- function(x) {
     param <- cbind(param,se,tval,2*pt(abs(tval),rdf,lower.tail=FALSE))
     dimnames(param) <- list(pnames, c("Estimate", "Std. Error", 
         "t value", "Pr(>|t|)"))
-    ans <- list(formula=formula(x$terms),residuals=r,sigma=sqrt(resvar),
-                df=c(p,rdf), cov.unscaled=XDtXDinv, call=x$call,
-                coefficients=param,midas.coefficients=midas_coef(x))
+    ans <- list(formula=formula(object$terms),residuals=r,sigma=sqrt(resvar),
+                df=c(p,rdf), cov.unscaled=XDtXDinv, call=object$call,
+                coefficients=param,midas.coefficients=midas_coef(object))
     class(ans) <- "summary.midas_r"
     ans
 }
 
+##' @export
+##' @method print summary.midas_r
 print.summary.midas_r <- function(x, digits=max(3, getOption("digits") - 3 ), signif.stars = getOption("show.signif.stars"), ...) {
     cat("\n Formula", deparse(formula(x)),"\n")
     df <- x$df
@@ -466,16 +470,28 @@ print.summary.midas_r <- function(x, digits=max(3, getOption("digits") - 3 ), si
     invisible(x)
 }
 
+##' @export
+##' @method print midas_r
 print.midas_r <- function(x, digits=max(3,getOption("digits")-3),...) {
     cat("MIDAS regression model\n")
     cat(" model:", deparse(formula(x)),"\n")
     print(coef(x),digits = digits, ...)
     cat("\n")
-    cat("Function ", x$argmap.opt$func, " was used for fitting\n")
+    cat("Function", x$argmap.opt$Rfunction, "was used for fitting\n")
     invisible(x)
 }
 
-
+##' @export
+##' @method logLik midas_r
+logLik.midas_r <- function(object,...) {
+    res <- residuals(object)
+    N <- length(res)
+    val <- -N * (log(2 * pi) + 1 - log(N)  +  log(sum(res^2)))/2
+    attr(val, "df") <- 1L + length(coef(object))
+    attr(val, "nobs") <- attr(val, "nall") <- N
+    class(val) <- "logLik"
+    val
+}
 ##' Calculate numerical approximation of gradient of RSS of
 ##' MIDAS regression 
 ##'
