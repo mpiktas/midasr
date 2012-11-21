@@ -21,3 +21,5 @@ Collate:
     'midasr-package.R'
     'midasreg.R'
     'embedlf.R'
+    'deriv.R'
+    'midas_r_methods.R'
