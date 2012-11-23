@@ -203,9 +203,12 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, control=list(Rfunc
             ff <- eval(fr[[5]],parent.frame())
             rf.arg <- formals(ff)
             class(rf.arg) <- "list"
-            rf.argnm <-  intersect(names(rf.arg)[-1],names(cl))
-            rf.arg[rf.argnm] <- cl[rf.argnm]            
+            if(length(cl)>0) {
+                rf.argnm <-  intersect(names(rf.arg)[-2:-1],names(cl))
+                rf.arg[rf.argnm] <- cl[rf.argnm]
+            }
             rf.name <- as.character(fr[[5]])
+            rf.arg[[2]] <- eval(fr[[3]],parent.frame())            
             rf <- function(p) {
                 rf.arg[[1]] <- p
                 do.call(rf.name,rf.arg)
