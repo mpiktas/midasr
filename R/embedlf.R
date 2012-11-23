@@ -3,26 +3,17 @@
 ##' Compute a lagged version of mixed data sampling time series
 ##' 
 ##' @param x a vector
-##' @param ... further arguments
-##' @return a matrix containing the lags
-##' @author Vaidotas Zemlys
-##' @seealso embedlf.default embedlf.mds
-##' @export
-embedlf <- function(x,...)UseMethod("embedlf")
-
-##' Lag a mixed data sampling time series
-##'
-##' Compute a lagged version of mixed data sampling time series
-##' 
-##'
-##' @param x a vector for which mixed data sampling lag has to be computed
-##' @param k the number of high frequency lags plus 1.
+##' @param k the number of high frequency lags including contemporaneous lag
 ##' @param m frequency ratio
 ##' @param ... further arguments
 ##' @return a matrix containing the lags
 ##' @author Vaidotas Zemlys
+##' @seealso embedlf.default 
+##' @export
+embedlf <- function(x,...)UseMethod("embedlf")
+
+##' @rdname embedlf
 ##' @method embedlf default
-##' @seealso embedlf embedlf.mds
 ##' @export
 embedlf.default <- function(x, k, m, ...) {
     n.x <- length(x)
