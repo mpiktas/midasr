@@ -24,12 +24,12 @@ ldt <- data.frame(y=y,trend=1:length(y))
 ##High frequency variables
 hdt <- data.frame(x=x)
 
-###Estimate unrestricted and restricted models with different number of lags
+###Estimate unrestricted and restricted models with different number of low frequency lags
 
 alli <- foreach(k=c(0,1,2,3)) %do% {	
-	mu <- midas_u(y~mdslag(x,k)+trend,ldt,hdt)
-	mr <- midas_r(y~mdslag(x,k,theta.h0)+trend,ldt,hdt,start=list(theta.h0=c(10,-10,-10,-10)),dk=(k+1)*12)
-	mr1 <- midas_r(y~mdslag(x,k,theta.h1)+trend,ldt,hdt,start=list(theta.h1=c(10,-10,-10,-10)),dk=(k+1)*12)
+	mu <- midas_u(y~embedlf(x,(k+1)*12,12)+trend,ldt,hdt)
+	mr <- midas_r(y~embedlf(x,(k+1)*12,12,theta.h0)+trend,ldt,hdt,start=list(theta.h0=c(10,-10,-10,-10)),dk=(k+1)*12)
+	mr1 <- midas_r(y~embedlf(x,(k+1)*12,12,theta.h1)+trend,ldt,hdt,start=list(theta.h1=c(10,-10,-10,-10)),dk=(k+1)*12)
     list(ur=mu,kz=mr,al=mr1,k=k)
 }
 
@@ -51,7 +51,7 @@ sapply(alli,with,c(hAh.test(kz)$p.value,hAh.test(al)$p.value))
 
 ###Get coefficients of MIDAS regression
 
-lapply(alli,with,mdslag_coef(ur))
+lapply(alli,with,coef(ur))
 ##KZ restriction
 lapply(alli,with,restr_coef(kz))
 ##GH restriction
@@ -70,7 +70,9 @@ dev.new()
 par(mfrow=c(2,2))
 
 lapply(alli,with,{
-    plot(mdslag_coef(ur),xlab="Lags",ylab="Coefficients",main=paste("k = ",k,sep=""))
+    cfur <- coef(ur)
+    mdcf <- cfur[grep("embedlf",names(cfur))]
+    plot(coef(ur),xlab="Lags",ylab="Coefficients",main=paste("k = ",k,sep=""))
     points(restr_coef(kz),pch=16,col="red")
     points(restr_coef(al),pch=16,col="blue")
 })
