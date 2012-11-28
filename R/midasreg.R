@@ -208,7 +208,7 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, control=list(Rfunc
                 rf.arg[rf.argnm] <- cl[rf.argnm]
             }
             rf.name <- as.character(fr[[5]])
-            rf.arg[[2]] <- eval(fr[[3]],parent.frame())            
+            rf.arg[[2]] <- eval(fr[[3]],Zenv)            
             rf <- function(p) {
                 rf.arg[[1]] <- p
                 do.call(rf.name,rf.arg)
