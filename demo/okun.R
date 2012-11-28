@@ -10,8 +10,7 @@ allk <- foreach(k=c(12,15,18,24)) %do% {
     midas_r(midas_r(y~trend+embedlf(x,k,12,nealmon),start=list(nealmon=rep(0,3))),Rfunction="nls")
 }
                                                 
-####Compute the derivative test
-                
+####Compute the derivative test                
 dtest <- lapply(allk,deriv_tests)
 
 ###The first derivative tests, gradient is zero
