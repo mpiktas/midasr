@@ -23,3 +23,4 @@ Collate:
     'embedlf.R'
     'deriv.R'
     'midas_r_methods.R'
+    'lagspec.R'
