@@ -4,75 +4,49 @@ data("USrealgdp")
 
 y <- diff(log(USrealgdp))
 x <- window(diff(USunempr),start=1949)
+trend <- 1:length(y)
 
-##Restriction used in Kvedaras, Zemlys (2012)
-theta.h0 <- function(p, dk) {
-   i <- (1:dk-1)/100
-   (p[1]*i)*exp(p[2]*i + p[3]*i^2+p[4]*i^3)
+allk <- foreach(k=c(12,15,18,24)) %do% {	
+    midas_r(midas_r(y~trend+embedlf(x,k,12,nealmon),start=list(nealmon=rep(0,3))),Rfunction="nls")
 }
-
-##Almon lag restriction
-theta.h1 <- function(p, dk) {
-   i <- (1:dk-1)/100
-    p[1]*exp(p[2]*i+p[3]*i^2+p[4]*i^3)/sum(exp(p[2]*i+p[3]*i^2+p[4]*i^3))
-
-}
-
-##Low freqency variables:
-ldt <- data.frame(y=y,trend=1:length(y))
-
-##High frequency variables
-hdt <- data.frame(x=x)
-
-###Estimate unrestricted and restricted models with different number of low frequency lags
-
-alli <- foreach(k=c(0,1,2,3)) %do% {	
-	mu <- midas_u(y~embedlf(x,(k+1)*12,12)+trend,ldt,hdt)
-	mr <- midas_r(y~embedlf(x,(k+1)*12,12,theta.h0)+trend,ldt,hdt,start=list(theta.h0=c(10,-10,-10,-10)),dk=(k+1)*12)
-	mr1 <- midas_r(y~embedlf(x,(k+1)*12,12,theta.h1)+trend,ldt,hdt,start=list(theta.h1=c(10,-10,-10,-10)),dk=(k+1)*12)
-    list(ur=mu,kz=mr,al=mr1,k=k)
-}
-
-####Compute the derivative test for KZ restriction
-dtestKZ <- lapply(alli,with,deriv_tests(kz))
-dtestAL <- lapply(alli,with,deriv_tests(al))
+                                                
+####Compute the derivative test
+                
+dtest <- lapply(allk,deriv_tests)
 
 ###The first derivative tests, gradient is zero
-sapply(dtestKZ,with,first)
-sapply(dtestAL,with,first)
-
+sapply(dtest,with,first)
+                
 ###The second derivative tests, hessian is positive definite
-sapply(dtestKZ,with,second)
-sapply(dtestAL,with,second)
+sapply(dtest,with,second)
 
-###Get p-values
+###The minimal eigenvalue of hessian is borderline zero, yet positive.
+sapply(dtest,with,min(eigenval))
 
-sapply(alli,with,c(hAh.test(kz)$p.value,hAh.test(al)$p.value))
+###Apply hAh test
+lapply(allk,hAh.test)
 
-###Get coefficients of MIDAS regression
+###Apply robust hAh test
+lapply(allk,hAhr.test)
 
-lapply(alli,with,coef(ur))
-##KZ restriction
-lapply(alli,with,restr_coef(kz))
-##GH restriction
-lapply(alli,with,restr_coef(al))
-
-###Get restriction parameters
-
-#Kvedaras, Zemlys
-sapply(alli,with,restr_param(kz))
-#Almon lag
-sapply(alli,with,restr_param(al))
+###View summaries
+lapply(allk,summary)
 
 ##Plot the coefficients
-
 dev.new()
 par(mfrow=c(2,2))
 
-lapply(alli,with,{
-    cfur <- coef(ur)
-    mdcf <- cfur[grep("embedlf",names(cfur))]
-    plot(coef(ur),xlab="Lags",ylab="Coefficients",main=paste("k = ",k,sep=""))
-    points(restr_coef(kz),pch=16,col="red")
-    points(restr_coef(al),pch=16,col="blue")
+lapply(allk,function(x){
+    cfur <- coef(x$unrestricted)
+    cfur <- cfur[grep("embedlf",names(cfur))]
+    cfre <- restr_coef(x)
+    k <- length(cfur)
+    sdval <- sqrt(diag(vcovHAC(x$unrestricted)))
+    sdval <- sdval[grep("embedlf",names(sdval))]
+
+    plot(0:(k-1),cfur,col="black",ylab="Beta coefficients",xlab="h")
+    title(main=sprintf("d = %.0f: p-val.(hAh_HAC) < %.2f", k, max(hAhr.test(x)$p.value, 0.01)), cex.main = 1, font.main = 4, col.main = "black")
+    points(c(0:(k - 1)), cfre, type = "l", col = "blue")
+    points(c(0:(k - 1)), cfur + 2 * sdval[1:k], type = "l", col = "red", lty = 2)
+    points(c(0:(k - 1)), cfur - 2 * sdval[1:k], type = "l", col = "red", lty = 2)
 })
