@@ -33,14 +33,33 @@
 install_github("midasr","mpiktas")
 </code></pre>
 
-<p>Or you can install the particular version using the following code:</p>
+<p>This will install the development version of the package. The latest stable
+version is 0.0.6 and you can install it using the following code:</p>
 
 <pre><code>library(devtools)
-install_github("midasr","mpiktas","v0.0.4")
+install_github("midasr","mpiktas","v0.0.6")
 </code></pre>
 
+<p> The package has three demos: <pre>okun</pre>, <pre>RV</pre> and
+<pre>logRV</pre>. Please run them with the following code:
+</p>
+
+<pre><code>library(midas)
+demo("okun","midasr",ask=FALSE)
+demo("RV","midasr",ask=FALSE)
+demo("logRV","midasr",ask=FALSE)
+</code></pre>
+
+<p>The last 2 demos take some time to complete (about 5 minutes), so be patient. </p>
+
+
 <p>When the code matures the package will be available from <a href="http://cran.r-project.org">CRAN</a>. </p>
-      </section>
+
+<p>If you find bugs or have suggestions please file an <a
+    href="https://github.com/mpiktas/midasr/issues">issue</a>. Add the offending
+R code and the error message for a bug. Or write an email. </p>
+
+</section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/mpiktas">mpiktas</a></p>
         <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
