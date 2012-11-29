@@ -1,3 +1,7 @@
+##More details about the models can be found in the article
+##"The statistical content and empirical testing of the MIDAS restrictions"
+##by Virmantas Kvedaras and Vaidotas Zemlys
+
 data(rvsp500)
 
 y <- as.numeric(rvsp500[,2])
@@ -31,6 +35,10 @@ lapply(allh,hAh.test)
 foreach(mr=allh,phi=PHI) %do% {
     hAhr.test(mr,PHI=phi)
 }
+
+##Parameter j is superfluous, j=0 means no logarithm transformation was
+##applied, j=1 means that logarithm transformation was applied. The graph
+##is made to be the same as in the aforementioned article.
 
 graph <- function(x,phi,j,h) {
     cfur <- coef(x$unrestricted)

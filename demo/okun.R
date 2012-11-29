@@ -1,3 +1,7 @@
+##More details about the models can be found in the article
+##"The statistical content and empirical testing of the MIDAS restrictions"
+##by Virmantas Kvedaras and Vaidotas Zemlys
+
 library(midasr)
 data("USunempr")
 data("USrealgdp")

@@ -1,17 +1,31 @@
+##More details about the models can be found in the article
+##"The statistical content and empirical testing of the MIDAS restrictions"
+##by Virmantas Kvedaras and Vaidotas Zemlys
+
 data(rvsp500)
 
 y <- log(as.numeric(rvsp500[,2]))
 y[y== -Inf] <- NA
 
-allh <- lapply(c(5,10,20,40),function(h){
+##Convergence is harder to achieve, so try to pick better starting values
+prestart <- function(start,cfur,k) {    
+    fn0 <- function(p) {sum((cfur-nealmon(p,k))^2)}
+    optim(start,fn0,method="BFGS",control=list(maxit=1000))$par
+}
+
+rvhk <- function(h,k){
     rvh <- filter(c(rep(0,h),y),c(rep(1,h),rep(0,h+1)))
     rvh <- rvh[-h:-1]
     y <- y[1:length(rvh)]
-    midas_r(midas_r(rvh~embedlf(y,70,1,nealmon),start=list(nealmon=rep(0,3))),Rfunction="nls")
-})
+    mu <- midas_u(rvh~embedlf(y,k,1))
+    cfur <- coef(mu)[grep("embed",names(coef(mu)))]
+    midas_r(midas_r(rvh~embedlf(y,k,1,nealmon),start=list(nealmon=prestart(c(0.2,-1,1),cfur,k))),Rfunction="nls")   
+}
+
+allh <- lapply(c(5,10,20,40),rvhk,k=70)
 
 ####Compute the derivative test                
-dtest <- lapply(allh,deriv_tests)
+dtest <- lapply(allh,deriv_tests,tol=0.5)
 
 ###The first derivative tests, gradient is zero
 sapply(dtest,with,first)
@@ -32,6 +46,10 @@ lapply(allh,hAh.test)
 foreach(mr=allh,phi=PHI) %do% {
     hAhr.test(mr,PHI=phi)
 }
+
+##Parameter j is superfluous, j=0 means no logarithm transformation was
+##applied, j=1 means that logarithm transformation was applied. The graph
+##is made to be the same as in the aforementioned article.
 
 graph <- function(x,phi,j,h) {
     cfur <- coef(x$unrestricted)
