@@ -8,14 +8,8 @@
 ##' @param ... further arguments
 ##' @return a matrix containing the lags
 ##' @author Vaidotas Zemlys
-##' @seealso embedlf.default 
 ##' @export
-embedlf <- function(x,...)UseMethod("embedlf")
-
-##' @rdname embedlf
-##' @method embedlf default
-##' @export
-embedlf.default <- function(x, k, m, ...) {
+embedlf <- function(x, k, m, ...) {
     n.x <- length(x)
     n <- n.x %/%m
 

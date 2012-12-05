@@ -14,60 +14,13 @@ deriv_tests<- function(x,tol=1e-6) UseMethod("deriv_tests")
 #' @method deriv_tests midas_r
 #' @export
 deriv_tests.midas_r <- function(x,tol=1e-6) {
-    gr <- gradient(x)
-    hess <- hessian(x)
+    gr <- x$gradient(coef(x))
+    hess <- x$hessian(coef(x))
     egh <- eigen(hess)$values
 
     first <- sum(abs(gr))<tol
     second <- !any(egh<0) & !any(abs(egh)<tol)
     list(first=first,second=second,gradient=gr,eigenval=egh)
-}
-
-##' Calculate numerical approximation of gradient of RSS of
-##' MIDAS regression 
-##'
-##' Calculate nummerical approximation of gradient of residual sum of
-##' squares function of estimated MIDAS regression
-##' 
-##' @param x a \code{\link{midas_r}} object
-##' @param ... further arguments to function \code{\link{grad}} from package \code{numDeriv}
-##' @return numeric vector
-##' @author Vaidotas Zemlys
-##' @seealso midas_r.formula
-##' @import numDeriv
-##' @rdname gradient
-##' @export
-gradient <- function(x,...)UseMethod("gradient")
-
-#' @rdname gradient
-#' @method gradient midas_r
-#' @export
-gradient.midas_r <- function(x,...) {
-    grad(x$fn0,coef(x),...)
-}
-
-##' Calculate numerical approximation of gradient of RSS of
-##' MIDAS regression 
-##'
-##' Calculate nummerical approximation of gradient of residual sum of
-##' squares function of estimated MIDAS regression
-##' 
-##' @param x a \code{\link{midas_r}} object
-##' @param ... further arguments to function \code{\link{hessian}} from package \code{numDeriv}
-##' @return numeric vector
-##' @author Vaidotas Zemlys
-##' @rdname hessian 
-##' @seealso midas_r
-##' @import numDeriv
-##' @export
-hessian <- function(x,...)UseMethod("hessian")
-
-#' @rdname hessian
-#' @method hessian midas_r
-#' @import numDeriv
-#' @export
-hessian.midas_r <- function(x,...) {
-   numDeriv::hessian(x$fn0,coef(x),...)
 }
 
 ##' Gradient function of coefficient function in MIDAS regression

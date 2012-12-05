@@ -1,11 +1,8 @@
 \name{embedlf}
 \alias{embedlf}
-\alias{embedlf.default}
 \title{Lag a mixed data sampling time series}
 \usage{
-  embedlf(x, ...)
-
-  \method{embedlf}{default} (x, k, m, ...)
+  embedlf(x, k, m, ...)
 }
 \arguments{
   \item{x}{a vector}
@@ -26,8 +23,5 @@
 }
 \author{
   Vaidotas Zemlys
-}
-\seealso{
-  embedlf.default
 }
 

@@ -194,44 +194,37 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, control=list(Rfunc
 
     ##High frequency variables can enter to formula
     ##only within embedlf function
-    terms.lhs <- attr(mt,"term.labels") 
-    if(attr(mt,"intercept")==1) terms.lhs <- c("(Intercept)",terms.lhs)
-  
-    rf <- lapply(terms.lhs,function(fr) {     
-        if(length(grep("embedlf",fr))>0) {
-            fr <- parse(text=fr)[[1]]
-            ff <- eval(fr[[5]],parent.frame())
-            rf.arg <- formals(ff)
-            class(rf.arg) <- "list"
-            if(length(cl)>0) {
-                rf.argnm <-  intersect(names(rf.arg)[-2:-1],names(cl))
-                rf.arg[rf.argnm] <- cl[rf.argnm]
+    terms.lhs <- attr(mt,"variables")[-2:-1]
+    term.labels <- attr(mt,"term.labels") 
+    
+    rfd <- lapply(terms.lhs,function(fr) {
+        if(as.character(fr)[1]=="embedlf") {
+            mf <- fr[-4:-5]
+            mf[[1]] <- fr[[5]]
+            for(i in 3:length(mf)) {
+                mf[[i]] <- eval(mf[[i]],Zenv)
             }
-            rf.name <- as.character(fr[[5]])
-            rf.arg[[2]] <- eval(fr[[3]],Zenv)            
             rf <- function(p) {
-                rf.arg[[1]] <- p
-                do.call(rf.name,rf.arg)
+                mf[[2]] <- p
+                eval(mf,Zenv)
             }
-            return(rf)
+            return(list(rf,as.character(fr[[2]])))
         }
         else {
-            return(function(p)p)
+            return(list(function(p)p,deparse(fr)))
         }
     })
 
-    names(rf) <- sapply(terms.lhs,function(fr) {
-        if(length(grep("embedlf",fr))>0) {
-            fr <- parse(text=fr)[[1]]
-            as.character(fr[[5]])
-        }
-        else {
-            fr
-        }
-    })
+    if (attr(mt,"intercept")==1)  {
+        rfd <- c(list(list(function(p)p,"(Intercept)")),rfd)
+        term.labels <- c("(Intercept)",term.labels)
+    }
     
-    restr.name <- setdiff(names(rf), terms.lhs)
-    
+    rf <- lapply(rfd,function(x)x[[1]])
+    names(rf) <- sapply(rfd,function(x)x[[2]])
+       
+    restr.name <- setdiff(names(rf), term.labels)
+  
     start_default<- as.list(rep(0,length(rf)))
     names(start_default) <- names(rf)
 
@@ -239,8 +232,6 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, control=list(Rfunc
     
     start_default[names(start)] <- start
 
-    restr.name <- setdiff(names(start_default), terms.lhs)
-    
     restr.no <- sum(sapply(start_default[restr.name], length))
     
     np <- cumsum(sapply(start_default,length))
@@ -272,10 +263,12 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, control=list(Rfunc
         sum(r^2)
     }
     
-
+    gr <- function(x)grad(fn0,x)
+    hess <- function(x)numDeriv:::hessian(fn0,x)
+      
     unrestricted <- NULL
     if(ncol(X)<nrow(X)) unrestricted <- lm(y~.-1,data=data.frame(cbind(y,X),check.names=FALSE))
-    
+
     prepmd <- list(coefficients=starto,
                    midas.coefficients=all_coef(starto),
                    model=cbind(y,X),
@@ -289,7 +282,11 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, control=list(Rfunc
                    argmap.opt=control,
                    start.opt=starto,
                    call=cll,
-                   terms=mt)
+                   terms=mt,
+                   gradient=gr,
+                   hessian=hess,
+                   Zenv=Zenv)
+    
     class(prepmd) <- "midas_r"
     midas_r.fit(prepmd)    
 }

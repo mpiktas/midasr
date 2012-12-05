@@ -32,3 +32,12 @@ nealmon <- function(p,d) {
   plc <- poly(i,degree=length(p)-1,raw=TRUE) %*% p[-1]
   as.vector(p[1] * exp(plc)/sum(exp(plc)))
 }
+
+nealmon.gradient <- function(p,d) {
+    i <- (1:d)/100
+    pl <- poly(i,degree=length(p)-1,raw=TRUE)
+    eplc <- exp(pl%*%p[-1])[,,drop=TRUE]
+    ds <- apply(pl*eplc,2,sum)
+    s <- sum(eplc)
+    cbind(eplc/s,pl*eplc/s-eplc%*%t(ds)/s^2)
+}
