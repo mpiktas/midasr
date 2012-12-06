@@ -87,8 +87,9 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
 ##' @param ldata low frequency data, a \code{data.frame} object
 ##' @param hdata high frequency data, a \code{data.frame} object
 ##' @param start the starting values for optimisation. Must be a list with named elements.
-##' @param control the list with information which R function to use for optimisation. The list must have element named \code{Rfunction} which contains character string of chosen R function. Other elements of the list are thearguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
-##' @param ... additional arguments supplied to restriction function(s)
+##' @param Rfunction the list with information which R function to use for optimisation. The list must have element named \code{Rfunction} which contains character string of chosen R function. Other elements of the list are thearguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
+##' @param gradient the gradient of the restriction function. Must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. Default value is \code{NULL}, which means that the numeric approximation of gradient is calculated.
+##' @param ... additional arguments supplied to optimisation function
 ##' @return a \code{midas_r} object which is the list with the following elements:
 ##' 
 ##' \item{coefficients}{the estimates of parameters of restrictions}
@@ -514,7 +515,6 @@ embedlf_coef <- function(x) {
 ##' Perform a test whether the restriction on MIDAS regression coefficients holds.
 ##' 
 ##' @param x MIDAS regression model with restricted coefficients, estimated with \code{\link{midas_r}}
-##' @param gr the gradient of the restriction function. Must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. Default value is \code{NULL}, which means that the numeric approximation of gradient is calculated.
 ##' @param ... the arguments supplied to gradient function, if \code{gr} is not \code{NULL}
 ##' @return a \code{htest} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
@@ -572,9 +572,9 @@ embedlf_coef <- function(x) {
 ##' @export
 ##' @import MASS
 ##' @import numDeriv
-hAh.test <- function(x,gr=NULL,...) {
+hAh.test <- function(x) {
 
-    prep <- prep_hAh(x,gr,...)
+    prep <- prep_hAh(x)
     
     unrestricted <- x$unrestricted
 
@@ -597,8 +597,6 @@ hAh.test <- function(x,gr=NULL,...) {
 ##' Perform a test whether the restriction on MIDAS regression coefficients holds.
 ##' @param x MIDAS regression model with restricted coefficients, estimated with \code{\link{midas_r}}
 ##' @param PHI the "meat" covariance matrix, defaults to \code{vcovHAC(x$unrestricted, sandwich=FALSE)}
-##' @param gr the gradient of the restriction function. Must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. Default value is \code{NULL}, which means that the numeric approximation of gradient is calculated.
-##' @param ... the arguments supplied to gradient function, if \code{gr} is not \code{NULL}
 ##' @return a \code{htest} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @references Kvedaras V., Zemlys, V. \emph{The statistical content and empirical testing of the MIDAS restrictions}
@@ -630,15 +628,17 @@ hAh.test <- function(x,gr=NULL,...) {
 ##' mr <- midas_r(y~embedlf(x,4*12,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
 ##' 
 ##' ##The gradient function
-##' grad.h0<-function(p, dk) {
+##' theta.h0.gradient <-function(p, dk) {
 ##'    i <- (1:dk-1)
 ##'    a <- exp(p[3]*i + p[4]*i^2)
 ##'    cbind(a, a*i, a*i*(p[1]+p[2]*i), a*i^2*(p[1]+p[2]*i))
 ##' }
 ##'
 ##' ##Perform test (the expected result should be the acceptance of null)
+##' 
+##' mr <- midas_r(y~embedlf(x,4*12,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),gradient="default")
 ##'
-##' hAhr.test(mr,gr=grad.h0,dk=4*12)
+##' hAhr.test(mr)
 ##'
 ##' ##Use numerical gradient instead of supplied one 
 ##' hAhr.test(mr)
@@ -655,8 +655,8 @@ hAh.test <- function(x,gr=NULL,...) {
 ##' @import MASS
 ##' @import numDeriv
 ##' @import sandwich
-hAhr.test <- function(x,PHI=vcovHAC(x$unrestricted,sandwich=FALSE),gr=NULL,...) {
-    prep <- prep_hAh(x,gr,...)
+hAhr.test <- function(x,PHI=vcovHAC(x$unrestricted,sandwich=FALSE)) {
+    prep <- prep_hAh(x)
     
     unrestricted <- x$unrestricted
 
@@ -686,12 +686,12 @@ hAhr.test <- function(x,PHI=vcovHAC(x$unrestricted,sandwich=FALSE),gr=NULL,...) 
 ##' @return a list with necessary matrices
 ##' @author Virmantas Kvedara, Vaidotas Zemlys
 ##' @seealso hAh.test, hAhr.test
-prep_hAh <- function(x,gr=NULL,...) {
+prep_hAh <- function(x) {
 
     unrestricted <- x$unrestricted
     if(is.null(unrestricted))stop("Unrestricted model cannot be estimated due to the lack of degrees of freedom, testing the restriction is not possible")
     
-    D0 <- gradD(x,gr=gr,...)(coef(x))
+    D0 <- x$gradD(coef(x))
 
     X <- x$model[,-1]
     

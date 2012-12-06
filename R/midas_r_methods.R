@@ -61,7 +61,7 @@ summary.midas_r <- function(object, ...) {
     p <- length(param)
     rdf <- n - p
     resvar <- deviance(object)/rdf
-    XD <- object$model[,-1]%*%gradD(object)(coef(object))
+    XD <- object$model[,-1]%*%object$gradD(coef(object))
     R <- qr.R(qr(XD))
     XDtXDinv <- chol2inv(R)
     dimnames(XDtXDinv) <- list(pnames,pnames)
@@ -104,7 +104,7 @@ print.midas_r <- function(x, digits=max(3,getOption("digits")-3),...) {
 ##' @export
 ##' @method estfun midas_r
 estfun.midas_r <- function(x,...) {
-    XD <- x$model[,-1]%*%gradD(x)(coef(x))
+    XD <- x$model[,-1]%*%x$gradD(coef(x))
     rval <- as.vector(residuals(x))*XD
     colnames(rval) <- names(coef(x))
     rval
