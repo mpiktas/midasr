@@ -193,17 +193,18 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
 
     ##High frequency variables can enter to formula
     ##only within embedlf function
-    terms.lhs <- attr(mt,"variables")[-2:-1]
+    terms.lhs <- as.list(attr(mt,"variables"))[-2:-1]
     term.labels <- attr(mt,"term.labels") 
 
-    rfd <- vector("list",length(term.lhs))
+    rfd <- vector("list",length(terms.lhs))
+   
     for(i in 1:length(rfd)) {
         fr <- terms.lhs[[i]]
         if(as.character(fr)[1]=="embedlf") {
             mf <- fr[-4:-5]
             mf[[1]] <- fr[[5]]
-            for(i in 3:length(mf)) {
-                mf[[i]] <- eval(mf[[i]],Zenv)
+            for(j in 3:length(mf)) {
+                mf[[j]] <- eval(mf[[j]],Zenv)
             }
             rf <- function(p) {
                 mf[[2]] <- p
@@ -224,10 +225,10 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
     }
    
     if (attr(mt,"intercept")==1)  {
-        rfd <- c(list(list(weight=function(p)p,name="(Intercept)"),gradient=function(p)return(matrix(1))),rfd)
+        rfd <- c(list(list(weight=function(p)p,name="(Intercept)",gradient=function(p)return(matrix(1)))),rfd)
         term.labels <- c("(Intercept)",term.labels)
     }
-    
+
     rf <- lapply(rfd,with,weight)
     names(rf) <- sapply(rfd,with,name)
 
@@ -274,8 +275,10 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
     if(is.null(gradient)) {
         gradD <- function(p)jacobian(all_coef,p)
         gr <- function(x)grad(fn0,x)
+        use.gradient <- "No custom gradient used"
     }
     else {
+        use.gradient <- "Default"
         grf <- sapply(rfd,with,gradient)
         ##Calculate the initial value to get the idea about the dimensions
         pp0 <- lapply(pinds,function(xx)starto[xx])            
@@ -296,16 +299,17 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
             }
             else {
                 res <- matrix(0,nrow=sum(rownos),ncol=sum(colnos))
-                mapply(function(m,ind){res[ind$row,ind$col] <- m},
-                       grmat,pindm)
-                   
+                for(j in 1:length(grmat)) {
+                    ind <- pindm[[j]]
+                    res[ind$row,ind$col] <- grmat[[j]]                    
+                }
             }
             res
         }
         gr <- function(p) {
              XD <- X%*%gradD(p)
-             resid <- X %*% all_coef(p)
-             as.vector(resid)*XD             
+             resid <- y - X %*% all_coef(p)
+             as.vector(-2*apply(as.vector(resid)*XD,2,sum))             
         }
         ##Test the fucking hell out of this!!!
     }
@@ -319,7 +323,7 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
     
     control <- c(list(Rfunction=Rfunction),cl)
     ##Override default method of optim. Use BFGS instead of Nelder-Mead
-    if(!(method%in% names(control)) & Rfunction=="optim") {        
+    if(!("method"%in% names(control)) & Rfunction=="optim") {        
         control$method <- "BFGS"
     }
     
@@ -340,7 +344,8 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
                    gradient=gr,
                    hessian=hess,
                    gradD=gradD,
-                   Zenv=Zenv)
+                   Zenv=Zenv,
+                   use.gradient=use.gradient)
     
     class(prepmd) <- "midas_r"
     midas_r.fit(prepmd)    
@@ -413,6 +418,9 @@ midas_r.fit <- function(x) {
     if(function.opt=="optim" | function.opt=="spg") {  
         args$p <- x$start.opt
         args$fn <- x$fn0
+        if(x$use.gradient=="Default") {
+            args$gr <- x$gradient
+        }
         opt <- do.call(function.opt,args)
         par <- opt$par
         names(par) <- names(coef(x))
