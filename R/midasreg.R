@@ -160,7 +160,7 @@ is.midas_r <- function(x) inherits(x,"midas_r")
 #' @rdname midas_r
 #' @method midas_r default
 #' @export
-midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, control=list(Rfunction="optim",method="BFGS"), ...) {
+midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim", gradient=NULL,...) {
 
     Zenv <- new.env(parent=environment(x))
       
@@ -190,14 +190,15 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, control=list(Rfunc
     y <- model.response(mf, "numeric")
     X <- model.matrix(mt, mf)    
     
-    cl <- list(...)
 
     ##High frequency variables can enter to formula
     ##only within embedlf function
     terms.lhs <- attr(mt,"variables")[-2:-1]
     term.labels <- attr(mt,"term.labels") 
-    
-    rfd <- lapply(terms.lhs,function(fr) {
+
+    rfd <- vector("list",length(term.lhs))
+    for(i in 1:length(rfd)) {
+        fr <- terms.lhs[[i]]
         if(as.character(fr)[1]=="embedlf") {
             mf <- fr[-4:-5]
             mf[[1]] <- fr[[5]]
@@ -208,21 +209,28 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, control=list(Rfunc
                 mf[[2]] <- p
                 eval(mf,Zenv)
             }
-            return(list(rf,as.character(fr[[2]])))
+            gmf <- mf
+            ###Make this customizable
+            gmf[[1]] <- as.name(paste0(as.character(fr[[5]]),".gradient"))
+            grf <- function(p) {
+                gmf[[2]] <- p
+                eval(gmf,Zenv)
+            }
+            rfd[[i]] <- list(weight=rf,name=as.character(fr[[2]]),gradient=grf)
         }
         else {
-            return(list(function(p)p,deparse(fr)))
+            rfd[[i]] <- list(weight=function(p)p,name=term.labels[i],gradient=function(p)return(matrix(1)))
         }
-    })
-
+    }
+   
     if (attr(mt,"intercept")==1)  {
-        rfd <- c(list(list(function(p)p,"(Intercept)")),rfd)
+        rfd <- c(list(list(weight=function(p)p,name="(Intercept)"),gradient=function(p)return(matrix(1))),rfd)
         term.labels <- c("(Intercept)",term.labels)
     }
     
-    rf <- lapply(rfd,function(x)x[[1]])
-    names(rf) <- sapply(rfd,function(x)x[[2]])
-       
+    rf <- lapply(rfd,with,weight)
+    names(rf) <- sapply(rfd,with,name)
+
     restr.name <- setdiff(names(rf), term.labels)
   
     start_default<- as.list(rep(0,length(rf)))
@@ -262,13 +270,59 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, control=list(Rfunc
         r <- y - mdsrhs(p)
         sum(r^2)
     }
+
+    if(is.null(gradient)) {
+        gradD <- function(p)jacobian(all_coef,p)
+        gr <- function(x)grad(fn0,x)
+    }
+    else {
+        grf <- sapply(rfd,with,gradient)
+        ##Calculate the initial value to get the idea about the dimensions
+        pp0 <- lapply(pinds,function(xx)starto[xx])            
+        grmat0 <- mapply(function(fun,param)fun(param),grf,pp0,SIMPLIFY=FALSE)
+        colnos <- sapply(grmat0,ncol)
+        rownos <- sapply(grmat0,nrow)
+        np <- length(colnos)
+        ccol <- cumsum(colnos)
+        rrow <- cumsum(rownos)
+        pindm <- cbind(c(1,rrow[-np]+1),rrow,
+                       c(1,ccol[-np]+1),ccol)
+        pindm <- apply(pindm,1,function(x)list(row=x[1]:x[2],col=x[3]:x[4]))                
+        gradD <- function(p) {
+            pp <- lapply(pinds,function(x)p[x])
+            grmat <- mapply(function(fun,param)fun(param),grf,pp,SIMPLIFY=FALSE)
+            if(length(grmat)==1) {
+                res <- grmat[[1]]
+            }
+            else {
+                res <- matrix(0,nrow=sum(rownos),ncol=sum(colnos))
+                mapply(function(m,ind){res[ind$row,ind$col] <- m},
+                       grmat,pindm)
+                   
+            }
+            res
+        }
+        gr <- function(p) {
+             XD <- X%*%gradD(p)
+             resid <- X %*% all_coef(p)
+             as.vector(resid)*XD             
+        }
+        ##Test the fucking hell out of this!!!
+    }
     
-    gr <- function(x)grad(fn0,x)
     hess <- function(x)numDeriv:::hessian(fn0,x)
       
     unrestricted <- NULL
     if(ncol(X)<nrow(X)) unrestricted <- lm(y~.-1,data=data.frame(cbind(y,X),check.names=FALSE))
 
+    cl <- list(...)
+    
+    control <- c(list(Rfunction=Rfunction),cl)
+    ##Override default method of optim. Use BFGS instead of Nelder-Mead
+    if(!(method%in% names(control)) & Rfunction=="optim") {        
+        control$method <- "BFGS"
+    }
+    
     prepmd <- list(coefficients=starto,
                    midas.coefficients=all_coef(starto),
                    model=cbind(y,X),
@@ -285,6 +339,7 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, control=list(Rfunc
                    terms=mt,
                    gradient=gr,
                    hessian=hess,
+                   gradD=gradD,
                    Zenv=Zenv)
     
     class(prepmd) <- "midas_r"
