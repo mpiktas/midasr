@@ -39,5 +39,5 @@ nealmon.gradient <- function(p,d) {
     eplc <- exp(pl%*%p[-1])[,,drop=TRUE]
     ds <- apply(pl*eplc,2,sum)
     s <- sum(eplc)
-    cbind(eplc/s,pl*eplc/s-eplc%*%t(ds)/s^2)
+    cbind(eplc/s,p[1]*(pl*eplc/s-eplc%*%t(ds)/s^2))
 }
