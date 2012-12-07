@@ -198,30 +198,47 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
     term.labels <- attr(mt,"term.labels") 
 
     rfd <- vector("list",length(terms.lhs))
-   
+
+    wterm <- function(fr) {
+         mf <- fr[-4:-5]
+         mf[[1]] <- fr[[5]]
+         for(j in 3:length(mf)) {
+             mf[[j]] <- eval(mf[[j]],Zenv)
+         }
+         rf <- function(p) {
+             mf[[2]] <- p
+             eval(mf,Zenv)
+         }
+         gmf <- mf
+         ##Make this customizable
+         gmf[[1]] <- as.name(paste0(as.character(fr[[5]]),".gradient"))
+         grf <- function(p) {
+             gmf[[2]] <- p
+             eval(gmf,Zenv)
+         }
+         list(weight=rf,name=as.character(fr[[2]]),gradient=grf)
+    }
+    
+    uterm <- function(name,k=1) {
+        force(k)
+        list(weight=function(p)p,
+             name=name,
+             gradient=function(p)diag(k))
+        
+    }
+    
     for(i in 1:length(rfd)) {
         fr <- terms.lhs[[i]]
-        if(as.character(fr)[1]=="embedlf") {
-            mf <- fr[-4:-5]
-            mf[[1]] <- fr[[5]]
-            for(j in 3:length(mf)) {
-                mf[[j]] <- eval(mf[[j]],Zenv)
-            }
-            rf <- function(p) {
-                mf[[2]] <- p
-                eval(mf,Zenv)
-            }
-            gmf <- mf
-            ###Make this customizable
-            gmf[[1]] <- as.name(paste0(as.character(fr[[5]]),".gradient"))
-            grf <- function(p) {
-                gmf[[2]] <- p
-                eval(gmf,Zenv)
-            }
-            rfd[[i]] <- list(weight=rf,name=as.character(fr[[2]]),gradient=grf)
+        rfd[[i]] <- if(as.character(fr)[1]=="embedlf") {           
+            if(length(fr)>=5) {
+                wterm(fr)
+            } else {
+                nol <- eval(fr[[3]],Zenv)
+                uterm(term.labels[i],nol)
+            }            
         }
         else {
-            rfd[[i]] <- list(weight=function(p)p,name=term.labels[i],gradient=function(p)return(matrix(1)))
+            uterm(term.labels[i],1)
         }
     }
    
@@ -232,13 +249,15 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
 
     rf <- lapply(rfd,with,weight)
     names(rf) <- sapply(rfd,with,name)
-
+ 
     restr.name <- setdiff(names(rf), term.labels)
-  
-    start_default<- as.list(rep(0,length(rf)))
+
+    start_default <- lapply(term.labels,function(x)rep(0,length(grep(x,colnames(X),fixed=TRUE))))
+#    start_default<- as.list(rep(0,length(rf)))
     names(start_default) <- names(rf)
 
-    if(any(!restr.name%in% names(start)))stop("Starting values are not supplied for restriction function(s)")
+    
+    if(any(!restr.name%in% names(start)))stop("Starting values for weight hyperparameters must be supplied")
     
     start_default[names(start)] <- start
 
@@ -279,7 +298,7 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
         use.gradient <- "No custom gradient used"
     }
     else {
-        use.gradient <- "Default"
+        use.gradient <- "default"
         grf <- sapply(rfd,with,gradient)
         ##Calculate the initial value to get the idea about the dimensions
         pp0 <- lapply(pinds,function(xx)starto[xx])            
@@ -312,7 +331,7 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
              resid <- y - X %*% all_coef(p)
              as.vector(-2*apply(as.vector(resid)*XD,2,sum))             
         }
-        ##Test the fucking hell out of this!!!
+        ##Seems to work
     }
     
     hess <- function(x)numDeriv:::hessian(fn0,x)
