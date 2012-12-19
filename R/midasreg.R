@@ -238,10 +238,16 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
     
     for(i in 1:length(rfd)) {
         fr <- terms.lhs[[i]]
-        rfd[[i]] <- if(as.character(fr)[1] %in% c("fmls","mls")) {                      if(length(fr)>=5) {
-                wterm(fr,as.character(fr)[1])
+        fun <- as.character(fr)[1] 
+        rfd[[i]] <- if(fun %in% c("fmls","mls")){
+            if(length(fr)>=5) {
+                wterm(fr,fun)
             } else {
-                nol <- max(eval(fr[[3]],Zenv))+1
+                lags <- eval(fr[[3]],Zenv)
+                nol <- switch(fun,
+                              fmls = lags+1,
+                              mls = length(lags)
+                              )
                 uterm(term.labels[i],nol)
             }            
         }

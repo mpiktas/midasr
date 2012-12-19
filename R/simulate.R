@@ -87,3 +87,59 @@ midas.sim <- function(n,theta,x,eps.sd) {
     
     ts(y+rnorm(n,sd=eps.sd),start=end(x)[1]-n+1,frequency=1)    
 }
+##' Simulate autoregressive MIDAS model
+##'
+##' Given the predictor variable, the weights and autoregressive coefficients calculate MIDAS regression response variable.
+##' 
+##' @param n sample size
+##' @param theta a vector with MIDAS weights for predictor variable
+##' @param alpha autoregressive coefficients
+##' @param x a high frequency predictor variable
+##' @param eps.sd the standard error of the regression disturbances, which are assumed to be independent normal zero mean random variables
+##' @param n.start number of observations to ommit for the burn.in
+##' @return a \code{ts} object
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @export
+##' @examples
+##' theta.h0 <- function(p, dk) {
+##'   i <- (1:dk-1)/100
+##'   pol <- p[3]*i + p[4]*i^2
+##'   (p[1] + p[2]*i)*exp(pol)
+##' }
+##' 
+##' ##Generate coefficients
+##' theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
+##'
+##' ##Generate the predictor variable
+##' xx <- simplearma.sim(list(ar=0.6),3000*12,1,12)
+##'
+##' y <- midas.auto.sim(500,theta0,c(0.5),xx,1,n.start=100)
+##' x <- window(xx,start=start(y))
+##' midas_r(y~mls(y,1,1)+fmls(x,4*12-1,12,theta.h0),start=list(x=c(-0.1,10,-10,-10)))
+midas.auto.sim <- function(n,theta,alpha,x,eps.sd,n.start=NA) {
+    m <- frequency(x)
+    n.x <- length(x)
+
+    minroots <- min(Mod(polyroot(c(1, -alpha))))
+    if (minroots <= 1) 
+      stop("'ar' part of model is not stationary")
+
+    if(is.na(n.start))n.start <- 100
+
+    nout <- n
+    n <- n+n.start
+                                         
+    if(m==1) stop("The frequency of the predictor variable should be at least 2")
+    if(n.x<=m*n+length(theta)-m) stop("The history of the predictor variable is not long enough, reduce the desired sample size")
+
+                                  
+
+    X <- fmls(x,length(theta)-1,m)
+    xt <- as.vector(X%*%theta)
+    
+
+    xte <- ts(xt[nrow(X)-n:1+1],start=end(x)[1]-n+1,frequency=1)+rnorm(n,sd=eps.sd)
+
+    y <- filter(xte,alpha,method="recursive")
+    ts(y[-(1:n.start)],start=end(x)[1]-nout+1,frequency=1)
+}

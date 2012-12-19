@@ -1,6 +1,6 @@
 \name{agk.test}
 \alias{agk.test}
-\title{Andreous, Ghysels, Kourtellos LM test}
+\title{Andreou, Ghysels, Kourtellos LM test}
 \usage{
   agk.test(x)
 }
