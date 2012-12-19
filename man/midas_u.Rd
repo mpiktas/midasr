@@ -52,7 +52,8 @@ theta.h0 <- function(p, dk) {
 theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
 
 ##Plot the coefficients
-plot(theta0)
+##Do not run
+#plot(theta0)
 
 ##Generate the predictor variable
 x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
@@ -68,11 +69,11 @@ ldt <- data.frame(y=y,trend=1:length(y))
 hdt <- data.frame(x=window(x, start=start(y)))
 
 ##Fit unrestricted model
-mu <- midas_u(y~embedlf(x,3,12)-1, ldt, hdt)
+mu <- midas_u(y~fmls(x,2,12)-1, ldt, hdt)
 
 ##Include intercept and trend in regression
 
-mu.it <- midas_u(y~embedlf(x,3,12)+trend, ldt, hdt)
+mu.it <- midas_u(y~fmls(x,2,12)+trend, ldt, hdt)
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

@@ -1,8 +1,8 @@
-\name{restr_param}
-\alias{restr_param}
-\title{Return the estimated parameters of the restriction function(s)}
+\name{weight_param}
+\alias{weight_param}
+\title{Return the estimated hyper parameters of the restriction function(s)}
 \usage{
-  restr_param(x, name = restr_names(x))
+  weight_param(x, name = weight_names(x))
 }
 \arguments{
   \item{x}{an output from \code{\link{midas_r}}}

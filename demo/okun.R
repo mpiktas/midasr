@@ -10,8 +10,8 @@ y <- diff(log(USrealgdp))
 x <- window(diff(USunempr),start=1949)
 trend <- 1:length(y)
 
-allk <- foreach(k=c(12,15,18,24)) %do% {	
-    midas_r(midas_r(y~trend+embedlf(x,k,12,nealmon),start=list(x=rep(0,3))),Rfunction="nls")
+allk <- foreach(k=c(12,15,18,24)-1) %do% {	
+    midas_r(midas_r(y~trend+fmls(x,k,12,nealmon),start=list(x=rep(0,3))),Rfunction="nls")
 }
                                                 
 ####Compute the derivative test                

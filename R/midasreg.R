@@ -21,7 +21,8 @@
 ##' theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
 ##'
 ##' ##Plot the coefficients
-##' plot(theta0)
+##' ##Do not run
+##' #plot(theta0)
 ##'
 ##' ##Generate the predictor variable
 ##' x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
@@ -37,11 +38,11 @@
 ##' hdt <- data.frame(x=window(x, start=start(y)))
 ##' 
 ##' ##Fit unrestricted model
-##' mu <- midas_u(y~embedlf(x,3,12)-1, ldt, hdt)
+##' mu <- midas_u(y~fmls(x,2,12)-1, ldt, hdt)
 ##'
 ##' ##Include intercept and trend in regression
 ##'
-##' mu.it <- midas_u(y~embedlf(x,3,12)+trend, ldt, hdt)
+##' mu.it <- midas_u(y~fmls(x,2,12)+trend, ldt, hdt)
 ##' 
 ##' @details MIDAS regression has the following form:
 ##' 
@@ -83,7 +84,7 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
 ##'
 ##' Estimate restricted MIDAS regression using non-linear least squares.
 ##'
-##' @param x either formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{embedlf}} function
+##' @param x either formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function
 ##' @param ldata low frequency data, a \code{data.frame} object
 ##' @param hdata high frequency data, a \code{data.frame} object
 ##' @param start the starting values for optimisation. Must be a list with named elements.
@@ -133,11 +134,11 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
 ##' x <- window(x,start=start(y))
 ##' 
 ##' ##Fit restricted model
-##' mr <- midas_r(y~embedlf(x,4*12,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
+##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,10,-10,-10)))
 ##'
 ##' ##Include intercept and trend in regression
 ##'
-##' mr.it <- midas_r(y~embedlf(x,4*12,12,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
+##' mr.it <- midas_r(y~fmls(x,4*12-1,12,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(x=c(-0.1,10,-10,-10)))
 ##' 
 ##' @details Given MIDAS regression:
 ##'
@@ -193,18 +194,21 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
     
 
     ##High frequency variables can enter to formula
-    ##only within embedlf function
+    ##only within fmls function
     terms.lhs <- as.list(attr(mt,"variables"))[-2:-1]
     term.labels <- attr(mt,"term.labels") 
 
     rfd <- vector("list",length(terms.lhs))
 
-    wterm <- function(fr) {
+    wterm <- function(fr,type="fmls") {
          mf <- fr[-4:-5]
          mf[[1]] <- fr[[5]]
          for(j in 3:length(mf)) {
              mf[[j]] <- eval(mf[[j]],Zenv)
-         }
+         }        
+         mf[[3]] <- switch(type,
+                           fmls = mf[[3]]+1,
+                           mls = length(mf[[3]]))
          rf <- function(p) {
              mf[[2]] <- p
              eval(mf,Zenv)
@@ -226,14 +230,14 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
              gradient=function(p)diag(k))
         
     }
+
     
     for(i in 1:length(rfd)) {
         fr <- terms.lhs[[i]]
-        rfd[[i]] <- if(as.character(fr)[1]=="embedlf") {           
-            if(length(fr)>=5) {
-                wterm(fr)
+        rfd[[i]] <- if(as.character(fr)[1] %in% c("fmls","mls")) {                      if(length(fr)>=5) {
+                wterm(fr,as.character(fr)[1])
             } else {
-                nol <- eval(fr[[3]],Zenv)
+                nol <- max(eval(fr[[3]],Zenv))+1
                 uterm(term.labels[i],nol)
             }            
         }
@@ -250,18 +254,18 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
     rf <- lapply(rfd,with,weight)
     names(rf) <- sapply(rfd,with,name)
  
-    restr.name <- setdiff(names(rf), term.labels)
+    weight_names <- setdiff(names(rf), term.labels)
 
     start_default <- lapply(term.labels,function(x)rep(0,length(grep(x,colnames(X),fixed=TRUE))))
 #    start_default<- as.list(rep(0,length(rf)))
     names(start_default) <- names(rf)
 
     
-    if(any(!restr.name%in% names(start)))stop("Starting values for weight hyperparameters must be supplied")
+    if(any(!weight_names%in% names(start)))stop("Starting values for weight hyperparameters must be supplied")
     
     start_default[names(start)] <- start
 
-    restr.no <- sum(sapply(start_default[restr.name], length))
+    restr.no <- sum(sapply(start_default[weight_names], length))
     
     np <- cumsum(sapply(start_default,length))
     
@@ -278,7 +282,7 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
         pp <- lapply(pinds,function(x)p[x])     
         res <- mapply(function(fun,param)fun(param),rf,pp,SIMPLIFY=FALSE)
         unlist(res)
-    }   
+    }
     
     mdsrhs <- function(p) {       
         coefs <- all_coef(p)
@@ -294,7 +298,7 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
 
     if(is.null(gradient)) {
         gradD <- function(p)jacobian(all_coef,p)
-        gr <- function(x)grad(fn0,x)
+        gr <- function(p)grad(fn0,p)
         use.gradient <- "No custom gradient used"
     }
     else {
@@ -350,7 +354,7 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
     prepmd <- list(coefficients=starto,
                    midas.coefficients=all_coef(starto),
                    model=cbind(y,X),
-                   restrictions=rf[restr.name],
+                   weights=rf[weight_names],
                    unrestricted=unrestricted,
                    param.map=pinds,
                    fn0=fn0,
@@ -438,7 +442,7 @@ midas_r.fit <- function(x) {
     if(function.opt=="optim" | function.opt=="spg") {  
         args$p <- x$start.opt
         args$fn <- x$fn0
-        if(x$use.gradient=="Default") {
+        if(x$use.gradient=="default") {
             args$gr <- x$gradient
         }
         opt <- do.call(function.opt,args)
@@ -447,6 +451,13 @@ midas_r.fit <- function(x) {
     }
     if(function.opt=="nls") {
         rhs <- x$rhs
+        if(x$use.gradient=="default") {
+            rhs <- function(p) {
+                res <- rhs(p)
+                attr(res,"gradient") <- x$gr(p)
+                res
+            }
+        }
         y <- x$model[,1]
         args$formula <- formula(y~rhs(p))
         args$start <- list(p=x$start.opt)
@@ -473,7 +484,7 @@ midas_r.fit <- function(x) {
 midas_coef <- function(x) {
     x$midas.coefficients
 }
-##' Return the estimated parameters of the restriction function(s)
+##' Return the estimated hyper parameters of the restriction function(s)
 ##'
 ##' A helper function for working with output of \code{\link{midas_r}}. Returns the estimated parameters of restriction function(s)
 ##' 
@@ -482,7 +493,7 @@ midas_coef <- function(x) {
 ##' @return a list if \code{length(name)>1}, a vector otherwise
 ##' @author Vaidotas Zemlys
 ##' @export
-restr_param <- function(x,name=restr_names(x)) {
+weight_param <- function(x,name=weight_names(x)) {
     if(!any(name %in% names(x$param.map))) stop("Supply valid name(s) of the restriction function")
     res <- lapply(name,function(nm)coef(x)[x$param.map[[nm]]])
     names(res) <- name
@@ -498,9 +509,9 @@ restr_param <- function(x,name=restr_names(x)) {
 ##' @return a list if \code{length(name)>1}, a vector otherwise
 ##' @author Vaidotas Zemlys
 ##' @export
-restr_coef <- function(x,name=restr_names(x)) {
+weight_coef <- function(x,name=weight_names(x)) {
     if(!any(name %in% names(x$param.map))) stop("Supply valid name(s) of the restriction function")
-    res <- lapply(name,function(nm)x$restrictions[[nm]](restr_param(x,nm)))
+    res <- lapply(name,function(nm)x$weights[[nm]](weight_param(x,nm)))
     names(res) <- name
     if(length(res)==1)res <- res[[1]] 
     res
@@ -513,20 +524,20 @@ restr_coef <- function(x,name=restr_names(x)) {
 ##' @return a character vector
 ##' @author Vaidotas Zemlys
 ##' @export
-restr_names <- function(x) {
-    names(x$restrictions)
+weight_names <- function(x) {
+    names(x$weights)
 }
-##' Return the coefficients for embedlf variables
+##' Return the coefficients for fmls variables
 ##'
-##' Extracts the coefficients and returns those coefficients which name has string \code{embedlf} in it.
+##' Extracts the coefficients and returns those coefficients which name has string \code{fmls} or \code{mls} in it.
 ##' 
 ##' @param x an output from \code{\link{midas_u}}
 ##' @return a vector
 ##' @author Vaidotas Zemlys
 ##' @export
-embedlf_coef <- function(x) {
+mls_coef <- function(x) {
     cf <- coef(x)
-    cf[grep("embedlf",names(cf))]
+    cf[grep("fmls|mls",names(cf))]
 }
 
 ##' Test restrictions on coefficients of MIDAS regression
@@ -563,20 +574,26 @@ embedlf_coef <- function(x) {
 ##' x <- window(x,start=start(y))
 ##' 
 ##' ##Fit restricted model
-##' mr <- midas_r(y~embedlf(x,4*12,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
+##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)))
+##'
+##' ##Perform test (the expected result should be the acceptance of null)
+##'
+##' hAh.test(mr)
 ##' 
+##' ##Fit using gradient function
+##'
 ##' ##The gradient function
-##' grad.h0<-function(p, dk) {
+##' theta.h0.gradient<-function(p, dk) {
 ##'    i <- (1:dk-1)
 ##'    a <- exp(p[3]*i + p[4]*i^2)
 ##'    cbind(a, a*i, a*i*(p[1]+p[2]*i), a*i^2*(p[1]+p[2]*i))
 ##' }
 ##'
-##' ##Perform test (the expected result should be the acceptance of null)
+##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)))
 ##'
-##' hAh.test(mr,gr=grad.h0,dk=4*12)
+##' ##Use numerical gradient instead of supplied one
 ##'
-##' ##Use numerical gradient instead of supplied one 
+##' 
 ##' hAh.test(mr)
 ##'
 ##' 
@@ -644,7 +661,7 @@ hAh.test <- function(x) {
 ##' x <- window(x,start=start(y))
 ##' 
 ##' ##Fit restricted model
-##' mr <- midas_r(y~embedlf(x,4*12,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
+##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)))
 ##' 
 ##' ##The gradient function
 ##' theta.h0.gradient <-function(p, dk) {
@@ -654,10 +671,10 @@ hAh.test <- function(x) {
 ##' }
 ##'
 ##' ##Perform test (the expected result should be the acceptance of null)
-##' 
-##' mr <- midas_r(y~embedlf(x,4*12,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),gradient="default")
 ##'
 ##' hAhr.test(mr)
+##' 
+##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)),gradient="default")
 ##'
 ##' ##Use numerical gradient instead of supplied one 
 ##' hAhr.test(mr)
@@ -700,7 +717,6 @@ hAhr.test <- function(x,PHI=vcovHAC(x$unrestricted,sandwich=FALSE)) {
 ##'
 ##' Workhorse function for calculating necessary matrices for \link{hAh.test} and \link{hAhr.test}. Takes the same parameters as \link{hAh.test}
 ##' @param x \code{midas_r} object
-##' @param gr a function or a list of functions for each restriction.
 ##' @param ... arguments supplied to gradient function(s)
 ##' @return a list with necessary matrices
 ##' @author Virmantas Kvedara, Vaidotas Zemlys

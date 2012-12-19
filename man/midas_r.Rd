@@ -6,14 +6,12 @@
   midas_r(x, ...)
 
   \method{midas_r}{default} (x, ldata = NULL, hdata = NULL,
-    start,
-    control = list(Rfunction = "optim", method = "BFGS"),
-    ...)
+    start, Rfunction = "optim", gradient = NULL, ...)
 }
 \arguments{
   \item{x}{either formula for restricted MIDAS regression
   or \code{midas_r} object. Formula must include
-  \code{\link{embedlf}} function}
+  \code{\link{fmls}} function}
 
   \item{ldata}{low frequency data, a \code{data.frame}
   object}
@@ -24,17 +22,25 @@
   \item{start}{the starting values for optimisation. Must
   be a list with named elements.}
 
-  \item{control}{the list with information which R function
-  to use for optimisation. The list must have element named
-  \code{Rfunction} which contains character string of
-  chosen R function. Other elements of the list are
-  thearguments passed to this function.  The default
+  \item{Rfunction}{the list with information which R
+  function to use for optimisation. The list must have
+  element named \code{Rfunction} which contains character
+  string of chosen R function. Other elements of the list
+  are thearguments passed to this function.  The default
   optimisation function is \code{\link{optim}} with
   argument \code{method="BFGS"}. Other supported functions
   are \code{\link{nls}}}
 
-  \item{...}{additional arguments supplied to restriction
-  function(s)}
+  \item{gradient}{the gradient of the restriction function.
+  Must return the matrix with dimensions \eqn{d_k \times
+  q}, where \eqn{d_k} and \eqn{q} are the numbers of
+  coefficients in unrestricted and restricted regressions
+  correspondingly. Default value is \code{NULL}, which
+  means that the numeric approximation of gradient is
+  calculated.}
+
+  \item{...}{additional arguments supplied to optimisation
+  function}
 }
 \value{
   a \code{midas_r} object which is the list with the
@@ -105,11 +111,11 @@ y <- midas.sim(500,theta0,x,1)
 x <- window(x,start=start(y))
 
 ##Fit restricted model
-mr <- midas_r(y~embedlf(x,4*12,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
+mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,10,-10,-10)))
 
 ##Include intercept and trend in regression
 
-mr.it <- midas_r(y~embedlf(x,4*12,12,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(theta.h0=c(-0.1,10,-10,-10)),dk=4*12)
+mr.it <- midas_r(y~fmls(x,4*12-1,12,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(x=c(-0.1,10,-10,-10)))
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

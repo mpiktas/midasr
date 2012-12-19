@@ -1,8 +1,8 @@
-\name{restr_names}
-\alias{restr_names}
+\name{weight_names}
+\alias{weight_names}
 \title{Return the names of restriction function(s)}
 \usage{
-  restr_names(x)
+  weight_names(x)
 }
 \arguments{
   \item{x}{an output from \code{\link{midas_r}}}

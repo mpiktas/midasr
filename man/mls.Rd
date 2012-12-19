@@ -1,0 +1,44 @@
+\name{mls}
+\alias{mls}
+\title{MIDAS lag structure}
+\usage{
+  mls(x, k, m, ...)
+}
+\arguments{
+  \item{x}{a vector}
+
+  \item{k}{a vector of lag orders, zero denotes
+  contemporaneous lag.}
+
+  \item{m}{frequency ratio}
+
+  \item{...}{further arguments used in fitting MIDAS
+  regression}
+}
+\value{
+  a matrix containing the lags
+}
+\description{
+  Create a matrix of selected MIDAS lags
+}
+\details{
+  The function checks whether high frequency data is
+  complete, i.e. \code{m} must divide \code{length(x)}.
+}
+\examples{
+## Quartely frequency data
+x <- 1:16
+## Create MIDAS lag for use with yearly data
+mls(x,0:3,4)
+
+## Do not use contemporaneous lag
+mls(x,1:3,4)
+
+## Compares with embed when m=1
+embed(x,2)
+mls(x,0:1,1)
+}
+\author{
+  Virmantas Kvedaras, Vaidotas Zemlys
+}
+

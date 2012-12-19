@@ -3,8 +3,7 @@
 \title{Test restrictions on coefficients of MIDAS regression using robust version of the test}
 \usage{
   hAhr.test(x,
-    PHI = vcovHAC(x$unrestricted, sandwich = FALSE),
-    gr = NULL, ...)
+    PHI = vcovHAC(x$unrestricted, sandwich = FALSE))
 }
 \arguments{
   \item{x}{MIDAS regression model with restricted
@@ -12,17 +11,6 @@
 
   \item{PHI}{the "meat" covariance matrix, defaults to
   \code{vcovHAC(x$unrestricted, sandwich=FALSE)}}
-
-  \item{gr}{the gradient of the restriction function. Must
-  return the matrix with dimensions \eqn{d_k \times q},
-  where \eqn{d_k} and \eqn{q} are the numbers of
-  coefficients in unrestricted and restricted regressions
-  correspondingly. Default value is \code{NULL}, which
-  means that the numeric approximation of gradient is
-  calculated.}
-
-  \item{...}{the arguments supplied to gradient function,
-  if \code{gr} is not \code{NULL}}
 }
 \value{
   a \code{htest} object
@@ -66,10 +54,10 @@ y <- midas.sim(500,theta0,x,1)
 x <- window(x,start=start(y))
 
 ##Fit restricted model
-mr <- midas_r(y~embedlf(x,4*12,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(theta.h0=c(-0.1,0.1,-0.1,-0.001)),dk=4*12)
+mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)))
 
 ##The gradient function
-grad.h0<-function(p, dk) {
+theta.h0.gradient <-function(p, dk) {
    i <- (1:dk-1)
    a <- exp(p[3]*i + p[4]*i^2)
    cbind(a, a*i, a*i*(p[1]+p[2]*i), a*i^2*(p[1]+p[2]*i))
@@ -77,7 +65,9 @@ grad.h0<-function(p, dk) {
 
 ##Perform test (the expected result should be the acceptance of null)
 
-hAhr.test(mr,gr=grad.h0,dk=4*12)
+hAhr.test(mr)
+
+mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)),gradient="default")
 
 ##Use numerical gradient instead of supplied one
 hAhr.test(mr)

@@ -1,8 +1,8 @@
-\name{embedlf_coef}
-\alias{embedlf_coef}
-\title{Return the coefficients for embedlf variables}
+\name{mls_coef}
+\alias{mls_coef}
+\title{Return the coefficients for fmls variables}
 \usage{
-  embedlf_coef(x)
+  mls_coef(x)
 }
 \arguments{
   \item{x}{an output from \code{\link{midas_u}}}
@@ -12,7 +12,7 @@
 }
 \description{
   Extracts the coefficients and returns those coefficients
-  which name has string \code{embedlf} in it.
+  which name has string \code{fmls} or \code{mls} in it.
 }
 \author{
   Vaidotas Zemlys

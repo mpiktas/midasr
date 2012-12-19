@@ -2,13 +2,10 @@
 \alias{prep_hAh}
 \title{Calculate data for \link{hAh.test} and \link{hAhr.test}}
 \usage{
-  prep_hAh(x, gr = NULL, ...)
+  prep_hAh(x)
 }
 \arguments{
   \item{x}{\code{midas_r} object}
-
-  \item{gr}{a function or a list of functions for each
-  restriction.}
 
   \item{...}{arguments supplied to gradient function(s)}
 }

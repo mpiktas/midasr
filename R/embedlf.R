@@ -1,34 +1,46 @@
-##' Lag a mixed data sampling time series
+##' Full MIDAS lag structure
 ##'
-##' Compute a lagged version of mixed data sampling time series
+##' Create a matrix of MIDAS lags, including contemporaneous lag up to selected order.
 ##' 
 ##' @param x a vector
-##' @param k the number of high frequency lags including contemporaneous lag
+##' @param k maximum lag order
 ##' @param m frequency ratio
 ##' @param ... further arguments
 ##' @return a matrix containing the lags
-##' @author Vaidotas Zemlys
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @seealso mls
+##' @details This is a convenience function, it calls \code{link{msl}} to perform actual calculations. 
 ##' @export
-embedlf <- function(x, k, m, ...) {
-    n.x <- length(x)
-    n <- n.x %/%m
- 
-    if(n.x%%m != 0) stop("Incomplete high frequency data")
-    idx <- m*(((k-1)%/%m+1):n)    
-    
-    X <- foreach(h.x=0:(k-1), .combine='cbind') %do% {
-        x[idx-h.x]
-    }
-
-    if(k==1) X <- matrix(X,ncol=1)
-    
-    colnames(X) <- paste0("X", ".", 1:k-1,"/","m")
-    padd <- matrix(NA,nrow=n-nrow(X),ncol=ncol(X))
-    rbind(padd,X)
-    
+##' 
+fmls <- function(x, k, m, ...) {
+   mls(x, 0:k, m, ...)    
 }
 
-embedslf <- function(x, k, m, ...) {
+##' MIDAS lag structure
+##'
+##' Create a matrix of selected MIDAS lags
+##' 
+##' @param x a vector
+##' @param k a vector of lag orders, zero denotes contemporaneous lag.
+##' @param m frequency ratio
+##' @param ... further arguments used in fitting MIDAS regression
+##' @return a matrix containing the lags
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @details The function checks whether high frequency data is complete, i.e. \code{m} must divide \code{length(x)}. 
+##' @examples
+##' ## Quartely frequency data
+##' x <- 1:16
+##' ## Create MIDAS lag for use with yearly data
+##' mls(x,0:3,4)
+##' 
+##' ## Do not use contemporaneous lag
+##' mls(x,1:3,4)
+##'
+##' ## Compares with embed when m=1
+##' embed(x,2)
+##' mls(x,0:1,1)
+##' @export
+mls <- function(x, k, m, ...) {
     n.x <- length(x)
     n <- n.x %/%m
 

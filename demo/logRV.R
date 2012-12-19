@@ -22,7 +22,7 @@ rvhk <- function(h,k){
     midas_r(midas_r(rvh~embedlf(y,k,1,nealmon),start=list(nealmon=prestart(c(0.2,-1,1),cfur,k))),Rfunction="nls")   
 }
 
-allh <- lapply(c(5,10,20,40),rvhk,k=70)
+allh <- lapply(c(5,10,20,40),rvhk,k=70-1)
 
 ####Compute the derivative test                
 dtest <- lapply(allh,deriv_tests,tol=0.5)
