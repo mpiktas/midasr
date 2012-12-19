@@ -1,6 +1,6 @@
 \name{weight_param}
 \alias{weight_param}
-\title{Return the estimated hyper parameters of the restriction function(s)}
+\title{Return the estimated hyper parameters of the weight function(s)}
 \usage{
   weight_param(x, name = weight_names(x))
 }

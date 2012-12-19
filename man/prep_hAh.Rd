@@ -18,7 +18,7 @@
   parameters as \link{hAh.test}
 }
 \author{
-  Virmantas Kvedara, Vaidotas Zemlys
+  Virmantas Kvedaras, Vaidotas Zemlys
 }
 \seealso{
   hAh.test, hAhr.test

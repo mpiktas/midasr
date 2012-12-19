@@ -487,7 +487,7 @@ midas_r.fit <- function(x) {
 midas_coef <- function(x) {
     x$midas.coefficients
 }
-##' Return the estimated hyper parameters of the restriction function(s)
+##' Return the estimated hyper parameters of the weight function(s)
 ##'
 ##' A helper function for working with output of \code{\link{midas_r}}. Returns the estimated parameters of restriction function(s)
 ##' 
@@ -722,7 +722,7 @@ hAhr.test <- function(x,PHI=vcovHAC(x$unrestricted,sandwich=FALSE)) {
 ##' @param x \code{midas_r} object
 ##' @param ... arguments supplied to gradient function(s)
 ##' @return a list with necessary matrices
-##' @author Virmantas Kvedara, Vaidotas Zemlys
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @seealso hAh.test, hAhr.test
 prep_hAh <- function(x) {
 
@@ -749,7 +749,65 @@ prep_hAh <- function(x) {
     
     list(P=P,XtX=XtX,dk=dk,Delta.0=Delta.0,h.0=h.0)
 }
-
+##' Andreou, Ghysels, Kourtellos LM test
+##'
+##' Perform the test whether hyperparameters of normalized exponential Almon lag weights are zero
+##' 
+##' @param x MIDAS regression object of class \code{\link{midas_r}}
+##' @return a \code{htest} object
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @references Andreou E., Ghysels E., Kourtellos A. \emph{Regression models with mixed sampling frequencies} Journal of Econometrics 158 (2010) 246-261 
+##' @export
+##' @examples
+##' ##' ##Load data
+##' data("USunempr")
+##' data("USrealgdp")
+##'
+##' y <- diff(log(USrealgdp))
+##' x <- window(diff(USunempr),start=1949)
+##' t <- 1:length(y)
+##'
+##' mr <- midas_r(y~t+fmls(x,11,12,nealmon),start=list(x=c(0,0,0)))
+##'
+##' agk.test(mr)
+##'
 agk.test <- function(x) {
-
+    tl <- attributes(x$terms)$term.labels
+    wn <- grep("nealmon",tl,value=TRUE)   
+    if(length(wn)==0)stop("This test can be only used for regressions with normalized Exponential Almon lag weights")    
+    X <- x$model[,-1]
+    y <- x$model[,1]
+    if(attr(x$terms,"intercept")==1) tl <- c("(Intercept)",tl)
+    Xa <- foreach(nm=tl,.combine="cbind") %do% {
+        if(nm %in% wn) {
+       
+            apply(X[,grep(wn,colnames(X),fixed=TRUE)],1,mean)
+        }
+        else {
+            X[,nm,drop=FALSE]
+        }
+    }
+   
+    ustar <- residuals(lm(y~Xa-1))
+    u <- residuals(x)
+    w <- weight_param(x)
+    if(is.list(w)) {
+        r <- sum(sapply(w,length))
+    }
+    else {
+        r <- length(w)
+    }
+    S.LS <- sum(ustar^2)
+    S.M <- sum(u^2)
+      
+    STATISTIC <- (S.LS-S.M)/S.LS
+    names(STATISTIC) <- "agk"
+    METHOD <- "Andreou, Ghysels, Kourtellos LM test"
+    PARAMETER <- r
+    PVAL <- 1-pchisq(STATISTIC,PARAMETER)
+    names(PARAMETER) <- "df"
+    
+    structure(list(statistic = STATISTIC, parameter = PARAMETER, 
+        p.value = PVAL, method = METHOD), 
+        class = "htest")
 }

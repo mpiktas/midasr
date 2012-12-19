@@ -1,3 +1,4 @@
+export(agk.test)
 export(check_mixfreq)
 export(deriv_tests)
 export(fmls)
