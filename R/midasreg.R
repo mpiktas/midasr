@@ -220,14 +220,18 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
              gmf[[2]] <- p
              eval(gmf,Zenv)
          }
-         list(weight=rf,name=as.character(fr[[2]]),gradient=grf)
+         list(weight=rf,
+              name=as.character(fr[[2]]),
+              gradient=grf,
+              start=rep(0,mf[[3]]))
     }
     
     uterm <- function(name,k=1) {
         force(k)
         list(weight=function(p)p,
              name=name,
-             gradient=function(p)diag(k))
+             gradient=function(p)diag(k),
+             start=rep(0,k))
         
     }
 
@@ -247,20 +251,19 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Rfunction="optim",
     }
    
     if (attr(mt,"intercept")==1)  {
-        rfd <- c(list(list(weight=function(p)p,name="(Intercept)",gradient=function(p)return(matrix(1)))),rfd)
+        rfd <- c(list(list(weight=function(p)p,name="(Intercept)",gradient=function(p)return(matrix(1)),start=0)),rfd)
         term.labels <- c("(Intercept)",term.labels)
     }
 
     rf <- lapply(rfd,with,weight)
     names(rf) <- sapply(rfd,with,name)
- 
+    
+
     weight_names <- setdiff(names(rf), term.labels)
 
-    start_default <- lapply(term.labels,function(x)rep(0,length(grep(x,colnames(X),fixed=TRUE))))
-#    start_default<- as.list(rep(0,length(rf)))
+    start_default <- lapply(rfd,with,start)
     names(start_default) <- names(rf)
 
-    
     if(any(!weight_names%in% names(start)))stop("Starting values for weight hyperparameters must be supplied")
     
     start_default[names(start)] <- start
@@ -745,4 +748,8 @@ prep_hAh <- function(x) {
     Delta.0 <- D0%*%tcrossprod(ginv(crossprod(D0,XtX)%*%D0),D0)
     
     list(P=P,XtX=XtX,dk=dk,Delta.0=Delta.0,h.0=h.0)
+}
+
+agk.test <- function(x) {
+
 }

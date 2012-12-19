@@ -15,7 +15,7 @@
 ##' x <- window(diff(USunempr),start=1949)
 ##' t <- 1:length(y)
 ##'
-##' midas_r(y~t+fmls(x,11,12,nealmon),start=list(nealmon=c(0,0,0)))
+##' midas_r(y~t+fmls(x,11,12,nealmon),start=list(x=c(0,0,0)))
 ##' 
 ##' @details Given unrestricted MIDAS regression
 ##'
@@ -38,7 +38,7 @@ nealmon <- function(p,d) {
 ##' Gradient function for normalized exponential Almon lag weights
 ##' @param p hyperparameters for Almon lag
 ##' @param d number of coefficients
-##' @return 
+##' @return the gradient matrix
 ##' @author Vaidotas Zemlys
 nealmon.gradient <- function(p,d) {
     i <- (1:d)/100

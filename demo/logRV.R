@@ -17,9 +17,9 @@ rvhk <- function(h,k){
     rvh <- filter(c(rep(0,h),y),c(rep(1,h),rep(0,h+1)))
     rvh <- rvh[-h:-1]
     y <- y[1:length(rvh)]
-    mu <- midas_u(rvh~embedlf(y,k,1))
-    cfur <- coef(mu)[grep("embed",names(coef(mu)))]
-    midas_r(midas_r(rvh~embedlf(y,k,1,nealmon),start=list(nealmon=prestart(c(0.2,-1,1),cfur,k))),Rfunction="nls")   
+    mu <- midas_u(rvh~fmls(y,k,1))
+    cfur <- coef(mu)[grep("fmls",names(coef(mu)))]
+    midas_r(midas_r(rvh~fmls(y,k,1,nealmon),start=list(nealmon=prestart(c(0.2,-1,1),cfur,k))),Rfunction="nls")   
 }
 
 allh <- lapply(c(5,10,20,40),rvhk,k=70-1)
@@ -53,11 +53,11 @@ foreach(mr=allh,phi=PHI) %do% {
 
 graph <- function(x,phi,j,h) {
     cfur <- coef(x$unrestricted)
-    cfur <- cfur[grep("embedlf",names(cfur))]
+    cfur <- cfur[grep("fmls",names(cfur))]
     cfre <- restr_coef(x)
     k <- length(cfur)
     sdval <- sqrt(diag(sandwich(x$unrestricted,meat=phi)))
-    sdval <- sdval[grep("embedlf",names(sdval))]
+    sdval <- sdval[grep("fmls",names(sdval))]
     pv0hac <- hAhr.test(x,PHI=phi)$p.value
     plot(c(0:(k - 1)), c(cfur), col = "black", ylab = "Beta coefficients", xlab = "h")
     title(main = sprintf("k(H=%.0f,j=%.0f) = %.0f: p-val.(hAh_HAC) < %.2f", h, j, 

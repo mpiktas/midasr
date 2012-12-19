@@ -41,11 +41,11 @@ par(mfrow=c(2,2))
 
 lapply(allk,function(x){
     cfur <- coef(x$unrestricted)
-    cfur <- cfur[grep("embedlf",names(cfur))]
+    cfur <- cfur[grep("fmls",names(cfur))]
     cfre <- restr_coef(x)
     k <- length(cfur)
     sdval <- sqrt(diag(vcovHAC(x$unrestricted)))
-    sdval <- sdval[grep("embedlf",names(sdval))]
+    sdval <- sdval[grep("fmls",names(sdval))]
 
     plot(0:(k-1),cfur,col="black",ylab="Beta coefficients",xlab="h")
     title(main=sprintf("d = %.0f: p-val.(hAh_HAC) < %.2f", k, max(hAhr.test(x)$p.value, 0.01)), cex.main = 1, font.main = 4, col.main = "black")
