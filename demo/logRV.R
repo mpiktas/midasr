@@ -54,7 +54,7 @@ foreach(mr=allh,phi=PHI) %do% {
 graph <- function(x,phi,j,h) {
     cfur <- coef(x$unrestricted)
     cfur <- cfur[grep("fmls",names(cfur))]
-    cfre <- restr_coef(x)
+    cfre <- weight_coef(x)
     k <- length(cfur)
     sdval <- sqrt(diag(sandwich(x$unrestricted,meat=phi)))
     sdval <- sdval[grep("fmls",names(sdval))]

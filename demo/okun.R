@@ -42,7 +42,7 @@ par(mfrow=c(2,2))
 lapply(allk,function(x){
     cfur <- coef(x$unrestricted)
     cfur <- cfur[grep("fmls",names(cfur))]
-    cfre <- restr_coef(x)
+    cfre <- weight_coef(x)
     k <- length(cfur)
     sdval <- sqrt(diag(vcovHAC(x$unrestricted)))
     sdval <- sdval[grep("fmls",names(sdval))]
