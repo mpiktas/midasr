@@ -6,7 +6,7 @@
   midas_r(x, ...)
 
   \method{midas_r}{default} (x, ldata = NULL, hdata = NULL,
-    start, Rfunction = "optim", gradient = NULL, ...)
+    start, Ofunction = "optim", gradient = NULL, ...)
 }
 \arguments{
   \item{x}{either formula for restricted MIDAS regression
@@ -22,9 +22,9 @@
   \item{start}{the starting values for optimisation. Must
   be a list with named elements.}
 
-  \item{Rfunction}{the list with information which R
+  \item{Ofunction}{the list with information which R
   function to use for optimisation. The list must have
-  element named \code{Rfunction} which contains character
+  element named \code{Ofunction} which contains character
   string of chosen R function. Other elements of the list
   are thearguments passed to this function.  The default
   optimisation function is \code{\link{optim}} with

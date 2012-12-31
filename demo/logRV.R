@@ -19,7 +19,7 @@ rvhk <- function(h,k){
     y <- y[1:length(rvh)]
     mu <- midas_u(rvh~fmls(y,k,1))
     cfur <- coef(mu)[grep("fmls",names(coef(mu)))]
-    midas_r(midas_r(rvh~fmls(y,k,1,nealmon),start=list(nealmon=prestart(c(0.2,-1,1),cfur,k))),Rfunction="nls")   
+    midas_r(midas_r(rvh~fmls(y,k,1,nealmon),start=list(nealmon=prestart(c(0.2,-1,1),cfur,k))),Ofunction="nls")   
 }
 
 allh <- lapply(c(5,10,20,40),rvhk,k=70-1)
