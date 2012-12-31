@@ -48,3 +48,46 @@ nealmon.gradient <- function(p,d) {
     s <- sum(eplc)
     cbind(eplc/s,p[1]*(pl*eplc/s-eplc%*%t(ds)/s^2))
 }
+
+nbeta <- function(p,d) {
+    xi <- (1:d-1)/(d-1)
+    nb <- xi^p[2]*(1-xi)^p[3]+p[4]
+    p[1]*nb/sum(nb)
+}
+
+nbeta.gradient <- function(p,d) {
+    
+}
+
+almonp <- function(p,d) {
+    i <- 1:d/100
+    plc <- poly(i,degree=length(p)-1,raw=TRUE) %*%p[-1]+p[1]
+    as.vector(plc)
+}
+
+almonp.gradient <- function(p,d) {
+    i <- 1:d/100
+    plc <- poly(i,degree=length(p)-1,raw=TRUE)
+    cbind(1,plc)
+}
+
+polystep <- function(p,d,a) {
+    if(length(a)!=length(p)-1)stop("The number of steps should be number of parameters minus one")
+    if(min(a)<=1 | max(a)>=d)stop("The steps are out of bounds")
+    a <- c(0,a,d)
+    rep(p,times=diff(a))
+}
+
+polystep.gradient <- function(p,d,a) {
+    if(length(a)!=length(p)-1)stop("The number of steps should be number of parameters minus one")
+    if(min(a)<=1 | max(a)>=d)stop("The steps are out of bounds")
+    a <- c(0,a,d)
+    da <- diff(a)
+    r <- cbind(a[-length(a)],da)
+    apply(r,1,function(x) {
+        res <- rep(0,d)
+        res[(x[1]+1):(x[1]+x[2])] <- 1
+        res
+    })
+}
+    
