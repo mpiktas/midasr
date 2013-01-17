@@ -63,6 +63,13 @@ mls <- function(x, k, m, ...) {
     res[,lk+1,drop=FALSE]
 }
 
+##' export
+dmls <- function(x,k,m,...) {
+    dx <- c(NA,diff(x))
+    xmd <- mls(x,k+1,m)
+    v <- fmls(dx,k,m)
+    cbind(v,xmd)
+}
 
 ##' Check data for MIDAS regression
 ##'

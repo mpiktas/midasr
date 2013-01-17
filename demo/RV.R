@@ -10,7 +10,7 @@ allh <- lapply(c(5,10,20,40),function(h){
     rvh <- filter(c(rep(0,h),y),c(rep(1,h),rep(0,h+1)))
     rvh <- rvh[-h:-1]
     y <- y[1:length(rvh)]
-    midas_r(midas_r(rvh~fmls(y,70-1,1,nealmon),start=list(nealmon=rep(0,3))),Ofunction="nls")
+    midas_r(midas_r(rvh~fmls(y,70-1,1,nealmon),start=list(y=rep(0,3))),Ofunction="nls")
 })
 
 ####Compute the derivative test                
