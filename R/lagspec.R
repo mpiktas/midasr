@@ -40,6 +40,7 @@ nealmon <- function(p,d) {
 ##' @param d number of coefficients
 ##' @return the gradient matrix
 ##' @author Vaidotas Zemlys
+##' @export
 nealmon.gradient <- function(p,d) {
     i <- (1:d)/100
     pl <- poly(i,degree=length(p)-1,raw=TRUE)

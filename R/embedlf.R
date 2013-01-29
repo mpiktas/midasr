@@ -63,13 +63,25 @@ mls <- function(x, k, m, ...) {
     res[,lk+1,drop=FALSE]
 }
 
-##' export
+
+##' MIDAS lag structure for unit root processes
+##'
+##' Prepares MIDAS lag structure for unit root processes
+##' @title 
+##' @param x a vector
+##' @param k maximal lag order
+##' @param m frequency ratio
+##' @param ... further arguments used in fitting MIDAS regression
+##' @return a matrix containing the first differences and the lag k+1.
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @export
 dmls <- function(x,k,m,...) {
     dx <- c(NA,diff(x))
-    xmd <- mls(x,k+1,m)
     v <- fmls(dx,k,m)
-    cbind(v,xmd)
+    colnames(v) <- gsub("X","DX",colnames(v))
+    v
 }
+    
 
 ##' Check data for MIDAS regression
 ##'

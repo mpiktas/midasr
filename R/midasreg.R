@@ -208,6 +208,7 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim",
          }        
          mf[[3]] <- switch(type,
                            fmls = mf[[3]]+1,
+                           dmls = mf[[3]]+1, 
                            mls = length(mf[[3]]))
          rf <- function(p) {
              mf[[2]] <- p
@@ -239,13 +240,14 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim",
     for(i in 1:length(rfd)) {
         fr <- terms.lhs[[i]]
         fun <- as.character(fr)[1] 
-        rfd[[i]] <- if(fun %in% c("fmls","mls")){
+        rfd[[i]] <- if(fun %in% c("fmls","mls","dmls")){
             if(length(fr)>=5) {
                 wterm(fr,fun)
             } else {
                 lags <- eval(fr[[3]],Zenv)
                 nol <- switch(fun,
                               fmls = lags+1,
+                              dmls = lags+1,
                               mls = length(lags)
                               )
                 uterm(term.labels[i],nol)

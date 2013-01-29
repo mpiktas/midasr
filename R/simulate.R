@@ -77,15 +77,10 @@ midas.sim <- function(n,theta,x,eps.sd) {
     if(m==1) stop("The frequency of the predictor variable should be at least 2")
     if(n.x<=m*n+length(theta)-m) stop("The history of the predictor variable is not long enough, reduce the desired sample size")
    
+    X <- fmls(x,length(theta)-1,m)
+    xt <- as.vector(X%*%theta)
 
-    theta.d <- c(theta,rep(0,n.x-length(theta)))
-    theta.d <- theta.d[n.x:1]
-
-    y <- foreach(h.y = 1:n, .combine='c') %do% {
-        t(x[1:(n.x-(n-h.y)*m)])%*%theta.d[((n-h.y)*m+1):n.x]
-    }
-    
-    ts(y+rnorm(n,sd=eps.sd),start=end(x)[1]-n+1,frequency=1)    
+    ts(xt[nrow(X)-n:1+1],start=end(x)[1]-n+1,frequency=1)+rnorm(n,sd=eps.sd)    
 }
 ##' Simulate autoregressive MIDAS model
 ##'
@@ -131,7 +126,6 @@ midas.auto.sim <- function(n,theta,alpha,x,eps.sd,n.start=NA) {
                                          
     if(m==1) stop("The frequency of the predictor variable should be at least 2")
     if(n.x<=m*n+length(theta)-m) stop("The history of the predictor variable is not long enough, reduce the desired sample size")
-
                                   
 
     X <- fmls(x,length(theta)-1,m)
@@ -143,3 +137,4 @@ midas.auto.sim <- function(n,theta,alpha,x,eps.sd,n.start=NA) {
     y <- filter(xte,alpha,method="recursive")
     ts(y[-(1:n.start)],start=end(x)[1]-nout+1,frequency=1)
 }
+
