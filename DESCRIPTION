@@ -24,3 +24,4 @@ Collate:
     'deriv.R'
     'midas_r_methods.R'
     'lagspec.R'
+    'imidasreg.R'

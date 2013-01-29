@@ -1,10 +1,27 @@
 \name{dmls}
 \alias{dmls}
-\title{export}
+\title{MIDAS lag structure for unit root processes}
 \usage{
   dmls(x, k, m, ...)
 }
+\arguments{
+  \item{x}{a vector}
+
+  \item{k}{maximal lag order}
+
+  \item{m}{frequency ratio}
+
+  \item{...}{further arguments used in fitting MIDAS
+  regression}
+}
+\value{
+  a matrix containing the first differences and the lag
+  k+1.
+}
 \description{
-  export
+  Prepares MIDAS lag structure for unit root processes
+}
+\author{
+  Virmantas Kvedaras, Vaidotas Zemlys
 }
 

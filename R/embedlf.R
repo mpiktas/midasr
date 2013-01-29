@@ -67,7 +67,6 @@ mls <- function(x, k, m, ...) {
 ##' MIDAS lag structure for unit root processes
 ##'
 ##' Prepares MIDAS lag structure for unit root processes
-##' @title 
 ##' @param x a vector
 ##' @param k maximal lag order
 ##' @param m frequency ratio

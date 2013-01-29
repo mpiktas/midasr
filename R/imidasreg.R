@@ -26,7 +26,7 @@
 ##' 
 ##' 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
-##' @rdname midas_r
+##' @rdname imidas_r
 ##' @seealso midas_r.midas_r
 ##' @examples
 ##' ##The parameter function
