@@ -54,7 +54,7 @@ z <- ts(simplearma.sim(list(ar=0.5),length(y),1,frequency(y)),start=start(y))
 yy <- y+z*0.5+1
 
 ###By hand
-mr2 <- midas_r(yy~fmls(dx,4*12-1,12,pp)+mls(x,4*12,12)+z,start=list(dx=c(-0.1,10,-10,-10)))
+mr2 <- midas_r(yy~fmls(dx,4*12-1,12,pp1)+mls(x,4*12,12)+z,start=list(dx=c(-0.1,10,-10,-10)))
 
 ###With special function
 imr2 <- imidas_r(yy~fmls(x,4*12-1,12,theta.h0)+z,start=list(x=c(-0.1,10,-10,-10)))
