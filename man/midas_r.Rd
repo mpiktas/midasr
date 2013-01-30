@@ -31,13 +31,15 @@
   argument \code{method="BFGS"}. Other supported functions
   are \code{\link{nls}}}
 
-  \item{gradient}{the gradient of the restriction function.
-  Must return the matrix with dimensions \eqn{d_k \times
-  q}, where \eqn{d_k} and \eqn{q} are the numbers of
-  coefficients in unrestricted and restricted regressions
-  correspondingly. Default value is \code{NULL}, which
-  means that the numeric approximation of gradient is
-  calculated.}
+  \item{gradient}{the default value is \code{NULL}, which
+  means that the numeric approximation of weight function
+  gradient is calculated. For any other value it is assumed
+  that the R function for weight function gradient has the
+  name of the weight function appended with
+  \code{.gradient}. This function must return the matrix
+  with dimensions \eqn{d_k \times q}, where \eqn{d_k} and
+  \eqn{q} are the numbers of coefficients in unrestricted
+  and restricted regressions correspondingly.}
 
   \item{...}{additional arguments supplied to optimisation
   function}

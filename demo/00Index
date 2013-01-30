@@ -2,3 +2,4 @@ okun			Okun's law demonstration using MIDAS regresion
 RV				Forecasting realized volatilitity of SP&500 index with MIDAS regression
 logRV			Forecasting logarithm of realized volatilitity of SP&500 index with MIDAS regression
 autoreg			Simulation example of autoregressive MIDAS model
+imidasr			Simulation example of estimation with I(1) regressors present

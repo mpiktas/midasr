@@ -5,9 +5,10 @@
 ##' @param x either formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function
 ##' @param ldata low frequency data, a \code{data.frame} object
 ##' @param hdata high frequency data, a \code{data.frame} object
+##' @param model one of \code{"onestep"}, \code{"twosteps"} or \code{"reduced"}, see the details.
 ##' @param start the starting values for optimisation. Must be a list with named elements.
 ##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are thearguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
-##' @param gradient the gradient of the restriction function. Must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. Default value is \code{NULL}, which means that the numeric approximation of gradient is calculated.
+##' @param gradient the default value is \code{NULL}, which means that the numeric approximation of weight function gradient is calculated. For any other value it is assumed that the R function for weight function gradient has the name of the weight function appended with \code{.gradient}. This function must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly.
 ##' @param ... additional arguments supplied to optimisation function
 ##' @return a \code{midas_r} object which is the list with the following elements:
 ##' 
@@ -82,69 +83,153 @@ is.imidas_r <- function(x) inherits(x,"imidas_r")
 #' @rdname imidas_r
 #' @method imidas_r default
 #' @export
-imidas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim", gradient=NULL,...) {
+imidas_r.default <- function(x, ldata=NULL, hdata=NULL, model=c("onestep","twosteps","twostep","reduced"), start, Ofunction="optim", gradient=NULL,...) {
 
     Zenv <- new.env(parent=environment(x))
-
+    model <- match.arg(model)
+    
     mt <- terms(formula(x),specials="fmls")
     vl <- as.list(attr(mt,"variables"))
     vl <- vl[-1]
     
-    fr <- vl[[attr(mt,"specials")$fmls]]
-    mf <- fr[ -4:-5]
-    mf[[1]] <- fr[[5]]
-    for(j in 3:length(mf)) {
-             mf[[j]] <- eval(mf[[j]],Zenv)
-         }        
-    
+    pl <- attr(mt,"specials")$fmls
+    if(length(pl)>1) stop("Only one high frequency term is supported currently")
+    fr <- vl[[pl]]
+    wf <- fr[ -4:-5]
+    wf[[1]] <- fr[[5]]
+    for(j in 3:length(wf)) {
+             wf[[j]] <- eval(wf[[j]],Zenv)
+         }            
     pp <- function(p,d) {
-        mf[[2]] <- p
-        mf[[3]] <- d
-        r <- eval(mf,Zenv)
+        wf[[2]] <- p
+        wf[[3]] <- d
+        r <- eval(wf,Zenv)
         cumsum(r)
     }
-    mfg <- mf
-    mfg[[1]] <- as.name(paste(as.character(mf[[1]]),"gradient",sep="."))
+    mfg <- wf
+    mfg[[1]] <- as.name(paste(as.character(wf[[1]]),"gradient",sep="."))
     pp.gradient <- function(p,d) {
         mfg[[2]] <- p
         mfg[[3]] <- d
         r <- eval(mfg,Zenv)
         apply(r,2,cumsum)
     }
-
-    formula <- expandfmls(formula(x),"pp",Zenv)
+    if(model=="reduced") {
+        diff <- -1
+    }
+    else {
+        diff <- 0
+    }
+                          
+    formula <- expandfmls(formula(x),"pp",Zenv,diff)    
     cl <- match.call(expand.dots=TRUE)
-
+    cl <- cl[names(cl)!="model"]
+ 
     assign("pp",pp,Zenv)
     assign("pp.gradient",pp.gradient,Zenv)
     environment(formula) <- Zenv
     cl[[2]] <- formula
-    cl[[1]] <- as.name("midas_r")
-    eval(cl,Zenv)
+    if(model=="onestep") {
+        cl[[1]] <- as.name("midas_r")
+        res <- eval(cl,Zenv)
+    }
+    else {
+        m <- match(c("x","ldata","hdata"),names(cl),0L)
+      
+        mf.mu <- cl[c(1,m)]        
+        mf.mu[[1]] <- as.name("midas_u")
+        names(mf.mu)[2] <- "formula"
+        mu <- eval(mf.mu,Zenv)
+        trform <- expandfmls(formula(x),"pp",Zenv,diff,truncate=TRUE)
+        mttr <- terms(trform)
+        cf <- setdiff(attr(mu$terms,"term.labels"),attr(mttr,"term.labels"))
+
+        u <- mu$model[,1]-mu$model[,cf]*coef(mu)[cf]
+
+        if(missing(ldata)|missing(hdata)) {
+             ee <- NULL
+         } else {
+             data <- check_mixfreq(ldata,hdata)
+                 
+             ee <- as.environment(c(as.list(data$lowfreq),as.list(data$highfreq)))
+             parent.env(ee) <- parent.frame()
+        }
+        
+        assign("ee",ee,Zenv)
+        cl <- match.call()
+        mf <- match.call(expand.dots = FALSE)
+        ##Fix this!!
+        m <- match(c("x", "ldata"), names(mf), 0L)
+        mf <- mf[c(1L, m)]
+        mf[[1L]] <- as.name("model.frame")
+        mf[[2L]] <- trform
+        mf[[3L]] <- as.name("ee")   
+        mf[[4L]] <- as.name("na.omit")
+        names(mf)[c(2,3,4)] <- c("formula","data","na.action")
+        
+        mf <- eval(mf,Zenv)
+        mt <- attr(mf, "terms")
+        args <- list(...)
+
+        X <- model.matrix(mt,mf)
+        
+        prepmd <- prepmidas_r(u,X,mt,Zenv,cl,args,start,Ofunction,gradient)        
+        class(prepmd) <- "midas_r"
+        res <- midas_r.fit(prepmd)        
+    }
+    res$imodel <- model
+    class(res) <- c(class(res),"imidas_r")
+    return(res)
+}
+##' Restricted MIDAS regression with I(1) regressors
+##'
+##' Reestimate the MIDAS regression with I(1) regressors with different starting values
+##' 
+##' @param x \code{imidas_r} object 
+##' @param start the starting values
+##' @param Ofunction a character string of the optimisation function to use. The default value is to use the function of previous optimisation.
+##' @param ... further arguments to optimisation function. If none are supplied, the arguments of previous optimisation are used.
+##' @return \code{imidas_r} object
+##' @method imidas_r imidas_r
+##' @seealso imidas_r
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @export
+imidas_r.imidas_r <- function(x,start=coef(x),Ofunction=x$argmap.opt$Ofunction,...) {
+    midas_r.midas_r(x,start=start,Ofunction=Ofunction,...)
 }
 
-
 ##Function for expanding the formula in I(1) case
-expandfmls <- function(expr,wfun,Zenv) {
+expandfmls <- function(expr,wfun,Zenv,diff=0,truncate=FALSE) {
     if(length(expr)==3) {
-        expr[[2]] <- expandfmls(expr[[2]],wfun,Zenv)
-        expr[[3]] <- expandfmls(expr[[3]],wfun,Zenv)
+        expr[[2]] <- expandfmls(expr[[2]],wfun,Zenv,diff,truncate)
+        expr[[3]] <- expandfmls(expr[[3]],wfun,Zenv,diff,truncate)
     }
     if(length(expr)==5) {
         if(expr[[1]]==as.name("fmls")) {
-            res <- expression(a+b)[[1]]
-            t2 <- expression(mls(x,a,b))[[1]]
-            nol <- eval(expr[[3]],Zenv)
-            m <- eval(expr[[4]],Zenv)
-            expr[[1]] <- as.name("dmls")
-            t2[[3]] <- nol+1
-            t2[[4]] <- m
-            expr[[5]] <- as.name(wfun)
-            res[[2]] <-expr
-            res[[3]] <- t2
-            return(res)
+            rr <- modifyfmls(expr,wfun,Zenv,diff)
+            if(truncate) {
+                return(rr[[2]])
+            }
+            else {
+                return(rr)
+            }
         }
         else return(expr)
     }
     return(expr)
+}
+
+modifyfmls <- function(expr,wfun,Zenv,diff) {
+     res <- expression(a+b)[[1]]
+     t2 <- expression(mls(x,a,b))[[1]]
+     nol <- eval(expr[[3]],Zenv)
+     expr[[3]] <- nol+diff
+     m <- eval(expr[[4]],Zenv)
+     expr[[1]] <- as.name("dmls")
+     t2[[3]] <- nol+1+diff
+     t2[[4]] <- m
+     expr[[5]] <- as.name(wfun)
+     res[[2]] <-expr
+     res[[3]] <- t2
+     res
 }

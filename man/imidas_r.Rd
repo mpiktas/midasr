@@ -6,8 +6,9 @@
   imidas_r(x, ...)
 
   \method{imidas_r}{default} (x, ldata = NULL,
-    hdata = NULL, start, Ofunction = "optim",
-    gradient = NULL, ...)
+    hdata = NULL,
+    model = c("onestep", "twosteps", "twostep", "reduced"),
+    start, Ofunction = "optim", gradient = NULL, ...)
 }
 \arguments{
   \item{x}{either formula for restricted MIDAS regression
@@ -19,6 +20,9 @@
 
   \item{hdata}{high frequency data, a \code{data.frame}
   object}
+
+  \item{model}{one of \code{"onestep"}, \code{"twosteps"}
+  or \code{"reduced"}, see the details.}
 
   \item{start}{the starting values for optimisation. Must
   be a list with named elements.}
@@ -32,13 +36,15 @@
   argument \code{method="BFGS"}. Other supported functions
   are \code{\link{nls}}}
 
-  \item{gradient}{the gradient of the restriction function.
-  Must return the matrix with dimensions \eqn{d_k \times
-  q}, where \eqn{d_k} and \eqn{q} are the numbers of
-  coefficients in unrestricted and restricted regressions
-  correspondingly. Default value is \code{NULL}, which
-  means that the numeric approximation of gradient is
-  calculated.}
+  \item{gradient}{the default value is \code{NULL}, which
+  means that the numeric approximation of weight function
+  gradient is calculated. For any other value it is assumed
+  that the R function for weight function gradient has the
+  name of the weight function appended with
+  \code{.gradient}. This function must return the matrix
+  with dimensions \eqn{d_k \times q}, where \eqn{d_k} and
+  \eqn{q} are the numbers of coefficients in unrestricted
+  and restricted regressions correspondingly.}
 
   \item{...}{additional arguments supplied to optimisation
   function}

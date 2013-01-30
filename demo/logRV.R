@@ -2,6 +2,7 @@
 ##"The statistical content and empirical testing of the MIDAS restrictions"
 ##by Virmantas Kvedaras and Vaidotas Zemlys
 
+library(midasr)
 data(rvsp500)
 
 y <- log(as.numeric(rvsp500[,2]))
