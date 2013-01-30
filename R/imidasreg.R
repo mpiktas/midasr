@@ -114,6 +114,13 @@ imidas_r.default <- function(x, ldata=NULL, hdata=NULL, model=c("onestep","twost
         r <- eval(mfg,Zenv)
         apply(r,2,cumsum)
     }
+    if(is.null(gradient)) {
+        step1.gradD <- function(p,d)jacobian(pp,p,d=d)        
+    }
+    else {
+        step1.gradD <- pp.gradient
+    }
+    
     if(model=="reduced") {
         diff <- -1
     }
@@ -145,7 +152,8 @@ imidas_r.default <- function(x, ldata=NULL, hdata=NULL, model=c("onestep","twost
         cf <- setdiff(attr(mu$terms,"term.labels"),attr(mttr,"term.labels"))
 
         u <- mu$model[,1]-mu$model[,cf]*coef(mu)[cf]
-
+        mcf.step1u <- coef(mu)[names(coef(mu))!=cf]
+        
         if(missing(ldata)|missing(hdata)) {
              ee <- NULL
          } else {
@@ -172,10 +180,13 @@ imidas_r.default <- function(x, ldata=NULL, hdata=NULL, model=c("onestep","twost
         args <- list(...)
 
         X <- model.matrix(mt,mf)
-        
+
         prepmd <- prepmidas_r(u,X,mt,Zenv,cl,args,start,Ofunction,gradient)        
         class(prepmd) <- "midas_r"
-        res <- midas_r.fit(prepmd)        
+        res <- midas_r.fit(prepmd)
+        res$step1u <- mu
+        res$mcf.step1u <- mcf.step1u
+        res$step1.gradD <- step1.gradD
     }
     res$imodel <- model
     class(res) <- c(class(res),"imidas_r")
@@ -196,6 +207,63 @@ imidas_r.default <- function(x, ldata=NULL, hdata=NULL, model=c("onestep","twost
 ##' @export
 imidas_r.imidas_r <- function(x,start=coef(x),Ofunction=x$argmap.opt$Ofunction,...) {
     midas_r.midas_r(x,start=start,Ofunction=Ofunction,...)
+}
+
+ihAh.nls.test <- function(x) {
+    X <- x$model[,-1]
+    XtX <- crossprod(X)
+
+    n_d <- nrow(X)
+    dk <- ncol(XtX)
+    
+    se2 <- sum(residuals(x$step1u)^2)/(n_d-ncol(x$step1u$model))
+        
+    D0 <- x$gradD(coef(x))    
+    Delta.0 <- D0%*%tcrossprod(ginv(1/n_d*crossprod(D0,XtX)%*%D0),D0)
+    Sigma <- ginv(XtX/n_d)-Delta.0
+
+    cfur <- x$mcf.step1u    
+    h.0 <- sqrt(n_d)*(cfur-x$midas.coefficients)/se2
+
+    STATISTIC <- t(h.0)%*%ginv(Sigma)%*%h.0
+
+    names(STATISTIC) <- "ihAh"
+    METHOD <- "ihAh restriction test"
+    PARAMETER <- dk-length(coef(x))
+    PVAL <- 1-pchisq(STATISTIC,PARAMETER)
+    names(PARAMETER) <- "df"
+    
+    structure(list(statistic = STATISTIC, parameter = PARAMETER, 
+        p.value = PVAL, method = METHOD), 
+        class = "htest")        
+}
+
+ihAh.Td.test <- function(x) {
+    X <- x$model[,-1]
+    XtX <- crossprod(X)
+
+    n_d <- nrow(X)
+    dk <- ncol(XtX)
+    
+    se2 <- sum(residuals(x$step1u)^2)/(n_d-ncol(x$step1u$model))
+    D0.all <- x$step1.gradD(coef(x),dk+1)
+
+    D0.start <- D.all[1:dk,]
+    d.end <- D.all[dk+1,]
+    
+    Sigma <- t(d_end)%*%ginv(1/n_d*t(D0.start)%*%XtX%*%D0.start)%*%d.end
+    h <- sqrt(n.d)(x$step1.bd-x$pp(coef(x),dk+1)[dk+1])/sqrt(se2)
+
+    STATISTIC <- h^2/Sigma
+    names(STATISTIC) <- "ihAh T_d"
+    METHOD <- "ihAh T_d restriction test"
+    PARAMETER <- 1
+    PVAL <- 1-pchisq(STATISTIC,PARAMETER)
+    names(PARAMETER) <- "df"
+    
+    structure(list(statistic = STATISTIC, parameter = PARAMETER, 
+        p.value = PVAL, method = METHOD), 
+        class = "htest")            
 }
 
 ##Function for expanding the formula in I(1) case
