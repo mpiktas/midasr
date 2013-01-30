@@ -114,6 +114,10 @@ imidas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim"
 
     formula <- expandfmls(formula(x),"pp",Zenv)
     cl <- match.call(expand.dots=TRUE)
+
+    assign("pp",pp,Zenv)
+    assign("pp.gradient",pp.gradient,Zenv)
+    environment(formula) <- Zenv
     cl[[2]] <- formula
     cl[[1]] <- as.name("midas_r")
     eval(cl,Zenv)
