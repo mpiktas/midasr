@@ -7,9 +7,6 @@
 \arguments{
   \item{x}{MIDAS regression model with restricted
   coefficients, estimated with \code{\link{midas_r}}}
-
-  \item{...}{the arguments supplied to gradient function,
-  if \code{gr} is not \code{NULL}}
 }
 \value{
   a \code{htest} object

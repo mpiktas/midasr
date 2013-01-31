@@ -368,7 +368,6 @@ mls_coef <- function(x) {
 ##' Perform a test whether the restriction on MIDAS regression coefficients holds.
 ##' 
 ##' @param x MIDAS regression model with restricted coefficients, estimated with \code{\link{midas_r}}
-##' @param ... the arguments supplied to gradient function, if \code{gr} is not \code{NULL}
 ##' @return a \code{htest} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254

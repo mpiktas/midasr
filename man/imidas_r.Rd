@@ -99,34 +99,23 @@
   coefficients of the MIDAS regression.
 }
 \examples{
-##The parameter function
 theta.h0 <- function(p, dk) {
-   i <- (1:dk-1)/100
-   pol <- p[3]*i + p[4]*i^2
-   (p[1] + p[2]*i)*exp(pol)
+  i <- (1:dk-1)/100
+  pol <- p[3]*i + p[4]*i^2
+ (p[1] + p[2]*i)*exp(pol)
 }
 
-##Generate coefficients
 theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
 
-##Plot the coefficients
-plot(theta0)
+xx <- simplearma.sim(list(ar=1),1500*12,1,12)
+y <- midas.sim(500,theta0,xx,1)
+x <- window(xx,start=start(y))
 
-##Generate the predictor variable
-x <- simplearma.sim(list(ar=1),1500*12,1,12)
+imr <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,start=list(x=c(-0.1,10,-10,-10)))
 
-##Simulate the response variable
-y <- midas.sim(500,theta0,x,1)
+imr.t0 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="reduced",start=list(x=c(-0.1,10,-10,-10)))
 
-##Remove unnecessary history of x
-x <- window(x,start=start(y))
-
-##Fit restricted model
-mr <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,10,-10,-10)))
-
-##Include intercept and trend in regression
-
-mr.it <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(x=c(-0.1,10,-10,-10)))
+imr.t2 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="twosteps",start=list(x=c(-0.1,10,-10,-10)))
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

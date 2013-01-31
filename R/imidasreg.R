@@ -30,34 +30,23 @@
 ##' @rdname imidas_r
 ##' @seealso midas_r.midas_r
 ##' @examples
-##' ##The parameter function
 ##' theta.h0 <- function(p, dk) {
-##'    i <- (1:dk-1)/100
-##'    pol <- p[3]*i + p[4]*i^2
-##'    (p[1] + p[2]*i)*exp(pol)
+##'   i <- (1:dk-1)/100
+##'   pol <- p[3]*i + p[4]*i^2
+##'  (p[1] + p[2]*i)*exp(pol)
 ##' }
 ##'
-##' ##Generate coefficients
 ##' theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
-##'
-##' ##Plot the coefficients
-##' plot(theta0)
-##'
-##' ##Generate the predictor variable
-##' x <- simplearma.sim(list(ar=1),1500*12,1,12)
-##'
-##' ##Simulate the response variable
-##' y <- midas.sim(500,theta0,x,1)
-##'
-##' ##Remove unnecessary history of x
-##' x <- window(x,start=start(y))
 ##' 
-##' ##Fit restricted model
-##' mr <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,10,-10,-10)))
+##' xx <- simplearma.sim(list(ar=1),1500*12,1,12)
+##' y <- midas.sim(500,theta0,xx,1)
+##' x <- window(xx,start=start(y))
 ##'
-##' ##Include intercept and trend in regression
-##'
-##' mr.it <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(x=c(-0.1,10,-10,-10)))
+##' imr <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,start=list(x=c(-0.1,10,-10,-10)))
+##' 
+##' imr.t0 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="reduced",start=list(x=c(-0.1,10,-10,-10)))
+##' 
+##' imr.t2 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="twosteps",start=list(x=c(-0.1,10,-10,-10)))
 ##' 
 ##' @details Given MIDAS regression:
 ##'
@@ -86,7 +75,12 @@ is.imidas_r <- function(x) inherits(x,"imidas_r")
 imidas_r.default <- function(x, ldata=NULL, hdata=NULL, model=c("onestep","twosteps","twostep","reduced"), start, Ofunction="optim", gradient=NULL,...) {
 
     Zenv <- new.env(parent=environment(x))
+
+    step1 <- vector("list",5)
+    names(step1) <- c("weights","gradD","unrestricted","mcf","betad")
+
     model <- match.arg(model)
+    
     
     mt <- terms(formula(x),specials="fmls")
     vl <- as.list(attr(mt,"variables"))
@@ -114,13 +108,15 @@ imidas_r.default <- function(x, ldata=NULL, hdata=NULL, model=c("onestep","twost
         r <- eval(mfg,Zenv)
         apply(r,2,cumsum)
     }
+
+    step1$weights <- pp
+    
     if(is.null(gradient)) {
-        step1.gradD <- function(p,d)jacobian(pp,p,d=d)        
+        step1$gradD <- function(p,d)jacobian(pp,p,d=d)        
     }
     else {
-        step1.gradD <- pp.gradient
+        step1$gradD <- pp.gradient
     }
-    
     if(model=="reduced") {
         diff <- -1
     }
@@ -150,9 +146,11 @@ imidas_r.default <- function(x, ldata=NULL, hdata=NULL, model=c("onestep","twost
         trform <- expandfmls(formula(x),"pp",Zenv,diff,truncate=TRUE)
         mttr <- terms(trform)
         cf <- setdiff(attr(mu$terms,"term.labels"),attr(mttr,"term.labels"))
-
-        u <- mu$model[,1]-mu$model[,cf]*coef(mu)[cf]
-        mcf.step1u <- coef(mu)[names(coef(mu))!=cf]
+        step1$unrestricted <- mu
+        step1$mcf <- coef(mu)[names(coef(mu))!=cf]
+        step1$betad <- coef(mu)[cf]
+        
+        u <- mu$model[,1]-mu$model[,cf]*coef(mu)[cf]        
         
         if(missing(ldata)|missing(hdata)) {
              ee <- NULL
@@ -184,11 +182,9 @@ imidas_r.default <- function(x, ldata=NULL, hdata=NULL, model=c("onestep","twost
         prepmd <- prepmidas_r(u,X,mt,Zenv,cl,args,start,Ofunction,gradient)        
         class(prepmd) <- "midas_r"
         res <- midas_r.fit(prepmd)
-        res$step1u <- mu
-        res$mcf.step1u <- mcf.step1u
-        res$step1.gradD <- step1.gradD
     }
     res$imodel <- model
+    res$step1 <- step1
     class(res) <- c(class(res),"imidas_r")
     return(res)
 }
@@ -208,21 +204,81 @@ imidas_r.default <- function(x, ldata=NULL, hdata=NULL, model=c("onestep","twost
 imidas_r.imidas_r <- function(x,start=coef(x),Ofunction=x$argmap.opt$Ofunction,...) {
     midas_r.midas_r(x,start=start,Ofunction=Ofunction,...)
 }
+##' Test restrictions on coefficients of MIDAS regression with I(1) regressors
+##'
+##' Perform a test whether the restriction on MIDAS regression coefficients with I(1) regressors holds.
+##' @param x a MIDAS regression model with restricted coefficients, estimated with \code{\link{imidas_r}}
+##' @return a \code{htest} object
+##' @author Benediktas Bilinskas, Virmantas Kvedaras, Vaidotas Zemlys
+##' @seealso hAh.test, hAhr.test
+##' @examples
+##' theta.h0 <- function(p, dk) {
+##'   i <- (1:dk-1)/100
+##'   pol <- p[3]*i + p[4]*i^2
+##'  (p[1] + p[2]*i)*exp(pol)
+##' }
+##' theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
+##' 
+##' xx <- simplearma.sim(list(ar=1),1500*12,1,12)
+##' y <- midas.sim(500,theta0,xx,1)
+##' x <- window(xx,start=start(y))
+##'
+##' imr <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,start=list(x=c(-0.1,10,-10,-10)))
+##' 
+##' imr.t0 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="reduced",start=list(x=c(-0.1,10,-10,-10)))
+##' 
+##' imr.t2 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="twosteps",start=list(x=c(-0.1,10,-10,-10)))
+##'
+##' ihAh.test(imr)
+##' ihAh.test(imr.t0)
+##' ihAh.test(imr.t2)
+##' 
+##' @details The test is chosen depending on the model. For \code{"onestep"} MIDAS regression test  \code{hAh.test} is used. For \code{"twosteps"} a modified version of the test \code{ihAh.nls.test} is used. For \code{"reduced"} special test \code{ihAh.Td.test} is calculated.
+##' @export
+ihAh.test <- function(x) {
+    switch(x$imodel,
+           onestep=hAh.test(x),
+           twosteps=ihAh.nls.test(x),
+           reduced=ihAh.Td.test(x)
+           )
+}
 
+##' Test restrictions on coefficients of MIDAS regression with I(1) regressors
+##'
+##' Perform a test whether the restriction on MIDAS regression coefficients with I(1) regressors holds, in case where twostep estimation is used.
+##' @param x a MIDAS regression model with restricted coefficients, estimated with \code{\link{imidas_r}} 
+##' @return a \code{htest} object
+##' @author Benediktas Bilinskas, Virmantas Kvedaras, Vaidotas Zemlys
+##' @examples
+##' theta.h0 <- function(p, dk) {
+##'   i <- (1:dk-1)/100
+##'   pol <- p[3]*i + p[4]*i^2
+##'  (p[1] + p[2]*i)*exp(pol)
+##' }
+##' theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
+##' xx <- simplearma.sim(list(ar=1),1500*12,1,12)
+##' y <- midas.sim(500,theta0,xx,1)
+##' x <- window(xx,start=start(y))
+##'
+##' imr.t2 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="twosteps",start=list(x=c(-0.1,10,-10,-10)))
+##'
+##' ihAh.nls.test(imr.t2)
+##' @export
 ihAh.nls.test <- function(x) {
     X <- x$model[,-1]
     XtX <- crossprod(X)
 
     n_d <- nrow(X)
     dk <- ncol(XtX)
-    
-    se2 <- sum(residuals(x$step1u)^2)/(n_d-ncol(x$step1u$model))
+
+    mu <- x$step1$unrestricted
+    se2 <- sum(residuals(mu)^2)/(n_d-ncol(mu$model))
         
     D0 <- x$gradD(coef(x))    
     Delta.0 <- D0%*%tcrossprod(ginv(1/n_d*crossprod(D0,XtX)%*%D0),D0)
     Sigma <- ginv(XtX/n_d)-Delta.0
 
-    cfur <- x$mcf.step1u    
+    cfur <- x$step1$mcf
     h.0 <- sqrt(n_d)*(cfur-x$midas.coefficients)/se2
 
     STATISTIC <- t(h.0)%*%ginv(Sigma)%*%h.0
@@ -238,21 +294,44 @@ ihAh.nls.test <- function(x) {
         class = "htest")        
 }
 
+##' Test restrictions on coefficients of MIDAS regression with I(1) regressors
+##'
+##' Perform a test whether the restriction on MIDAS regression coefficients with I(1) regressors holds, in case where twostep estimation is used.
+##' @param x a MIDAS regression model with restricted coefficients, estimated with \code{\link{imidas_r}}
+##' @return a \code{htest} object
+##' @author Benediktas Bilinskas, Virmantas Kvedaras, Vaidotas Zemlys
+##' @examples
+##' theta.h0 <- function(p, dk) {
+##'   i <- (1:dk-1)/100
+##'   pol <- p[3]*i + p[4]*i^2
+##'  (p[1] + p[2]*i)*exp(pol)
+##' }
+##' theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
+##' 
+##' xx <- simplearma.sim(list(ar=1),1500*12,1,12)
+##' y <- midas.sim(500,theta0,xx,1)
+##' x <- window(xx,start=start(y))
+##'
+##' imr.t0 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="reduced",start=list(x=c(-0.1,10,-10,-10)))
+##'
+##' ihAh.Td.test(imr.t0)
+##' @export
 ihAh.Td.test <- function(x) {
     X <- x$model[,-1]
     XtX <- crossprod(X)
 
     n_d <- nrow(X)
     dk <- ncol(XtX)
-    
-    se2 <- sum(residuals(x$step1u)^2)/(n_d-ncol(x$step1u$model))
-    D0.all <- x$step1.gradD(coef(x),dk+1)
 
-    D0.start <- D.all[1:dk,]
-    d.end <- D.all[dk+1,]
+    mu <- x$step1$unrestricted
+    se2 <- sum(residuals(mu)^2)/(n_d-ncol(mu$model))
+    D0.all <- x$step1$gradD(coef(x),dk+1)
+
+    D0.start <- D0.all[1:dk,]
+    d.end <- D0.all[dk+1,]
     
-    Sigma <- t(d_end)%*%ginv(1/n_d*t(D0.start)%*%XtX%*%D0.start)%*%d.end
-    h <- sqrt(n.d)(x$step1.bd-x$pp(coef(x),dk+1)[dk+1])/sqrt(se2)
+    Sigma <- t(d.end)%*%ginv(1/n_d*t(D0.start)%*%XtX%*%D0.start)%*%d.end
+    h <- sqrt(n_d)*(x$step1$betad-x$step1$weights(coef(x),dk+1)[dk+1])/sqrt(se2)
 
     STATISTIC <- h^2/Sigma
     names(STATISTIC) <- "ihAh T_d"
