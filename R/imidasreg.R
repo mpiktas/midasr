@@ -93,20 +93,20 @@ imidas_r.default <- function(x, ldata=NULL, hdata=NULL, model=c("onestep","twost
     wf[[1]] <- fr[[5]]
     for(j in 3:length(wf)) {
              wf[[j]] <- eval(wf[[j]],Zenv)
-         }            
+         }
+    wf[[3]] <- wf[[3]]+1
     pp <- function(p,d) {
-        wf[[2]] <- p
-        wf[[3]] <- d
+        wf[[2]] <- p        
         r <- eval(wf,Zenv)
-        cumsum(r)
+        cumsum(r)[1:d]
     }
     mfg <- wf
     mfg[[1]] <- as.name(paste(as.character(wf[[1]]),"gradient",sep="."))
     pp.gradient <- function(p,d) {
         mfg[[2]] <- p
-        mfg[[3]] <- d
+#        mfg[[3]] <- d
         r <- eval(mfg,Zenv)
-        apply(r,2,cumsum)
+        apply(r,2,cumsum)[1:d,]
     }
 
     step1$weights <- pp
