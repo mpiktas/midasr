@@ -272,7 +272,7 @@ ihAh.nls.test <- function(x) {
     dk <- ncol(XtX)
 
     mu <- x$step1$unrestricted
-    se2 <- sum(residuals(mu)^2)/(n_d-ncol(mu$model))
+    se2 <- sum(residuals(mu)^2)/(n_d-length(coef(mu)))
         
     D0 <- x$gradD(coef(x))    
     Delta.0 <- D0%*%tcrossprod(ginv(1/n_d*crossprod(D0,XtX)%*%D0),D0)
@@ -324,7 +324,7 @@ ihAh.Td.test <- function(x) {
     dk <- ncol(XtX)
 
     mu <- x$step1$unrestricted
-    se2 <- sum(residuals(mu)^2)/(n_d-ncol(mu$model))
+    se2 <- sum(residuals(mu)^2)/(n_d-length(coef(mu)))
     D0.all <- x$step1$gradD(coef(x),dk+1)
 
     D0.start <- D0.all[1:dk,]
@@ -380,3 +380,61 @@ modifyfmls <- function(expr,wfun,Zenv,diff) {
      res[[3]] <- t2
      res
 }
+
+imidas_r_fast <- function(y,x,dk,weight,start,imodel=c("twosteps","reduced"),model.matrix=NULL) {
+
+    imodel <- match.arg(imodel)
+    
+    if(imodel=="twosteps") {
+        wt <- function(p) {
+            cumsum(weight(p,dk+1))
+        }
+        wt1 <- NULL
+        gradD1 <- NULL
+    }
+    else {
+        wt1 <- function(p,d) {
+            cumsum(weight(p,dk+1))[1:d]
+        }
+        wt <- function(p) {
+            wt1(p,dk)
+        }
+        gradD1 <- function(p,d)jacobian(wt1,p,d=d)
+    }    
+    
+    if(is.null(model.matrix)) {
+        dd <- switch(imodel,twosteps=dk,reduced=dk-1)
+        m <- frequency(x)        
+        V <- dmls(x,dd,m)
+        xmd <- mls(x,dd+1,m)    
+        y <- as.numeric(y)
+        model <- na.omit(cbind(y,xmd,V))
+    }
+    else {
+        model <- model.matrix
+    }
+    
+    mu <- lsfit(model[,-1],model[,1],intercept=FALSE)
+    u <- model[,1]-coef(mu)[1]*model[,2]
+    model <- model[,-2]
+    fun <- function(p) {
+        r <- wt(p)
+        sum((u-model[,-1]%*%r)^2)
+    }
+    opt <- optim(start,fun,method="BFGS",control=list(maxit=1000,reltol=sqrt(.Machine$double.eps)/10))
+    step1 <- list(unrestricted=mu,
+                  mcf=coef(mu)[-1],
+                  betad=coef(mu)[1],
+                  weights=wt1,
+                  gradD=gradD1)
+      
+    list(coefficients=opt$par,
+         midas.coefficients=wt(opt$par),
+         gradD=function(p)jacobian(wt,p),
+         opt=opt,
+         model=model,
+         step1=step1,
+         fn0=fun,
+         imodel=imodel)
+}
+
