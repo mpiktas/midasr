@@ -279,7 +279,7 @@ ihAh.nls.test <- function(x) {
     Sigma <- ginv(XtX/n_d)-Delta.0
 
     cfur <- x$step1$mcf
-    h.0 <- sqrt(n_d)*(cfur-x$midas.coefficients)/se2
+    h.0 <- sqrt(n_d)*(cfur-x$midas.coefficients)/sqrt(se2)
 
     STATISTIC <- t(h.0)%*%ginv(Sigma)%*%h.0
 
