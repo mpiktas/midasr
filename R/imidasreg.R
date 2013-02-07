@@ -381,7 +381,7 @@ modifyfmls <- function(expr,wfun,Zenv,diff) {
      res
 }
 
-imidas_r_fast <- function(y,x,dk,weight,start,imodel=c("twosteps","reduced"),model.matrix=NULL) {
+imidas_r_fast <- function(y,x,dk,weight,start,imodel=c("twosteps","reduced","reduced2"),model.matrix=NULL) {
 
     imodel <- match.arg(imodel)
     
@@ -403,7 +403,7 @@ imidas_r_fast <- function(y,x,dk,weight,start,imodel=c("twosteps","reduced"),mod
     }    
     
     if(is.null(model.matrix)) {
-        dd <- switch(imodel,twosteps=dk,reduced=dk-1)
+        dd <- switch(imodel,twosteps=dk,reduced=dk-1,reduced2=dk-1)
         m <- frequency(x)        
         V <- dmls(x,dd,m)
         xmd <- mls(x,dd+1,m)    
@@ -414,20 +414,25 @@ imidas_r_fast <- function(y,x,dk,weight,start,imodel=c("twosteps","reduced"),mod
         model <- model.matrix
     }
     
-    mu <- lsfit(model[,-1],model[,1],intercept=FALSE)
+    if(imodel=="reduced2") {
+        mu <- lsfit(model[,2],model[,1],intercept=FALSE)
+    }
+    else {
+        mu <- lsfit(model[,-1],model[,1],intercept=FALSE)
+    }
     u <- model[,1]-coef(mu)[1]*model[,2]
     model <- model[,-2]
     fun <- function(p) {
         r <- wt(p)
         sum((u-model[,-1]%*%r)^2)
     }
-    opt <- optim(start,fun,method="BFGS",control=list(maxit=1000,reltol=sqrt(.Machine$double.eps)/10))
+    opt <- optim(start,fun,method="BFGS",control=list(maxit=1000,reltol=sqrt(.Machine$double.eps)/10),hessian=T)
     step1 <- list(unrestricted=mu,
                   mcf=coef(mu)[-1],
                   betad=coef(mu)[1],
                   weights=wt1,
                   gradD=gradD1)
-      
+    opt$gr0 <- grad(fun,opt$par)
     list(coefficients=opt$par,
          midas.coefficients=wt(opt$par),
          gradD=function(p)jacobian(wt,p),
