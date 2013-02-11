@@ -237,9 +237,9 @@ imidas_r.imidas_r <- function(x,start=coef(x),Ofunction=x$argmap.opt$Ofunction,.
 ##' @export
 ihAh.test <- function(x) {
     switch(x$imodel,
-           onestep=hAh.test(x),
-           twosteps=ihAh.nls.test(x),
-           reduced=ihAh.Td.test(x)
+           onestep=hAh.test(x)
+#           twosteps=ihAh.nls.test(x),
+#           reduced=ihAh.Td.test(x)
            )
 }
 
@@ -263,16 +263,21 @@ ihAh.test <- function(x) {
 ##' imr.t2 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="twosteps",start=list(x=c(-0.1,10,-10,-10)))
 ##'
 ##' ihAh.nls.test(imr.t2)
-##' @export
-ihAh.nls.test <- function(x) {
+ihAh.nls.test <- function(x,se.type=c("ols","nls")) {
+    se.type <- match.arg(se.type)
     X <- x$model[,-1]
     XtX <- crossprod(X)
 
     n_d <- nrow(X)
     dk <- ncol(XtX)
 
-    mu <- x$step1$unrestricted
-    se2 <- sum(residuals(mu)^2)/(n_d-length(coef(mu)))
+    if(se.type=="ols") {
+        mu <- x$step1$unrestricted
+        se2 <- sum(residuals(mu)^2)/(n_d-length(coef(mu)))
+    }
+    else {
+        se2 <- sum(residuals(x)^2)/(n_d-length(coef(x)))
+    }
         
     D0 <- x$gradD(coef(x))    
     Delta.0 <- D0%*%tcrossprod(ginv(1/n_d*crossprod(D0,XtX)%*%D0),D0)
@@ -315,24 +320,32 @@ ihAh.nls.test <- function(x) {
 ##' imr.t0 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="reduced",start=list(x=c(-0.1,10,-10,-10)))
 ##'
 ##' ihAh.Td.test(imr.t0)
-##' @export
-ihAh.Td.test <- function(x) {
+ihAh.Td.test <- function(x,se.type=c("ols","nls")) {
     X <- x$model[,-1]
     XtX <- crossprod(X)
 
     n_d <- nrow(X)
     dk <- ncol(XtX)
+    
+    se.type <- match.arg(se.type)
+    if(se.type=="ols") {
+        mu <- x$step1$unrestricted
+        se2 <- sum(residuals(mu)^2)/(n_d-length(coef(mu)))
+    }
+    else {
+        se2 <- sum(residuals(x)^2)/(n_d-length(coef(x)))
+    }
 
-    mu <- x$step1$unrestricted
-    se2 <- sum(residuals(mu)^2)/(n_d-length(coef(mu)))
     D0.all <- x$step1$gradD(coef(x),dk+1)
 
     D0.start <- D0.all[1:dk,]
     d.end <- D0.all[dk+1,]
     
     Sigma <- t(d.end)%*%ginv(1/n_d*t(D0.start)%*%XtX%*%D0.start)%*%d.end
+    print(Sigma)
     h <- sqrt(n_d)*(x$step1$betad-x$step1$weights(coef(x),dk+1)[dk+1])/sqrt(se2)
-
+    print(h)
+    print(se2)
     STATISTIC <- h^2/Sigma
     names(STATISTIC) <- "ihAh T_d"
     METHOD <- "ihAh T_d restriction test"
@@ -381,11 +394,11 @@ modifyfmls <- function(expr,wfun,Zenv,diff) {
      res
 }
 
-imidas_r_fast <- function(y,x,dk,weight,start,imodel=c("twosteps","reduced","reduced2"),model.matrix=NULL) {
+imidas_r_fast <- function(y,x,dk,weight,start,imodel=c("twosteps","twosteps2","reduced","reduced2"),model.matrix=NULL) {
 
     imodel <- match.arg(imodel)
     
-    if(imodel=="twosteps") {
+    if(imodel=="twosteps"| imodel=="twosteps2") {
         wt <- function(p) {
             cumsum(weight(p,dk+1))
         }
@@ -403,7 +416,7 @@ imidas_r_fast <- function(y,x,dk,weight,start,imodel=c("twosteps","reduced","red
     }    
     
     if(is.null(model.matrix)) {
-        dd <- switch(imodel,twosteps=dk,reduced=dk-1,reduced2=dk-1)
+        dd <- switch(imodel,twosteps=dk,twosteps2=dk,reduced=dk-1,reduced2=dk-1)
         m <- frequency(x)        
         V <- dmls(x,dd,m)
         xmd <- mls(x,dd+1,m)    
@@ -413,14 +426,25 @@ imidas_r_fast <- function(y,x,dk,weight,start,imodel=c("twosteps","reduced","red
     else {
         model <- model.matrix
     }
-    
-    if(imodel=="reduced2") {
-        mu <- lsfit(model[,2],model[,1],intercept=FALSE)
+
+    mu <- lsfit(model[,-1],model[,1],intercept=FALSE)
+
+    if(imodel=="reduced2" | imodel=="twosteps2") {
+        mu.alt <- lsfit(model[,2],model[,1],intercept=FALSE)
+        betad <- coef(mu.alt)[1]
+        mcf <- NULL
+        if(imodel=="twosteps2") {
+            u.alt <- model[,1]-betad*model[,2]
+            mu.mcf <- lsfit(model[,-2:-1],u.alt,intercept=FALSE)
+            mcf <- coef(mu.mcf)            
+        }
     }
     else {
-        mu <- lsfit(model[,-1],model[,1],intercept=FALSE)
+        mcf <- coef(mu)[-1]
+        betad <- coef(mu)[1]
     }
-    u <- model[,1]-coef(mu)[1]*model[,2]
+    u <- model[,1]-betad*model[,2]
+
     model <- model[,-2]
     fun <- function(p) {
         r <- wt(p)
@@ -428,14 +452,19 @@ imidas_r_fast <- function(y,x,dk,weight,start,imodel=c("twosteps","reduced","red
     }
     opt <- optim(start,fun,method="BFGS",control=list(maxit=1000,reltol=sqrt(.Machine$double.eps)/10),hessian=T)
     step1 <- list(unrestricted=mu,
-                  mcf=coef(mu)[-1],
-                  betad=coef(mu)[1],
+                  mcf=mcf,
+                  betad=betad,
                   weights=wt1,
                   gradD=gradD1)
+    
     opt$gr0 <- grad(fun,opt$par)
+
+    resid <- u-model[,-1]%*%wt(opt$par)
+    
     list(coefficients=opt$par,
          midas.coefficients=wt(opt$par),
          gradD=function(p)jacobian(wt,p),
+         residuals=resid,
          opt=opt,
          model=model,
          step1=step1,
