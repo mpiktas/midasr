@@ -80,6 +80,7 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
     names(mf)[3] <- "data"    
     eval(mf,Zenv)
 }
+
 ##' Restricted MIDAS regression
 ##'
 ##' Estimate restricted MIDAS regression using non-linear least squares.
@@ -89,7 +90,7 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
 ##' @param hdata high frequency data, a \code{data.frame} object
 ##' @param start the starting values for optimisation. Must be a list with named elements.
 ##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are thearguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
-##' @param gradient the default value is \code{NULL}, which means that the numeric approximation of weight function gradient is calculated. For any other value it is assumed that the R function for weight function gradient has the name of the weight function appended with \code{.gradient}. This function must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. 
+##' @param user.gradient the default value is FALSE, which means that the numeric approximation of weight function gradient is calculated. If TRUE  it is assumed that the R function for weight function gradient has the name of the weight function appended with \code{.gradient}. This function must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. 
 ##' @param ... additional arguments supplied to optimisation function
 ##' @return a \code{midas_r} object which is the list with the following elements:
 ##' 
@@ -162,7 +163,7 @@ is.midas_r <- function(x) inherits(x,"midas_r")
 #' @rdname midas_r
 #' @method midas_r default
 #' @export
-midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim", gradient=NULL,...) {
+midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim", user.gradient=FALSE,...) {
 
     Zenv <- new.env(parent=environment(x))
       
@@ -192,7 +193,7 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim",
     y <- model.response(mf, "numeric")
     X <- model.matrix(mt, mf)    
 
-    prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,gradient)
+    prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient)
     
     class(prepmd) <- "midas_r"
     midas_r.fit(prepmd)    
@@ -265,7 +266,7 @@ midas_r.fit <- function(x) {
     if(function.opt=="optim" | function.opt=="spg") {  
         args$p <- x$start.opt
         args$fn <- x$fn0
-        if(x$use.gradient=="default") {
+        if(x$user.gradient) {
             args$gr <- x$gradient
         }
         opt <- do.call(function.opt,args)
@@ -274,7 +275,7 @@ midas_r.fit <- function(x) {
     }
     if(function.opt=="nls") {
         rhs <- x$rhs
-        if(x$use.gradient=="default") {
+        if(x$user.gradient) {
             rhs <- function(p) {
                 res <- rhs(p)
                 attr(res,"gradient") <- x$gr(p)
@@ -360,7 +361,7 @@ weight_names <- function(x) {
 ##' @export
 mls_coef <- function(x) {
     cf <- coef(x)
-    cf[grep("fmls|mls",names(cf))]
+    cf[grep("fmls|mls|dmls",names(cf))]
 }
 
 ##' Test restrictions on coefficients of MIDAS regression
@@ -411,11 +412,9 @@ mls_coef <- function(x) {
 ##'    cbind(a, a*i, a*i*(p[1]+p[2]*i), a*i^2*(p[1]+p[2]*i))
 ##' }
 ##'
-##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)))
+##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)),user.gradient=TRUE)
 ##'
-##' ##Use numerical gradient instead of supplied one
-##'
-##' 
+##' ##The test will use user supplied gradient
 ##' hAh.test(mr)
 ##'
 ##' 
@@ -539,7 +538,6 @@ hAhr.test <- function(x,PHI=vcovHAC(x$unrestricted,sandwich=FALSE)) {
 ##'
 ##' Workhorse function for calculating necessary matrices for \link{hAh.test} and \link{hAhr.test}. Takes the same parameters as \link{hAh.test}
 ##' @param x \code{midas_r} object
-##' @param ... arguments supplied to gradient function(s)
 ##' @return a list with necessary matrices
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @seealso hAh.test, hAhr.test
@@ -631,8 +629,7 @@ agk.test <- function(x) {
         class = "htest")
 }
 
-
-prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,gradient,unrestricted=NULL) {
+prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,unrestricted=NULL) {
     
     ##High frequency variables can enter to formula
     ##only within fmls function
@@ -662,10 +659,10 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,gradient,unrestricte
              gmf[[2]] <- p
              eval(gmf,Zenv)
          }
-         list(weight=rf,
+         return(list(weight=rf,
               name=as.character(fr[[2]]),
               gradient=grf,
-              start=rep(0,mf[[3]]))
+              start=rep(0,mf[[3]])))
     }
     
     uterm <- function(name,k=1) {
@@ -748,13 +745,11 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,gradient,unrestricte
         sum(r^2)
     }
 
-    if(is.null(gradient)) {
+    if(!user.gradient) {
         gradD <- function(p)jacobian(all_coef,p)
         gr <- function(p)grad(fn0,p)
-        use.gradient <- "No custom gradient used"
     }
     else {
-        use.gradient <- "default"
         grf <- sapply(rfd,with,gradient)
         ##Calculate the initial value to get the idea about the dimensions
         pp0 <- lapply(pinds,function(xx)starto[xx])            
@@ -820,5 +815,5 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,gradient,unrestricte
          hessian=hess,
          gradD=gradD,
          Zenv=Zenv,
-         use.gradient=use.gradient)   
+         user.gradient=user.gradient)   
 }

@@ -8,7 +8,7 @@
 ##' @param model one of \code{"onestep"}, \code{"twosteps"} or \code{"reduced"}, see the details.
 ##' @param start the starting values for optimisation. Must be a list with named elements.
 ##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are thearguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
-##' @param gradient the default value is \code{NULL}, which means that the numeric approximation of weight function gradient is calculated. For any other value it is assumed that the R function for weight function gradient has the name of the weight function appended with \code{.gradient}. This function must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly.
+##' @param user.gradient the default value is \code{FALSE}, which means that the numeric approximation of weight function gradient is calculated. If \code{TRUE} it is assumed that the R function for weight function gradient has the name of the weight function appended with \code{.gradient}. This function must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly.
 ##' @param ... additional arguments supplied to optimisation function
 ##' @return a \code{midas_r} object which is the list with the following elements:
 ##' 
@@ -72,7 +72,7 @@ is.imidas_r <- function(x) inherits(x,"imidas_r")
 #' @rdname imidas_r
 #' @method imidas_r default
 #' @export
-imidas_r.default <- function(x, ldata=NULL, hdata=NULL, model=c("onestep","twosteps","reduced"), start, Ofunction="optim", gradient=NULL,...) {
+imidas_r.default <- function(x, ldata=NULL, hdata=NULL, model=c("onestep","twosteps","reduced"), start, Ofunction="optim", user.gradient=FALSE,...) {
 
     Zenv <- new.env(parent=environment(x))
 
@@ -111,7 +111,7 @@ imidas_r.default <- function(x, ldata=NULL, hdata=NULL, model=c("onestep","twost
 
     step1$weights <- pp
     
-    if(is.null(gradient)) {
+    if(!user.gradient) {
         step1$gradD <- function(p,d)jacobian(pp,p,d=d)        
     }
     else {
@@ -179,7 +179,7 @@ imidas_r.default <- function(x, ldata=NULL, hdata=NULL, model=c("onestep","twost
 
         X <- model.matrix(mt,mf)
 
-        prepmd <- prepmidas_r(u,X,mt,Zenv,cl,args,start,Ofunction,gradient)        
+        prepmd <- prepmidas_r(u,X,mt,Zenv,cl,args,start,Ofunction,user.gradient)        
         class(prepmd) <- "midas_r"
         res <- midas_r.fit(prepmd)
     }

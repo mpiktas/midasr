@@ -65,11 +65,9 @@ theta.h0.gradient<-function(p, dk) {
    cbind(a, a*i, a*i*(p[1]+p[2]*i), a*i^2*(p[1]+p[2]*i))
 }
 
-mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)))
+mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)),user.gradient=TRUE)
 
-##Use numerical gradient instead of supplied one
-
-
+##The test will use user supplied gradient
 hAh.test(mr)
 }
 \author{

@@ -7,8 +7,8 @@
 
   \method{imidas_r}{default} (x, ldata = NULL,
     hdata = NULL,
-    model = c("onestep", "twosteps", "twostep", "reduced"),
-    start, Ofunction = "optim", gradient = NULL, ...)
+    model = c("onestep", "twosteps", "reduced"), start,
+    Ofunction = "optim", user.gradient = FALSE, ...)
 }
 \arguments{
   \item{x}{either formula for restricted MIDAS regression
@@ -36,11 +36,11 @@
   argument \code{method="BFGS"}. Other supported functions
   are \code{\link{nls}}}
 
-  \item{gradient}{the default value is \code{NULL}, which
-  means that the numeric approximation of weight function
-  gradient is calculated. For any other value it is assumed
-  that the R function for weight function gradient has the
-  name of the weight function appended with
+  \item{user.gradient}{the default value is \code{FALSE},
+  which means that the numeric approximation of weight
+  function gradient is calculated. If \code{TRUE} it is
+  assumed that the R function for weight function gradient
+  has the name of the weight function appended with
   \code{.gradient}. This function must return the matrix
   with dimensions \eqn{d_k \times q}, where \eqn{d_k} and
   \eqn{q} are the numbers of coefficients in unrestricted

@@ -6,8 +6,6 @@
 }
 \arguments{
   \item{x}{\code{midas_r} object}
-
-  \item{...}{arguments supplied to gradient function(s)}
 }
 \value{
   a list with necessary matrices
