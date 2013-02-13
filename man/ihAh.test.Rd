@@ -41,8 +41,8 @@ imr.t0 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="reduced",start=list(x=c
 imr.t2 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="twosteps",start=list(x=c(-0.1,10,-10,-10)))
 
 ihAh.test(imr)
-ihAh.test(imr.t0)
-ihAh.test(imr.t2)
+#ihAh.test(imr.t0)
+#ihAh.test(imr.t2)
 }
 \author{
   Benediktas Bilinskas, Virmantas Kvedaras, Vaidotas Zemlys

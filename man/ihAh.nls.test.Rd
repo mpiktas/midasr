@@ -2,7 +2,7 @@
 \alias{ihAh.nls.test}
 \title{Test restrictions on coefficients of MIDAS regression with I(1) regressors}
 \usage{
-  ihAh.nls.test(x)
+  ihAh.nls.test(x, se.type = c("ols", "nls"))
 }
 \arguments{
   \item{x}{a MIDAS regression model with restricted
@@ -29,7 +29,7 @@ x <- window(xx,start=start(y))
 
 imr.t2 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="twosteps",start=list(x=c(-0.1,10,-10,-10)))
 
-ihAh.nls.test(imr.t2)
+#ihAh.nls.test(imr.t2)
 }
 \author{
   Benediktas Bilinskas, Virmantas Kvedaras, Vaidotas Zemlys

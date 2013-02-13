@@ -230,8 +230,8 @@ imidas_r.imidas_r <- function(x,start=coef(x),Ofunction=x$argmap.opt$Ofunction,.
 ##' imr.t2 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="twosteps",start=list(x=c(-0.1,10,-10,-10)))
 ##'
 ##' ihAh.test(imr)
-##' ihAh.test(imr.t0)
-##' ihAh.test(imr.t2)
+##' #ihAh.test(imr.t0)
+##' #ihAh.test(imr.t2)
 ##' 
 ##' @details The test is chosen depending on the model. For \code{"onestep"} MIDAS regression test  \code{hAh.test} is used. For \code{"twosteps"} a modified version of the test \code{ihAh.nls.test} is used. For \code{"reduced"} special test \code{ihAh.Td.test} is calculated.
 ##' @export
@@ -262,7 +262,7 @@ ihAh.test <- function(x) {
 ##'
 ##' imr.t2 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="twosteps",start=list(x=c(-0.1,10,-10,-10)))
 ##'
-##' ihAh.nls.test(imr.t2)
+##' #ihAh.nls.test(imr.t2)
 ihAh.nls.test <- function(x,se.type=c("ols","nls")) {
     se.type <- match.arg(se.type)
     X <- x$model[,-1]
@@ -319,7 +319,7 @@ ihAh.nls.test <- function(x,se.type=c("ols","nls")) {
 ##'
 ##' imr.t0 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="reduced",start=list(x=c(-0.1,10,-10,-10)))
 ##'
-##' ihAh.Td.test(imr.t0)
+##' #ihAh.Td.test(imr.t0)
 ihAh.Td.test <- function(x,se.type=c("ols","nls")) {
     X <- x$model[,-1]
     XtX <- crossprod(X)
@@ -342,10 +342,9 @@ ihAh.Td.test <- function(x,se.type=c("ols","nls")) {
     d.end <- D0.all[dk+1,]
     
     Sigma <- t(d.end)%*%ginv(1/n_d*t(D0.start)%*%XtX%*%D0.start)%*%d.end
-    print(Sigma)
+
     h <- sqrt(n_d)*(x$step1$betad-x$step1$weights(coef(x),dk+1)[dk+1])/sqrt(se2)
-    print(h)
-    print(se2)
+
     STATISTIC <- h^2/Sigma
     names(STATISTIC) <- "ihAh T_d"
     METHOD <- "ihAh T_d restriction test"
