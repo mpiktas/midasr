@@ -22,34 +22,8 @@ mr <- midas_r(y~fmls(dx,4*12-1,12,pp1)+mls(x,4*12,12)-1,start=list(dx=c(-0.1,10,
 ###Use the designated function
 imr <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,start=list(x=c(-0.1,10,-10,-10)))
 
-ihAh.test(imr)
-
-###Estimate with additional step, with unrestricted last coefficient
-
-###By hand
-mu <- midas_u(y~fmls(dx,4*12-1,12)+mls(x,4*12,12)-1)
-cf <- "mls(x, 4 * 12, 12)"
-u <- mu$model[,1]-mu$model[,cf]*coef(mu)[cf]
-uu <- c(rep(NA,length(y)-length(u)),u)
-mr.t2 <- midas_r(uu~fmls(dx,4*12-1,12,pp1)-1,start=list(dx=c(-0.1,10,-10,-10)))
-
-##With the special function
-imr.t2 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="twosteps",start=list(x=c(-0.1,10,-10,-10)))
-
-ihAh.test(imr.t2)
-###Estimate with additional step, without the last coefficient
-
-###By hand
-mu.t0 <- midas_u(y~fmls(dx,4*12-2,12)+mls(x,4*12-1,12)-1)
-cf <- "mls(x, 4 * 12 - 1, 12)"
-u0 <- mu.t0$model[,1]-mu.t0$model[,cf]*coef(mu.t0)[cf]
-uu0 <- c(rep(NA,length(y)-length(u0)),u0)
-mr.t0 <- midas_r(uu0~fmls(dx,4*12-2,12,pp1)-1,start=list(dx=c(-0.1,10,-10,-10)))
-
-###With special function
-imr.t0 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="reduced",start=list(x=c(-0.1,10,-10,-10)))
-
-ihAh.test(imr.t0)
+###Test the restriction. The usual test hAh can be used.
+hAh.test(imr)
 
 ###Add additional regressors for the first example
 
