@@ -6,9 +6,8 @@
   imidas_r(x, ...)
 
   \method{imidas_r}{default} (x, ldata = NULL,
-    hdata = NULL,
-    model = c("onestep", "twosteps", "reduced"), start,
-    Ofunction = "optim", user.gradient = FALSE, ...)
+    hdata = NULL, start, Ofunction = "optim",
+    user.gradient = FALSE, ...)
 }
 \arguments{
   \item{x}{either formula for restricted MIDAS regression
@@ -20,9 +19,6 @@
 
   \item{hdata}{high frequency data, a \code{data.frame}
   object}
-
-  \item{model}{one of \code{"onestep"}, \code{"twosteps"}
-  or \code{"reduced"}, see the details.}
 
   \item{start}{the starting values for optimisation. Must
   be a list with named elements.}

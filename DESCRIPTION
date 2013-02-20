@@ -10,10 +10,10 @@ Author: Virmantas Kvedaras <virmantas.kvedaras@mif.vu.lt>, Vaidotas Zemlys
     <vaidotas.zemlys@mif.vu.lt>
 Depends:
     R (>= 2.11.0),
-    foreach,
-    MASS,
-    numDeriv,
     sandwich
+Imports:
+    MASS,
+    numDeriv
 License: MIT
 BugReports: https://github.com/mpiktas/midasr/issues
 Collate:

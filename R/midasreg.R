@@ -427,7 +427,6 @@ mls_coef <- function(x) {
 ##' \deqn{\theta_h=g(h,\lambda),}
 ##' where \eqn{h=0,...,(k+1)m}. 
 ##' @export
-##' @import MASS
 ##' @import numDeriv
 hAh.test <- function(x) {
 
@@ -509,8 +508,7 @@ hAh.test <- function(x) {
 ##' \deqn{\theta_h=g(h,\lambda),}
 ##' where \eqn{h=0,...,(k+1)m}. 
 ##' @export
-##' @import MASS
-##' @import numDeriv
+##' @importFrom MASS ginv
 ##' @import sandwich
 hAhr.test <- function(x,PHI=vcovHAC(x$unrestricted,sandwich=FALSE)) {
     prep <- prep_hAh(x)
@@ -595,15 +593,15 @@ agk.test <- function(x) {
     X <- x$model[,-1]
     y <- x$model[,1]
     if(attr(x$terms,"intercept")==1) tl <- c("(Intercept)",tl)
-    Xa <- foreach(nm=tl,.combine="cbind") %do% {
-        if(nm %in% wn) {
-       
+    Xa <- lapply(tl,function(nm) {
+        if(nm %in% wn) {       
             apply(X[,grep(wn,colnames(X),fixed=TRUE)],1,mean)
         }
         else {
             X[,nm,drop=FALSE]
         }
-    }
+    })
+    Xa <- do.call("cbind",Xa)
    
     ustar <- residuals(lm(y~Xa-1))
     u <- residuals(x)
@@ -629,6 +627,7 @@ agk.test <- function(x) {
         class = "htest")
 }
 
+##' @importFrom numDeriv grad jacobian
 prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,unrestricted=NULL) {
     
     ##High frequency variables can enter to formula

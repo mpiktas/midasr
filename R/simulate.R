@@ -69,7 +69,6 @@ simplearma.sim <- function(model,n,innov.sd,frequency,n.start=300) {
 ##' the frequency property is set when creating time series objects
 ##' \code{\link{ts}}. Hence the frequency ratio \eqn{m} which figures in MIDAS regression is calculated from frequency property of time series objects supplied.
 ##' @export
-##' @import foreach
 midas.sim <- function(n,theta,x,eps.sd) {
     m <- frequency(x)
     n.x <- length(x)

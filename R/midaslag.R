@@ -50,10 +50,8 @@ mls <- function(x, k, m, ...) {
     if(n.x%%m != 0) stop("Incomplete high frequency data")
     idx <- m*(((k-1)%/%m+1):n)    
 
-    
-    X <- foreach(h.x=0:(k-1), .combine='cbind') %do% {
-        x[idx-h.x]
-    }
+    X <- lapply(0:(k-1),function(h.x)x[idx-h.x])
+    X <- do.call("cbind",X)
     
     if(k==1) X <- matrix(X,ncol=1)
     

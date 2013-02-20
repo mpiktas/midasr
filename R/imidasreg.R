@@ -74,8 +74,6 @@ is.imidas_r <- function(x) inherits(x,"imidas_r")
 imidas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim", user.gradient=FALSE,...) {
 
     Zenv <- new.env(parent=environment(x))
-
-    model <- match.arg(model)
         
     mt <- terms(formula(x),specials="fmls")
     vl <- as.list(attr(mt,"variables"))
@@ -102,17 +100,7 @@ imidas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim"
         r <- eval(mfg,Zenv)
         apply(r,2,cumsum)[1:d,]
     }
-
-    step1$weights <- pp
-    
-    if(!user.gradient) {
-        step1$gradD <- function(p,d)jacobian(pp,p,d=d)        
-    }
-    else {
-        step1$gradD <- pp.gradient
-    }
-
-                          
+                              
     formula <- expandfmls(formula(x),"pp",Zenv,0)    
     cl <- match.call(expand.dots=TRUE)
     cl <- cl[names(cl)!="model"]
