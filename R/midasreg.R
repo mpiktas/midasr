@@ -97,7 +97,7 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
 ##' \item{coefficients}{the estimates of parameters of restrictions}
 ##' \item{midas.coefficientas}{the estimates of restricted coefficients of MIDAS regression}
 ##' \item{model}{model data}
-##' \item{restrictions}{the restriction function(s) used in estimation.}
+##' \item{weights}{the MIDAS weights used in estimation.}
 ##' \item{unrestricted}{unrestricted regression estimated using \code{\link{midas_u}}}
 ##' \item{param.map}{parameter map for optimisation function}
 ##' \item{fn0}{optimisation function for non-linear least squares problem solved in restricted MIDAS regression}
@@ -106,7 +106,12 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
 ##' \item{opt}{the output of optimisation procedure}
 ##' \item{argmap.opt}{the list containing the name of optimisation function together with arguments for optimisation function}
 ##' \item{start.opt}{the starting values used in optimisation}
-##' 
+##' \item{call}{the call to the function}
+##' \item{terms}{terms object}
+##' \item{gradient}{gradient of NLS objective function}
+##' \item{hessian}{hessian of NLS objective function}
+##' \item{Zenv}{the environment in which data is placed}
+##' \item{user.gradient}{the value of supplied argument user.gradient}
 ##' 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @rdname midas_r
@@ -564,6 +569,7 @@ prep_hAh <- function(x) {
     
     list(P=P,XtX=XtX,dk=dk,Delta.0=Delta.0,h.0=h.0)
 }
+
 ##' Andreou, Ghysels, Kourtellos LM test
 ##'
 ##' Perform the test whether hyperparameters of normalized exponential Almon lag weights are zero

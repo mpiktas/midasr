@@ -50,35 +50,91 @@ nealmon.gradient <- function(p,d) {
     cbind(eplc/s,p[1]*(pl*eplc/s-eplc%*%t(ds)/s^2))
 }
 
+##' Normalized beta probability density function MIDAS weights specification
+##' Calculate MIDAS weights according to normalized beta probability density function specification
+##' @param p parameters for normalized beta probability density function
+##' @param d number of coefficients
+##' @return vector of coefficients
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @export
 nbeta <- function(p,d) {
     xi <- (1:d-1)/(d-1)
-    nb <- xi^p[2]*(1-xi)^p[3]+p[4]
-    p[1]*nb/sum(nb)
+    nb <- xi^(p[2]-1)*(1-xi)^(p[3]-1)
+    p[1]*(nb/sum(nb)+p[4])
 }
 
+##' Gradient function for normalized beta probability density function MIDAS weights specification
+##' Calculate gradient function for normalized beta probability density function specification of MIDAS weights.
+##' @param p parameters for normalized beta probability density function
+##' @param d number of coefficients
+##' @return vector of coefficients
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @export
 nbeta.gradient <- function(p,d) {
-    
+    xi <- (1:d-1)/(d-1)
+    nb <- xi^(p[2]-1)*(1-xi)^(p[3]-1)
+    nba <- nb*log(xi)
+    nba[1] <- 0
+    nbb <- nb*log(1-xi)
+    nbb[12] <- 0
+    snb <- sum(nb)
+    a <- (nba/snb-nb*sum(nba)/snb^2)
+    b <- (nbb/snb-nb*sum(nbb)/snb^2)
+    cbind(nb/snb+p[4],p[1]*a,p[1]*b,p[1])
 }
 
+##' Almon polynomial MIDAS weights specification
+##'
+##' Calculate Almon polynomial MIDAS weights
+##' @param p parameters for Almon polynomial weights
+##' @param d number of coefficients
+##' @return vector of coefficients
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @export
 almonp <- function(p,d) {
     i <- 1:d/100
     plc <- poly(i,degree=length(p)-1,raw=TRUE) %*%p[-1]+p[1]
     as.vector(plc)
 }
 
+##' Gradient function for Almon polynomial MIDAS weights
+##'
+##' Calculate gradient for Almon polynomial MIDAS weights specification
+##' @param p vector of parameters for Almon polynomial specification
+##' @param d number of coefficients
+##' @return vector of coefficients
+##' @author Vaidotas Zemlys
+##' @export
 almonp.gradient <- function(p,d) {
     i <- 1:d/100
     plc <- poly(i,degree=length(p)-1,raw=TRUE)
     cbind(1,plc)
 }
 
+##' Step function specification for MIDAS weights
+##'
+##' Step function specification for MIDAS weights
+##' @param p vector of parameters
+##' @param d number of coefficients
+##' @param a vector of increasing positive integers indicating the steps
+##' @return vector of coefficients
+##' @author Vaidotas Zemlys
+##' @export
 polystep <- function(p,d,a) {
     if(length(a)!=length(p)-1)stop("The number of steps should be number of parameters minus one")
     if(min(a)<=1 | max(a)>=d)stop("The steps are out of bounds")
     a <- c(0,a,d)
     rep(p,times=diff(a))
 }
-
+##' Gradient of step function specification for MIDAS weights
+##'
+##' Gradient of step function specification for MIDAS weights
+##' @param p vector of parameters
+##' @param d number of coefficients
+##' @param a vector of increasing positive integers indicating the steps
+##' @return vector of coefficients
+##' @author Vaidotas Zemlys
+##' @export
 polystep.gradient <- function(p,d,a) {
     if(length(a)!=length(p)-1)stop("The number of steps should be number of parameters minus one")
     if(min(a)<=1 | max(a)>=d)stop("The steps are out of bounds")
