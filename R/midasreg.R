@@ -523,7 +523,7 @@ hAhr.test <- function(x,PHI=vcovHAC(x$unrestricted,sandwich=FALSE)) {
     nyx <- nrow(x$model)
     nkx <- ncol(x$model)-1
     II <- diag(nkx)-prep$XtX %*% prep$Delta.0
-    A0 <- ginv(nyx * ginv(t(prep$P)) %*% II %*% PHI %*% t(II) %*% ginv(prep$P))
+    A0 <- nyx * ginv(t(prep$P)) %*% II %*% PHI %*% t(II) %*% ginv(prep$P)
 
     STATISTIC <- t(prep$h.0)%*%A0%*%prep$h.0
     
