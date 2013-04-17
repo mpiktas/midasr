@@ -633,7 +633,7 @@ agk.test <- function(x) {
         class = "htest")
 }
 
-##' @importFrom numDeriv grad jacobian
+###' @importFrom numDeriv grad jacobian
 prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,unrestricted=NULL) {
     
     ##High frequency variables can enter to formula

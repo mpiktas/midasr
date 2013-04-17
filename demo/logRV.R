@@ -20,10 +20,10 @@ rvhk <- function(h,k){
     y <- y[1:length(rvh)]
     mu <- midas_u(rvh~fmls(y,k,1))
     cfur <- coef(mu)[grep("fmls",names(coef(mu)))]
-    midas_r(midas_r(rvh~fmls(y,k,1,nealmon),start=list(y=prestart(c(0.2,-1,1),cfur,k))),Ofunction="nls")   
+    midas_r(midas_r(rvh~fmls(y,k,1,nealmon),start=list(y=prestart(c(0.2,-1,1),cfur,k+1))),Ofunction="nls")   
 }
 
-allh <- lapply(c(5,10,20,40),rvhk,k=70-1)
+allh <- lapply(c(5,10,20,40),rvhk,k=70)
 
 ####Compute the derivative test                
 dtest <- lapply(allh,deriv_tests,tol=0.5)
