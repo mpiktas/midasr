@@ -51,21 +51,26 @@
   \item{coefficients}{the estimates of parameters of
   restrictions} \item{midas.coefficientas}{the estimates of
   restricted coefficients of MIDAS regression}
-  \item{model}{model data} \item{restrictions}{the
-  restriction function(s) used in estimation.}
-  \item{unrestricted}{unrestricted regression estimated
-  using \code{\link{midas_u}}} \item{param.map}{parameter
-  map for optimisation function} \item{fn0}{optimisation
-  function for non-linear least squares problem solved in
-  restricted MIDAS regression} \item{rhs}{the function
-  which evaluates the right-hand side of the MIDAS
-  regression} \item{allcoef}{the function which evaluates
-  the restricted coefficientsof MIDAS regression}
-  \item{opt}{the output of optimisation procedure}
-  \item{argmap.opt}{the list containing the name of
-  optimisation function together with arguments for
+  \item{model}{model data} \item{weights}{the MIDAS weights
+  used in estimation.} \item{unrestricted}{unrestricted
+  regression estimated using \code{\link{midas_u}}}
+  \item{param.map}{parameter map for optimisation function}
+  \item{fn0}{optimisation function for non-linear least
+  squares problem solved in restricted MIDAS regression}
+  \item{rhs}{the function which evaluates the right-hand
+  side of the MIDAS regression} \item{allcoef}{the function
+  which evaluates the restricted coefficientsof MIDAS
+  regression} \item{opt}{the output of optimisation
+  procedure} \item{argmap.opt}{the list containing the name
+  of optimisation function together with arguments for
   optimisation function} \item{start.opt}{the starting
-  values used in optimisation}
+  values used in optimisation} \item{call}{the call to the
+  function} \item{terms}{terms object}
+  \item{gradient}{gradient of NLS objective function}
+  \item{hessian}{hessian of NLS objective function}
+  \item{Zenv}{the environment in which data is placed}
+  \item{user.gradient}{the value of supplied argument
+  user.gradient}
 }
 \description{
   Estimate restricted MIDAS regression using non-linear

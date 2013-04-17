@@ -52,8 +52,8 @@
   \item{coefficients}{the estimates of parameters of
   restrictions} \item{midas.coefficientas}{the estimates of
   restricted coefficients of MIDAS regression}
-  \item{model}{model data} \item{restrictions}{the
-  restriction function(s) used in estimation.}
+  \item{model}{model data} \item{weights}{the restriction
+  function(s) used in estimation.}
   \item{unrestricted}{unrestricted regression estimated
   using \code{\link{midas_u}}} \item{param.map}{parameter
   map for optimisation function} \item{fn0}{optimisation
@@ -108,10 +108,6 @@ y <- midas.sim(500,theta0,xx,1)
 x <- window(xx,start=start(y))
 
 imr <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,start=list(x=c(-0.1,10,-10,-10)))
-
-imr.t0 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="reduced",start=list(x=c(-0.1,10,-10,-10)))
-
-imr.t2 <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,model="twosteps",start=list(x=c(-0.1,10,-10,-10)))
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys
