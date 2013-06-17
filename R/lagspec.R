@@ -58,9 +58,16 @@ nealmon.gradient <- function(p,d) {
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
 nbeta <- function(p,d) {
-    xi <- (1:d-1)/(d-1)
-    nb <- xi^(p[2]-1)*(1-xi)^(p[3]-1)
-    p[1]*(nb/sum(nb)+p[4])
+    eps <- .Machine$double.eps
+    xi <- (1:d - 1)/(d - 1)
+    xi[1] <- xi[1]+eps
+    xi[d] <- xi[d]-eps
+    nb <- xi^(p[2] - 1) * (1 - xi)^(p[3] - 1)
+    if(sum(nb)<eps) {
+        rep(0,length(nb))
+    } else {
+        p[1] * (nb/sum(nb) + p[4])
+    }
 }
 
 ##' Gradient function for normalized beta probability density function MIDAS weights specification
@@ -71,16 +78,25 @@ nbeta <- function(p,d) {
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
 nbeta.gradient <- function(p,d) {
+    eps <- .Machine$double.eps
     xi <- (1:d-1)/(d-1)
+    xi[1] <- xi[1]+eps
+    xi[d] <- xi[d]-eps
     nb <- xi^(p[2]-1)*(1-xi)^(p[3]-1)
-    nba <- nb*log(xi)
-    nba[1] <- 0
-    nbb <- nb*log(1-xi)
-    nbb[12] <- 0
     snb <- sum(nb)
-    a <- (nba/snb-nb*sum(nba)/snb^2)
-    b <- (nbb/snb-nb*sum(nbb)/snb^2)
-    cbind(nb/snb+p[4],p[1]*a,p[1]*b,p[1])
+    if(snb>eps) {
+        nba <- nb*log(xi)
+        nbb <- nb*log(1-xi)
+        a <- nba/snb-nb*sum(nba)/snb^2
+        b <- nbb/snb-nb*sum(nbb)/snb^2
+        cbind(nb/snb+p[4],p[1]*a,p[1]*b,p[1])
+    }
+    else {
+       gres <- matrix(0,nrow=dk,ncol=4)
+       gres[,1] <- p[4]
+       gres[,4] <- p[1]
+       gres
+    }    
 }
 
 ##' Almon polynomial MIDAS weights specification
