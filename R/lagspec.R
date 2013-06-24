@@ -92,7 +92,7 @@ nbeta.gradient <- function(p,d) {
         cbind(nb/snb+p[4],p[1]*a,p[1]*b,p[1])
     }
     else {
-       gres <- matrix(0,nrow=dk,ncol=4)
+       gres <- matrix(0,nrow=d,ncol=4)
        gres[,1] <- p[4]
        gres[,4] <- p[1]
        gres

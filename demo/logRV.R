@@ -23,7 +23,7 @@ rvhk <- function(h,k){
     midas_r(midas_r(rvh~fmls(y,k,1,nealmon),start=list(y=prestart(c(0.2,-1,1),cfur,k+1))),Ofunction="nls")   
 }
 
-allh <- lapply(c(5,10,20,40),rvhk,k=70)
+allh <- lapply(c(5,10,20,40),rvhk,k=69)
 
 ####Compute the derivative test                
 dtest <- lapply(allh,deriv_tests,tol=0.5)
@@ -44,9 +44,7 @@ PHI <- lapply(allh,function(x)meatHAC(x$unrestricted,prewhite=TRUE,weights=weigh
 lapply(allh,hAh.test)
 
 ##Apply robust hAh test with precomputed PHI
-foreach(mr=allh,phi=PHI) %do% {
-    hAhr.test(mr,PHI=phi)
-}
+mapply(hAhr.test,allh,PHI,SIMPLIFY=FALSE)
 
 ##Parameter j is superfluous, j=0 means no logarithm transformation was
 ##applied, j=1 means that logarithm transformation was applied. The graph
@@ -72,6 +70,4 @@ graph <- function(x,phi,j,h) {
 dev.new()
 par(mfrow=c(2,2))
 
-foreach(x=allh,phi=PHI,j=rep(1,4),h=c(5,10,20,40)) %do% {
-    graph(x,phi,j,h)
-}
+mapply(graph,allh,PHI,as.list(rep(1,4)),as.list(c(5,10,20,40)),SIMPLIFY=FALSE)

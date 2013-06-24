@@ -242,7 +242,7 @@ midas_r.midas_r <- function(x,start=coef(x),Ofunction=x$argmap.opt$Ofunction,...
          argmap$Ofunction <- NULL
          argnm <- union(names(argmap),names(oarg))
          marg <- vector("list",length(argnm))
-         names(smarg) <- argnm
+         names(marg) <- argnm
          ##New supplied arguments override the old ones
          marg[names(oarg)] <- oarg
          ##Already set arguments are left intact

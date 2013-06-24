@@ -33,9 +33,7 @@ PHI <- lapply(allh,function(x)meatHAC(x$unrestricted,prewhite=TRUE,weights=weigh
 lapply(allh,hAh.test)
 
 ##Apply robust hAh test with precomputed PHI
-foreach(mr=allh,phi=PHI) %do% {
-    hAhr.test(mr,PHI=phi)
-}
+mapply(hAhr.test,allh,PHI,SIMPLIFY=FALSE)
 
 ##Parameter j is superfluous, j=0 means no logarithm transformation was
 ##applied, j=1 means that logarithm transformation was applied. The graph
@@ -61,6 +59,5 @@ graph <- function(x,phi,j,h) {
 dev.new()
 par(mfrow=c(2,2))
 
-foreach(x=allh,phi=PHI,j=rep(0,4),h=c(5,10,20,40)) %do% {
-    graph(x,phi,j,h)
-}
+mapply(graph,allh,PHI,as.list(rep(0,4)),as.list(c(5,10,20,40)),SIMPLIFY=FALSE)
+
