@@ -6,7 +6,7 @@
 ##' @param ldata low frequency data, a \code{data.frame} object
 ##' @param hdata high frequency data, a \code{data.frame} object
 ##' @param start the starting values for optimisation. Must be a list with named elements.
-##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are thearguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
+##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are the arguments passed to this function. The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
 ##' @param user.gradient the default value is \code{FALSE}, which means that the numeric approximation of weight function gradient is calculated. If \code{TRUE} it is assumed that the R function for weight function gradient has the name of the weight function appended with \code{.gradient}. This function must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly.
 ##' @param ... additional arguments supplied to optimisation function
 ##' @return a \code{midas_r} object which is the list with the following elements:
@@ -19,7 +19,7 @@
 ##' \item{param.map}{parameter map for optimisation function}
 ##' \item{fn0}{optimisation function for non-linear least squares problem solved in restricted MIDAS regression}
 ##' \item{rhs}{the function which evaluates the right-hand side of the MIDAS regression}
-##' \item{allcoef}{the function which evaluates the restricted coefficientsof MIDAS regression}
+##' \item{allcoef}{the function which evaluates the restricted coefficients of MIDAS regression}
 ##' \item{opt}{the output of optimisation procedure}
 ##' \item{argmap.opt}{the list containing the name of optimisation function together with arguments for optimisation function}
 ##' \item{start.opt}{the starting values used in optimisation}
