@@ -28,7 +28,7 @@ fmls <- function(x, k, m, ...) {
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @details The function checks whether high frequency data is complete, i.e. \code{m} must divide \code{length(x)}. 
 ##' @examples
-##' ## Quartely frequency data
+##' ## Quarterly frequency data
 ##' x <- 1:16
 ##' ## Create MIDAS lag for use with yearly data
 ##' mls(x,0:3,4)

@@ -1,11 +1,11 @@
 midasr 0.0.6
 ============
 
-* Milestone realease. Full-fledged support for fitting MIDAS regressions without lagged dependent variable. 
+* Milestone release. Full-fledged support for fitting MIDAS regressions without lagged dependent variable. 
 
 * Robust and non-robust tests for MIDAS restriction. 
 
-* The fitted model object has methods for generic functions `coef`, `deviance`, `fitted`, `residuals`, `predict`, `print`, `residuals`, `summary` and `vcov`. Additionaly it has method `logLik` for use with `AIC` and `BIC` and methods `estfun` and `bread` for use with `vcovHAC` from package sandwich, i.e. there is support for computing robust standard errors for the coefficients
+* The fitted model object has methods for generic functions `coef`, `deviance`, `fitted`, `residuals`, `predict`, `print`, `residuals`, `summary` and `vcov`. Additionally it has method `logLik` for use with `AIC` and `BIC` and methods `estfun` and `bread` for use with `vcovHAC` from package sandwich, i.e. there is support for computing robust standard errors for the coefficients
 
 * Three demos illustrating the use of the package. They reproduce the results from the article "The statistical content and empirical testing of the MIDAS restrictions". 
 

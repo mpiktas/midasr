@@ -25,7 +25,7 @@ simplearma.sim <- function(model,n,innov.sd,frequency,n.start=300) {
     ts(res[-n.start:-1],frequency=frequency)
 }
 
-##' Simulate MIDAS regresion response variable
+##' Simulate MIDAS regression response variable
 ##'
 ##' Given the predictor variable and the coefficients calculate MIDAS regression response variable.
 ##' 
@@ -90,7 +90,7 @@ midas.sim <- function(n,theta,x,eps.sd) {
 ##' @param alpha autoregressive coefficients
 ##' @param x a high frequency predictor variable
 ##' @param eps.sd the standard error of the regression disturbances, which are assumed to be independent normal zero mean random variables
-##' @param n.start number of observations to ommit for the burn.in
+##' @param n.start number of observations to omit for the burn.in
 ##' @return a \code{ts} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export

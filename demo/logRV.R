@@ -6,7 +6,6 @@ library(midasr)
 data(rvsp500)
 
 y <- log(as.numeric(rvsp500[,2]))
-y[y== -Inf] <- NA
 
 ##Convergence is harder to achieve, so try to pick better starting values
 prestart <- function(start,cfur,k) {    

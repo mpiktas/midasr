@@ -4,7 +4,7 @@
 ##' @param object a \code{\link{midas_r}} object
 ##' @param ... currently nothing
 ##' @return The sum of squared residuals
-##' @author Virmantas Kvedaras.Vaidotas Zemlys
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @rdname deviance
 ##' @method deviance midas_r
 deviance.midas_r <- function(object,...) {
