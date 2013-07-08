@@ -1,5 +1,5 @@
 Package: midasr
-Title: tools for estimating mixed data sampling regresion and testing its
+Title: tools for estimating mixed data sampling regression and testing its
     specification
 Description: midasr is package which lets estimate and test MIDAS (mixed data
     sampling) regressions.
