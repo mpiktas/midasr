@@ -164,3 +164,89 @@ polystep.gradient <- function(p,d,a) {
     })
 }
     
+##' Normalized Gompertz probability density function MIDAS weights specification
+##' Calculate MIDAS weights according to normalized Gompertz probability density function specification
+##' @param p parameters for normalized Gompertz probability density function
+##' @param d number of coefficients
+##' @return vector of coefficients
+##' @author Julius Vainora
+##' @export
+gompertzp <- function(p, d) {
+  i <- 1:d / d
+  gm <- exp(p[3] * i - p[2] * exp(p[3] * i))
+  p[1] * gm / sum(gm)
+}
+
+##' Gradient function for normalized Gompertz probability density function MIDAS weights specification
+##' Calculate gradient function for normalized Gompertz probability density function specification of MIDAS weights.
+##' @param p parameters for normalized Gompertz probability density function
+##' @param d number of coefficients
+##' @return vector of coefficients
+##' @author Julius Vainora
+##' @export
+gompertzp.gradient <- function(p, d) {
+  i <- 1:d / d
+  gm <- exp(p[3] * i - p[2] * exp(p[3] * i))
+  dp2 <- -gm * exp(i * p[3])
+  dp3 <- -gm * i * (p[2] * exp(i * p[3]) - 1)
+  cbind(gm, p[1] * (dp2 - gm * sum(dp2) / sum(gm)),
+        p[1] * (dp3 - gm * sum(dp3) / sum(gm))) / sum(gm) 
+}
+
+##' Normalized Nakagami probability density function MIDAS weights specification
+##' Calculate MIDAS weights according to normalized Nakagami probability density function specification
+##' @param p parameters for normalized Nakagami probability density function
+##' @param d number of coefficients
+##' @return vector of coefficients
+##' @author Julius Vainora
+##' @export
+nakagamip <- function(p, d) {
+  i <- 1:d / d
+  ng <- i^(2 * p[2] - 1) * exp(-p[2] / p[3] * i^2)
+  p[1] * ng / sum(ng)
+}
+
+##' Gradient function for normalized Nakagami probability density function MIDAS weights specification
+##' Calculate gradient function for normalized Nakagami probability density function specification of MIDAS weights.
+##' @param p parameters for normalized Nakagami probability density function
+##' @param d number of coefficients
+##' @return vector of coefficients
+##' @author Julius Vainora
+##' @export
+nakagamip.gradient <- function(p, d) {
+  i <- 1:d / d
+  ng <- i^(2 * p[2] - 1) * exp(-p[2] / p[3] * i^2)
+  dp2 <- ((2 * log(i) * p[3] - i^2) / p[3]) * ng
+  dp3 <- (p[2] * i^2 / p[3]^2) * ng
+  cbind(ng, (dp2 - ng * sum(dp2) / sum(ng)) * p[1],
+        (dp3 - ng * sum(dp3) / sum(ng)) * p[1]) / sum(ng)
+}
+
+##' Normalized log-Cauchy probability density function MIDAS weights specification
+##' Calculate MIDAS weights according to normalized log-Cauchy probability density function specification
+##' @param p parameters for normalized log-Cauchy probability density function
+##' @param d number of coefficients
+##' @return vector of coefficients
+##' @author Julius Vainora
+##' @export
+lcauchyp <- function(p, d) {
+  i <- 1:d / d
+  lc <- 1 / (i * ((log(i) - p[2])^2 + p[3]^2))
+  p[1] * lc / sum(lc)
+}
+
+##' Gradient function for normalized log-Cauchy probability density function MIDAS weights specification
+##' Calculate gradient function for normalized log-Cauchy probability density function specification of MIDAS weights.
+##' @param p parameters for normalized log-Cauchy probability density function
+##' @param d number of coefficients
+##' @return vector of coefficients
+##' @author Julius Vainora
+##' @export
+lcauchyp.gradient <- function(p, d) {
+  i <- 1:d / d
+  lc <- 1 / (i * ((log(i) - p[2])^2 + p[3]^2))
+  dp2 <- 2 * lc^2 * i * (log(i) - p[2])
+  dp3 <- -2 * lc^2 * p[3] * i
+  cbind(lc, p[1] * (dp2 - lc * sum(dp2) / sum(lc)),
+        p[1] * (dp3 - lc * sum(dp3) / sum(lc))) / sum(lc)
+}
