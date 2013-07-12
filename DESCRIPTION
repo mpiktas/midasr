@@ -4,7 +4,7 @@ Title: tools for estimating mixed data sampling regresion and testing its
 Description: midasr is package which lets estimate and test MIDAS (mixed data
     sampling) regressions.
 URL: https://github.com/mpiktas/midasr
-Version: 0.0.7
+Version: 0.0.8
 Maintainer: Vaidotas Zemlys <zemlys@gmail.com>
 Author: Virmantas Kvedaras <virmantas.kvedaras@mif.vu.lt>, Vaidotas Zemlys
     <vaidotas.zemlys@mif.vu.lt>

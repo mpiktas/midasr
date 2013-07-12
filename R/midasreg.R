@@ -821,3 +821,86 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,unrest
          Zenv=Zenv,
          user.gradient=user.gradient)   
 }
+
+##' Restricted MIDAS regression
+##'
+##' Fast function for fitting MIDAS regression
+##' @param y 
+##' @param X 
+##' @param z 
+##' @param weight 
+##' @param grw 
+##' @param startx 
+##' @param startz 
+##' @param method 
+##' @param ... 
+##' @return 
+##' @author Virmantas Kvedars, Vaidotas Zemlys
+##' @export
+##' @import numDeriv
+midas_r_fast <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method="BFGS",...) {
+
+    d <- ncol(X)
+    nw <- length(start)
+    if(is.null(z)) {        
+        all_coef <- function(p) {
+            weight(p,d)
+        }
+        gradD <- function(p)grw(p,d)
+        start <- startx
+    }
+    else {
+        all_coef <- function(p) {
+            c(weight(p[1:nw]),p[-nw:-1])
+        }
+        nz <- ncol(z)
+        if(is.null(startz))startz <- rep(0,nz)
+        if(!is.null(grw)) {
+            gradD <- function(p) {
+                ww <- grw(p[1:nw],d)               
+                zr <- matrix(0,nrow=d,ncol=nz)
+                zb <- matrix(0,nrow=nc,ncol=nw)
+                rbind(cbind(ww,zr),cbind(zb,diag(nz)))
+            }
+        }
+        else gradD <- NULL
+        start <- c(startx,startz)
+    }
+    model <- na.omit(cbind(y,X,z))
+    n <- nrow(model)
+    fn0 <- function(p) {
+        sum((model[,1]-model[,-1]%*%all_coef(p))^2)
+    }
+    
+    if(is.null(grw)) {
+        gradD <- function(p)jacobian(all_coef,p)
+        gr <- function(p)grad(fn0,p)
+        gr0 <- NULL
+    }
+    else {
+        gr <- function(p) {
+             XD <- model[,-1] %*% gradD(p)
+             resid <- model[,1] - model[,-1] %*% all_coef(p)
+             as.vector(-2*apply(as.vector(resid)*XD,2,sum)) 
+        }
+        gr0 <- gr
+    }
+    opt <- optim(start,fn0,gr0,method=method,...)
+    call <- match.call()
+    fitted.values <- as.vector(model[,-1]%*%all_coef(opt$par))
+    list(coefficients=opt$par,
+         midas.coefficients=all_coef(opt$par),
+         model=model,
+         weights=weight,
+         fn0=fn0,
+         allcoef=all_coef,
+         opt=opt,
+         call=call,
+         gradient=gr,
+         hessian=function(x)numDeriv:::hessian(fn0,x),
+         gradD=gradD,
+         fitted.values=fitted.values,
+         residuals=as.vector(model[,1]-fitted.values))
+             
+}
+
