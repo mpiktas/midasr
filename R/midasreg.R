@@ -935,7 +935,7 @@ checkARstar <- function(x, env, data) {
   lagsTable <- NULL
   isARstar <- FALSE
   
-  if(length(idx) > 0 & length(vars[[idx]]) >= 5 & vars[[idx]][5] == "*") {
+  if(length(idx) > 0 && length(vars[[idx]]) >= 5 && vars[[idx]][5] == "*") {
     isARstar <- TRUE
     
     fs <- na.omit(sapply(vars, '[', 4))
