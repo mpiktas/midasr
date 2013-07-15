@@ -925,6 +925,7 @@ midas_r_fast <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method="B
 }
 
 checkARstar <- function(x, env, data) {
+  x <- eval(x)
   dp <- as.character(x[[2]])
   
   trms <- terms(eval(x, env), data = data)
@@ -989,10 +990,12 @@ checkARstar <- function(x, env, data) {
       
       rhs <- sapply(vars, function(z) 
         if(length(z) > 1) paste0(z[1], "(", paste(z[-1], collapse = ", "), ")") else z)
-      rhs <- gsub("\\*", "\"*\"", rhs)
+      rhs <- gsub(",\\s*(\\*)", ", \"*\"", rhs)
       x <- formula(paste(dp, "~", paste(rhs, collapse = " + ")))
       if(!icp)
         x <- update.formula(x, . ~ . -1)
+      else
+        lagsTable <- c(list(NULL), lagsTable)
     }
   }
   list(x = x, isARstar = isARstar, lagsTable = lagsTable)
