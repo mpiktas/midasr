@@ -834,7 +834,7 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,unrest
 ##' @param startz 
 ##' @param method 
 ##' @param ... 
-##' @return 
+##' @return a \code{midas_r} object
 ##' @author Virmantas Kvedars, Vaidotas Zemlys
 ##' @export
 ##' @import numDeriv

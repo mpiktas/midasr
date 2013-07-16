@@ -25,3 +25,4 @@ Collate:
     'lagspec.R'
     'imidasreg.R'
     'midaslag.R'
+    'lagsel.R'

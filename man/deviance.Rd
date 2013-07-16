@@ -16,6 +16,6 @@
   Returns the deviance of a fitted MIDAS regression object
 }
 \author{
-  Virmantas Kvedaras.Vaidotas Zemlys
+  Virmantas Kvedaras, Vaidotas Zemlys
 }
 

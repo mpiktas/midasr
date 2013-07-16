@@ -1,6 +1,6 @@
 \name{midas.sim}
 \alias{midas.sim}
-\title{Simulate MIDAS regresion response variable}
+\title{Simulate MIDAS regression response variable}
 \usage{
   midas.sim(n, theta, x, eps.sd)
 }

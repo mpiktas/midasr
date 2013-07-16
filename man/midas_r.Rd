@@ -26,7 +26,7 @@
   function to use for optimisation. The list must have
   element named \code{Ofunction} which contains character
   string of chosen R function. Other elements of the list
-  are thearguments passed to this function.  The default
+  are the arguments passed to this function.  The default
   optimisation function is \code{\link{optim}} with
   argument \code{method="BFGS"}. Other supported functions
   are \code{\link{nls}}}
@@ -59,7 +59,7 @@
   squares problem solved in restricted MIDAS regression}
   \item{rhs}{the function which evaluates the right-hand
   side of the MIDAS regression} \item{allcoef}{the function
-  which evaluates the restricted coefficientsof MIDAS
+  which evaluates the restricted coefficients of MIDAS
   regression} \item{opt}{the output of optimisation
   procedure} \item{argmap.opt}{the list containing the name
   of optimisation function together with arguments for

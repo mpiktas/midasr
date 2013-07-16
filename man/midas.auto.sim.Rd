@@ -18,7 +18,7 @@
   disturbances, which are assumed to be independent normal
   zero mean random variables}
 
-  \item{n.start}{number of observations to ommit for the
+  \item{n.start}{number of observations to omit for the
   burn.in}
 }
 \value{
