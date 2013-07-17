@@ -108,7 +108,7 @@ nbeta.gradient <- function(p,d) {
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
 almonp <- function(p,d) {
-    i <- 1:d/100
+    i <- 1:d
     plc <- poly(i,degree=length(p)-1,raw=TRUE) %*%p[-1]+p[1]
     as.vector(plc)
 }
@@ -122,7 +122,7 @@ almonp <- function(p,d) {
 ##' @author Vaidotas Zemlys
 ##' @export
 almonp.gradient <- function(p,d) {
-    i <- 1:d/100
+    i <- 1:d
     plc <- poly(i,degree=length(p)-1,raw=TRUE)
     cbind(1,plc)
 }

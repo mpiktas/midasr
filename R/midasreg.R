@@ -419,7 +419,9 @@ mls_coef <- function(x) {
 ##'
 ##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)),user.gradient=TRUE)
 ##'
-##' ##The test will use user supplied gradient
+##' ##The test will use an user supplied gradient of weight function. See the
+##' ##help of midas_r on how to supply the gradient.
+##' 
 ##' hAh.test(mr)
 ##'
 ##' 
@@ -499,9 +501,9 @@ hAh.test <- function(x) {
 ##'
 ##' hAhr.test(mr)
 ##' 
-##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)),gradient="default")
+##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)),user.gradient=TRUE)
 ##'
-##' ##Use numerical gradient instead of supplied one 
+##' ##Use exact gradient. Note the 
 ##' hAhr.test(mr)
 ##' 
 ##' @details  Given MIDAS regression:
