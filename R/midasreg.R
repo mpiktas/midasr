@@ -191,10 +191,10 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim",
     mf[[3L]] <- as.name("ee")   
     mf[[4L]] <- as.name("na.omit")
     names(mf)[c(2,3,4)] <- c("formula","data","na.action")
-    
+
+    ###Why pass ee? It seems that terms are needed, why not pass the original terms and then reevaluate them again if needed?
     itr <- checkARstar(mf[[2]], Zenv, ee)
-    if(itr$isARstar) 
-        mf[[2]] <- itr$x
+    if(itr$isARstar) mf[[2]] <- itr$x
     
     mf <- eval(mf,Zenv)
     mt <- attr(mf, "terms")
@@ -639,6 +639,22 @@ agk.test <- function(x) {
         class = "htest")
 }
 
+##' Prepare necessary objects for fitting of the MIDAS regression
+##'
+##' Prepare necessary objects for fitting of the MIDAS regression
+##' @param y the response
+##' @param X the model matrix
+##' @param mt the terms of the formula
+##' @param Zenv the environment to evaluate the formula
+##' @param cl call of the function
+##' @param args additional argument
+##' @param start starting values
+##' @param Ofunction the optimisation function
+##' @param user.gradient see \link{midas_r} documentation
+##' @param lagsTable the lagstable from \link{checkARstar}
+##' @param isARstar logical, indicating whether the model is MIDAS-AR* or not.
+##' @param unrestricted the unrestricted model
+##' @author Vaidotas Zemlys
 prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTable,isARstar,unrestricted=NULL) {
     
     ##High frequency variables can enter to formula
@@ -748,7 +764,8 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
           } else {
             mltp <- 1
           }
-          fun(pp[[param]]) * mltp}, rf, 1:length(pp), SIMPLIFY = FALSE)
+          fun(pp[[param]]) * mltp},
+                      rf, 1:length(pp), SIMPLIFY = FALSE)
         unlist(res)
       }
     } else {   
@@ -847,15 +864,15 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
 ##' Restricted MIDAS regression
 ##'
 ##' Fast function for fitting MIDAS regression
-##' @param y 
-##' @param X 
-##' @param z 
-##' @param weight 
-##' @param grw 
-##' @param startx 
-##' @param startz 
-##' @param method 
-##' @param ... 
+##' @param y model response
+##' @param X prepared matrix of high frequency variable lags
+##' @param z additional low frequency variables
+##' @param weight the weight function
+##' @param grw the gradient of weight function
+##' @param startx the starting values for weigt function
+##' @param startz the starting values for additional low frequency variables
+##' @param method a method passed to \link{optim}
+##' @param ... additional parameters to \link{optim}
 ##' @return a \code{midas_r} object
 ##' @author Virmantas Kvedars, Vaidotas Zemlys
 ##' @export
@@ -881,7 +898,7 @@ midas_r_fast <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method="B
             gradD <- function(p) {
                 ww <- grw(p[1:nw],d)               
                 zr <- matrix(0,nrow=d,ncol=nz)
-                zb <- matrix(0,nrow=nc,ncol=nw)
+                zb <- matrix(0,nrow=nz,ncol=nw)
                 rbind(cbind(ww,zr),cbind(zb,diag(nz)))
             }
         }
@@ -926,10 +943,18 @@ midas_r_fast <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method="B
              
 }
 
+##' Check whether the MIDAS model is MIDAS-AR* model
+##'
+##' Checks whether the MIDAS model is MIDAS-AR* model and provides necessary modifications
+##' @param x the model formula
+##' @param env the environment of model
+##' @param data the model data
+##' @author Julius Vainora
 checkARstar <- function(x, env, data) {
   x <- eval(x)
   dp <- as.character(x[[2]])
-  
+
+  ##Why evaluate terms again?
   trms <- terms(eval(x, env), data = data)
   vars <- attr(trms, "variables")
   vars <- lapply(as.list(vars)[-2:-1], as.character)

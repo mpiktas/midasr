@@ -6,23 +6,24 @@
     startz = NULL, method = "BFGS", ...)
 }
 \arguments{
-  \item{y}{}
+  \item{y}{model response}
 
-  \item{X}{}
+  \item{X}{prepared matrix of high frequency variable lags}
 
-  \item{z}{}
+  \item{z}{additional low frequency variables}
 
-  \item{weight}{}
+  \item{weight}{the weight function}
 
-  \item{grw}{}
+  \item{grw}{the gradient of weight function}
 
-  \item{startx}{}
+  \item{startx}{the starting values for weigt function}
 
-  \item{startz}{}
+  \item{startz}{the starting values for additional low
+  frequency variables}
 
-  \item{method}{}
+  \item{method}{a method passed to \link{optim}}
 
-  \item{...}{}
+  \item{...}{additional parameters to \link{optim}}
 }
 \value{
   a \code{midas_r} object

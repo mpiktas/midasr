@@ -67,9 +67,9 @@ theta.h0.gradient <-function(p, dk) {
 
 hAhr.test(mr)
 
-mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)),gradient="default")
+mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)),user.gradient=TRUE)
 
-##Use numerical gradient instead of supplied one
+##Use exact gradient. Note the
 hAhr.test(mr)
 }
 \author{
