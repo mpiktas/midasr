@@ -134,7 +134,6 @@ iclagtab <- function(x,ldata=NULL,hdata=NULL,start,kmin=NULL,kmax=NULL,IC=c("AIC
 ##' icsel(mwlr,"BIC","unrestricted")
 ##' 
 ##' @details This function selects the model from the model selection table for which the chosen information criteria achieves the smallest value. The function works with model tables produced by functions \link{iclagtab}, \link{icwtab} and \link{icwlagtab}.
- 
 icsel <- function(x,IC=x$IC[1],type=c("restricted","unrestricted")) {
     if(!(IC%in%x$IC))stop("The supplied information criteria was not used in creating lag selection table")
     type <- match.arg(type)
@@ -304,7 +303,7 @@ icwtab <- function(x,ldata=NULL,hdata=NULL,start=NULL,weights,wstart,IC=c("AIC",
         class(res) <- "midas_r"
         res
     },modellist,wstart,SIMPLIFY=FALSE)
-    browser()
+    
     candlist <- lapply(mrm,midas_r)
     
     ICfun <- lapply(IC,function(ic)eval(as.name(ic)))
