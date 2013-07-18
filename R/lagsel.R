@@ -104,9 +104,12 @@ iclagtab <- function(x,ldata=NULL,hdata=NULL,start,kmin=NULL,kmax=NULL,IC=c("AIC
     res
 }
 
+##' @export
+##' @method print midas_r_iclagtab
 print.midas_r_iclagtab <- function(x,...) {
-    print(x$table)
+    print(x$table,...)
 }
+
 ##' Select the model based on given information criteria
 ##'
 ##' Selects the model with minimum of given information criteria and model type
