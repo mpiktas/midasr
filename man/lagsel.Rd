@@ -1,48 +1,42 @@
 \name{lagsel}
 \alias{lagsel}
-\title{Select lags of MIDAS regression using information criteria}
+\title{Select the model based on given information criteria}
 \usage{
-  lagsel(x, ldata = NULL, hdata = NULL, start, kmin = NULL,
-    kmax = NULL, IC = list(AIC, BIC), Ofunction = "optim",
-    user.gradient = FALSE, ...)
+  lagsel(x, IC = x$IC[1],
+    type = c("restricted", "unrestricted"))
 }
 \arguments{
-  \item{x}{the formula for MIDAS regression, the lag
-  selection is performed for the first mls term in the
-  formula}
+  \item{x}{and output from iclagtab function}
 
-  \item{ldata}{low frequency data, a \code{data.frame}
-  object}
+  \item{IC}{the name of information criteria to choose}
 
-  \item{hdata}{high frequency data, a \code{data.frame}
-  object}
-
-  \item{start}{the starting values for optimisation}
-
-  \item{kmin}{the minimum high frequency lag, defaults to
-  zero.}
-
-  \item{kmax}{the highest high frequency lag, defaults to
-  square root of number of low fequency observations}
-
-  \item{IC}{the information criterias on which to base
-  selection}
-
-  \item{Ofunction}{see \link{midasr}}
-
-  \item{user.gradient}{see \link{midas_r}}
-
-  \item{...}{additional parameters to optimisation
-  function, see \link{midas_r}}
+  \item{type}{the type of MIDAS model, either restricted or
+  unrestricted}
 }
 \value{
-  a table with
+  the best model based on information criteria,
+  \link{midas_r} object
 }
 \description{
-  Select lags of MIDAS regression using information
-  criteria
+  Selects the model with minimum of given information
+  criteria and model type
+}
+\details{
+  This function selects the model from the lag selection
+  table for which the chosen information criteria achieves
+  the smallest value
+}
+\examples{
+data("USunempr")
+data("USrealgdp")
+y <- diff(log(USrealgdp))
+x <- window(diff(USunempr),start=1949)
+trend <- 1:length(y)
+
+mlr <- iclagtab(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),kmin=4,kmax=6)
+lagsel(mlr,"BIC","unrestricted")
 }
 \author{
-  Vaidotas Zemlys
+  Virmantas Kvedaras, Vaidotas Zemlys
 }
 

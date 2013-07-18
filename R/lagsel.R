@@ -1,19 +1,36 @@
-##' Select lags of MIDAS regression using information criteria
+##' Create a lag selection table for MIDAS regression model
 ##'
-##' Select lags of MIDAS regression using information criteria
-##' @param x the formula for MIDAS regression, the lag selection is performed for the first mls term in the formula
+##' Creates a lag selection table for MIDAS regression model with given information criteria and minimum and maximum lags.
+##' @param x the formula for MIDAS regression, the lag selection is performed for the last MIDAS lag term in the formula
 ##' @param ldata low frequency data, a \code{data.frame} object
 ##' @param hdata high frequency data, a \code{data.frame} object
 ##' @param start the starting values for optimisation
 ##' @param kmin the minimum high frequency lag, defaults to zero.
 ##' @param kmax the highest high frequency lag, defaults to square root of number of low fequency observations
-##' @param IC the information criterias on which to base selection
+##' @param IC the information criterias which to compute
 ##' @param Ofunction see \link{midasr}
 ##' @param user.gradient see \link{midas_r}
 ##' @param ... additional parameters to optimisation function, see \link{midas_r}
-##' @return a table with 
-##' @author Vaidotas Zemlys
-lagsel <- function(x,ldata=NULL,hdata=NULL,start,kmin=NULL,kmax=NULL,IC=list(AIC,BIC),Ofunction="optim",user.gradient=FALSE,...) {
+##' @return a \code{midas_r_iclagtab} object which is the list with the following elements:
+##'
+##' \item{table}{the table where each row contains calculated information criteria for both restricted and unrestricted MIDAS regression model with given lag structure}
+##' \item{candlist}{the list containing fitted models}
+##' \item{IC}{the argument IC}
+##' @examples
+##'
+##' data("USunempr")
+##' data("USrealgdp")
+##' y <- diff(log(USrealgdp))
+##' x <- window(diff(USunempr),start=1949)
+##' trend <- 1:length(y)
+##' 
+##' mlr <- iclagtab(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),kmin=4,kmax=6)
+##' mlr
+##'
+##' @details This function estimates models sequentialy increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @export
+iclagtab <- function(x,ldata=NULL,hdata=NULL,start,kmin=NULL,kmax=NULL,IC=c("AIC","BIC"),Ofunction="optim",user.gradient=FALSE,...) {
     
     Zenv <- new.env(parent=environment(x))
       
@@ -47,9 +64,9 @@ lagsel <- function(x,ldata=NULL,hdata=NULL,start,kmin=NULL,kmax=NULL,IC=list(AIC
 
     if(is.null(kmax))kmax <- sqrt(length(y))
 
-    formulas <- lagformula(x,Zenv,kmin=kmin,kmax=kmax)
+    laginfo <- lagformula(x,Zenv,kmin=kmin,kmax=kmax)
     
-    modellist <- lapply(formulas, function(f) {    
+    modellist <- lapply(laginfo$formulas, function(f) {    
         mff[[2L]] <- f
         mmf <- eval(mff,Zenv)
         mmt <- attr(mmf, "terms")
@@ -73,8 +90,56 @@ lagsel <- function(x,ldata=NULL,hdata=NULL,start,kmin=NULL,kmax=NULL,IC=list(AIC
     })
     candlist <- lapply(mrm,midas_r)
 
-    candlist
+    ICfun <- lapply(IC,function(ic)eval(as.name(ic)))
+    ictab <- lapply(candlist,function(mm) {
+        c(sapply(ICfun,function(ic)ic(mm)),
+          sapply(ICfun,function(ic)ic(mm$unrestricted)))        
+    })
+    ictab <- do.call("rbind",ictab)
+
+    colnames(ictab) <- c(paste(IC,"restricted",sep="."),paste(IC,"unrestricted",sep="."))
+    ictab <- data.frame(lags=sapply(laginfo$lags,deparse),ictab)
+    res <- list(table=ictab,candlist=candlist,IC=IC)
+    class(res) <- "midas_r_iclagtab"
+    res
 }
+
+print.midas_r_iclagtab <- function(x,...) {
+    print(x$table)
+}
+##' Select the model based on given information criteria
+##'
+##' Selects the model with minimum of given information criteria and model type
+##' @param x and output from iclagtab function
+##' @param IC the name of information criteria to choose
+##' @param type the type of MIDAS model, either restricted or unrestricted
+##' @return the best model based on information criteria, \link{midas_r} object
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @export
+##' @examples
+##'
+##' data("USunempr")
+##' data("USrealgdp")
+##' y <- diff(log(USrealgdp))
+##' x <- window(diff(USunempr),start=1949)
+##' trend <- 1:length(y)
+##' 
+##' mlr <- iclagtab(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),kmin=4,kmax=6)
+##' lagsel(mlr,"BIC","unrestricted")
+##'
+##' @details This function selects the model from the lag selection table for which the chosen information criteria achieves the smallest value
+lagsel <- function(x,IC=x$IC[1],type=c("restricted","unrestricted")) {
+    if(!(IC%in%x$IC))stop("The supplied information criteria was not used in creating lag selection table")
+    type <- match.arg(type)
+    coln <- paste(IC,type,sep=".")
+    i <- which.min(x$table[,coln])
+    cat("\n Selected model with lag structure: ", as.character(x$table$lags[i]))
+    cat("\n ",IC," = ",x$table[i,coln],"")
+    cat("\n Based on ",type, " MIDAS regression model\n")
+    print(summary(x$candlist[[i]]))
+    invisible(x)
+}
+
 
 lagformula <- function(x,Zenv,kmin=NULL,kmax) {
     last.term <- x[[3]]
@@ -111,5 +176,5 @@ lagformula <- function(x,Zenv,kmin=NULL,kmax) {
         res[[ind]] <- lt
         formulas[[i]] <- res
     }
-    formulas    
+    list(lags=lags,formulas=formulas)    
 }
