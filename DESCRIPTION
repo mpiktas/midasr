@@ -26,3 +26,4 @@ Collate:
     'imidasreg.R'
     'midaslag.R'
     'lagsel.R'
+    'tests.R'
