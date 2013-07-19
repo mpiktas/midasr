@@ -3,9 +3,9 @@
 \title{Create a weight and lag selection table for MIDAS regression model}
 \usage{
   icwlagtab(x, ldata = NULL, hdata = NULL, start = NULL,
-    weights, wstart, kmin, kmax, IC = c("AIC", "BIC"),
-    test = c("hAh.test"), Ofunction = "optim",
-    user.gradient = FALSE, ...)
+    weights, wstart, kmin, kmax = NULL,
+    IC = c("AIC", "BIC"), test = c("hAh.test"),
+    Ofunction = "optim", user.gradient = FALSE, ...)
 }
 \arguments{
   \item{x}{the formula for MIDAS regression, the lag

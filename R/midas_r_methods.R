@@ -204,6 +204,19 @@ mls_coef <- function(x) {
     cf[grep("fmls|mls|dmls",names(cf))]
 }
 
+##' Function to compute AICc information criteria for a given model
+##'
+##' A generic function for calculating AICc. It is implemented for \link{midas_r} package. For more examples see package AICcmodavg.
+##' @title Compute AICc
+##' @param mod \code{midas_r} model
+##' @param ... additional parameters
+##' @return a computed AICc value, a number.
+##' @author Vaidotas Zemlys
+##' @rdname AICc
+AICc <- function(mod,...)UseMethod("AICc")
+
+##' @export 
+##' @method AICc midas_r
 AICc.midas_r <- function(mod) {
     n <- length(fitted(mod))
     LL <- logLik(mod)[1]

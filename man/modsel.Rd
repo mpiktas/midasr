@@ -1,8 +1,8 @@
-\name{icsel}
-\alias{icsel}
+\name{modsel}
+\alias{modsel}
 \title{Select the model based on given information criteria}
 \usage{
-  icsel(x, IC = x$IC[1],
+  modsel(x, IC = x$IC[1],
     type = c("restricted", "unrestricted"))
 }
 \arguments{
@@ -41,11 +41,11 @@ mwr <- icwtab(y~trend+fmls(x,12,12,nealmon),weights=c("nealmon","nbeta"),wstart=
 
 mwlr <- icwlagtab(y~trend+fmls(x,12,12,nealmon),weights=c("nealmon","nbeta"),wstart=list(nealmon=rep(0,3),nbeta=c(1,1,1,0)),kmin=4,kmax=6)
 
-icsel(mlr,"BIC","unrestricted")
+modsel(mlr,"BIC","unrestricted")
 
-icsel(mwr,"BIC","unrestricted")
+modsel(mwr,"BIC","unrestricted")
 
-icsel(mwlr,"BIC","unrestricted")
+modsel(mwlr,"BIC","unrestricted")
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

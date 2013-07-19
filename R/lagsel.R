@@ -62,7 +62,7 @@ iclagtab <- function(x,ldata=NULL,hdata=NULL,start,kmin=NULL,kmax=NULL,IC=c("AIC
     args <- list(...)
     y <- model.response(mf, "numeric")
 
-    if(is.null(kmax))kmax <- sqrt(length(y))
+    if(is.null(kmax))kmax <- 10*log(length(y),base=10)
 
     laginfo <- lagformula(x,Zenv,kmin=kmin,kmax=kmax)
     
@@ -127,14 +127,14 @@ iclagtab <- function(x,ldata=NULL,hdata=NULL,start,kmin=NULL,kmax=NULL,IC=c("AIC
 ##'
 ##' mwlr <- icwlagtab(y~trend+fmls(x,12,12,nealmon),weights=c("nealmon","nbeta"),wstart=list(nealmon=rep(0,3),nbeta=c(1,1,1,0)),kmin=4,kmax=6)
 ##' 
-##' icsel(mlr,"BIC","unrestricted")
+##' modsel(mlr,"BIC","unrestricted")
 ##'
-##' icsel(mwr,"BIC","unrestricted")
+##' modsel(mwr,"BIC","unrestricted")
 ##'
-##' icsel(mwlr,"BIC","unrestricted")
+##' modsel(mwlr,"BIC","unrestricted")
 ##' 
 ##' @details This function selects the model from the model selection table for which the chosen information criteria achieves the smallest value. The function works with model tables produced by functions \link{iclagtab}, \link{icwtab} and \link{icwlagtab}.
-icsel <- function(x,IC=x$IC[1],type=c("restricted","unrestricted")) {
+modsel <- function(x,IC=x$IC[1],type=c("restricted","unrestricted")) {
     if(!(IC%in%x$IC))stop("The supplied information criteria was not used in creating lag selection table")
     type <- match.arg(type)
     coln <- paste(IC,type,sep=".")
@@ -360,7 +360,7 @@ icwtab <- function(x,ldata=NULL,hdata=NULL,start=NULL,weights,wstart,IC=c("AIC",
 ##' @details This function estimates models sequentialy increasing the midas lag from \code{kmin} to \code{kmax} and varying the weights of the last term of the given formula 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-icwlagtab <- function(x,ldata=NULL,hdata=NULL,start=NULL,weights,wstart,kmin,kmax,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
+icwlagtab <- function(x,ldata=NULL,hdata=NULL,start=NULL,weights,wstart,kmin,kmax=NULL,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
     
     Zenv <- new.env(parent=environment(x))
       
@@ -392,6 +392,7 @@ icwlagtab <- function(x,ldata=NULL,hdata=NULL,start=NULL,weights,wstart,kmin,kma
     args <- list(...)
     y <- model.response(mf, "numeric")
 
+    if(is.null(kmax))kmax <- 10*log(length(y),base=10)
 
     laginfo <- lagformula(x,Zenv,kmin=kmin,kmax=kmax)
     winfo <- weightformula(x,Zenv,weights)
