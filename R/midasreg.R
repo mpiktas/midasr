@@ -192,9 +192,9 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim",
     mf[[4L]] <- as.name("na.omit")
     names(mf)[c(2,3,4)] <- c("formula","data","na.action")
 
-    ###Why pass ee? It seems that terms are needed, why not pass the original terms and then reevaluate them again if needed?
-    itr <- checkARstar(mf[[2]], Zenv, ee)
-    if(itr$isARstar) mf[[2]] <- itr$x
+    itr <- checkARstar(terms(eval(mf[[2]], Zenv)))
+    if(!is.null(itr$lagsTable)) 
+      mf[[2]] <- itr$x
     
     mf <- eval(mf,Zenv)
     mt <- attr(mf, "terms")
@@ -202,7 +202,7 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim",
     y <- model.response(mf, "numeric")
     X <- model.matrix(mt, mf)    
 
-    prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,itr$lagsTable,itr$isARstar)
+    prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,itr$lagsTable)
     
     class(prepmd) <- "midas_r"
     midas_r.fit(prepmd)    
@@ -319,10 +319,9 @@ midas_r.fit <- function(x) {
 ##' @param Ofunction the optimisation function
 ##' @param user.gradient see \link{midas_r} documentation
 ##' @param lagsTable the lagstable from \link{checkARstar}
-##' @param isARstar logical, indicating whether the model is MIDAS-AR* or not.
 ##' @param unrestricted the unrestricted model
 ##' @author Vaidotas Zemlys
-prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTable,isARstar,unrestricted=NULL) {
+prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTable,unrestricted=NULL) {
     
     ##High frequency variables can enter to formula
     ##only within fmls function
@@ -420,22 +419,23 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
     
     starto <- unlist(start_default)
    
-    if(isARstar) {
+    if(!is.null(lagsTable)) {
       nms <- names(pinds)
       all_coef <- function(p) {
         pp <- lapply(pinds, function(x) p[x])
+        cr <- c(1, -p[pinds[[grep("\"*\"", nms)]]])
         res <- mapply(function(fun, param) {
           if(!is.null(lagsTable[[param]])) {
-            mltp <- rowSums(sweep(lagsTable[[param]], 2, c(1, -p[pinds[[grep("\"*\"", nms)]]]), "*"))
+            mltp <- rowSums(lagsTable[[param]] %*% diag(cr))
             mltp <- mltp[rowSums(lagsTable[[param]]) != 0]
           } else {
             mltp <- 1
           }
-          fun(pp[[param]]) * mltp},
-                      rf, 1:length(pp), SIMPLIFY = FALSE)
+          fun(pp[[param]]) * mltp
+        }, rf, 1:length(pp), SIMPLIFY = FALSE)
         unlist(res)
       }
-    } else {   
+    } else {    
       all_coef <- function(p) {              
           pp <- lapply(pinds,function(x)p[x])     
           res <- mapply(function(fun,param)fun(param),rf,pp,SIMPLIFY=FALSE)
@@ -613,44 +613,31 @@ midas_r_fast <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method="B
 ##' Check whether the MIDAS model is MIDAS-AR* model
 ##'
 ##' Checks whether the MIDAS model is MIDAS-AR* model and provides necessary modifications
-##' @param x the model formula
-##' @param env the environment of model
-##' @param data the model data
+##' @param trms terms of the model formula
 ##' @author Julius Vainora
-checkARstar <- function(x, env, data) {
-  x <- eval(x)
-  dp <- as.character(x[[2]])
-
-  ##Why evaluate terms again?
-  trms <- terms(eval(x, env), data = data)
-  vars <- attr(trms, "variables")
-  vars <- lapply(as.list(vars)[-2:-1], as.character)
-  idx <- which(sapply(vars, '[', 2) == dp)
+checkARstar <- function(trms) {
+  vars <- as.list(attr(trms, "variables"))[-2:-1]
+  env <- environment(trms)
+  idx <- which(sapply(vars, function(y) if(length(y) >= 2) y[[2]]) == trms[[2]])
   
   lagsTable <- NULL
-  isARstar <- FALSE
-  
-  if(length(idx) > 0 && length(vars[[idx]]) >= 5 && vars[[idx]][5] == "*") {
-    isARstar <- TRUE
-    
-    fs <- na.omit(sapply(vars, '[', 4))
-    if(length(unique(fs)) > 1) {
+  if(length(idx) > 0 && length(vars[[idx]]) >= 5 && vars[[idx]][[5]] == "*") {    
+    fs <- lapply(sapply(vars, function(y) if(length(y) >= 4) y[[4]]), eval, env)
+    if(length(unique(unlist(fs))) > 1) {
       ## mls for y is assumed
-      lags <- eval(parse(text = vars[[idx]][3]))
-      hf <- as.numeric(setdiff(fs, 1))
-      push <- lags * hf
+      lags <- eval(vars[[idx]][[3]], env)
+      push <- lapply(fs, "*", lags)
       
-      lagsTable <- lapply(vars, function(z) {
-        if(!is.na(z[4]) & z[4] != 1) {
-          l <- eval(parse(text = z[3]))
-          if(length(l) == 1 & z[1] %in% c("fmls", "dmls"))
+      lagsTable <- lapply(1:length(vars), function(w) {
+        z <- vars[[w]]
+        if(length(z) >= 4 && eval(z[[4]], env) != 1) {
+          l <- eval(z[[3]], env)
+          if(length(l) == 1 & as.character(z[1]) %in% c("fmls", "dmls"))
             l <- 0:l
-          
-          tp <- matrix(0, ncol = length(lags) + 1, nrow = max(l) + max(push) + 1)
+          tp <- matrix(0, ncol = length(lags) + 1, nrow = max(l) + max(push[[w]]) + 1)
           tp[l + 1, 1] <- 1
-          
           for(r in 2:ncol(tp))
-            tp[l + push[r - 1] + 1, r] <- 1
+            tp[l + push[[w]][r - 1] + 1, r] <- 1
           tp
         }
       })
@@ -659,38 +646,36 @@ checkARstar <- function(x, env, data) {
         wt <- which(!diff(s) == 1)
         idx <- c(1, 1 + c(wt, wt - 1), length(s))
         ams <- s[intersect(1:length(s), idx)]
-        seps <- rep(",", length(ams) - 1)
-        seps[round(diff(ams) / 2 + head(ams, -1)) %in% s] <- ":"
-        out <- vector("numeric", 2 * length(ams) - 1)
-        out[c(TRUE, FALSE)] <- ams
-        out[c(FALSE, TRUE)] <- seps
-        paste0("c(", paste(out, collapse = ""), ")")
+        fc <- cumsum(c(TRUE, !round(diff(ams) / 2 + head(ams, -1)) %in% s))
+        out <- lapply(split(ams, fc), function(x) if(length(x) == 2) 
+          do.call("call", c(":", as.list(x))) else x)
+        names(out) <- NULL; out
       }
       
-      vars <- lapply(vars, function(z) {
-        if(!is.na(z[4]) & z[4] != 1) {
-          l <- eval(parse(text = z[3]))
-          if(length(l) == 1 & z[1] %in% c("fmls", "dmls"))
+      vars <- lapply(1:length(vars), function(w) {
+        z <- vars[[w]]
+        fun <- as.character(z[1])
+        if(length(z) >= 4 && eval(z[[4]], env) != 1) {
+          l <- eval(z[[3]], env)
+          if(length(l) == 1 & fun %in% c("fmls", "dmls"))
             l <- 0:l
-          nl <- sort(unique(l + rep(c(0, push), each = length(l))))
-          z[3] <- shortSeq(nl)
+          else if(length(l) > 1 & fun == "fmls")
+            stop("fmls is not used with a vector of lag orders")
+          nl <- sort(unique(l + rep(c(0, push[[w]]), each = length(l))))
+          z[[3]] <- do.call("call", c("c", shortSeq(nl)))
           ## Problem in case of dmls & grepl(",", z[3]), temporal solution:
-          if(z[1] == "dmls" & grepl(",", z[3]))
-            stop("Use fmls or mls instead")
-          z[1] <- "mls"
+          if(fun == "dmls" & grepl(",", z[3]))
+            stop("Use fmls or mls instead of dmls")
+          z[1] <- call("mls")
         }; z
       })
       icp <- attr(trms, "intercept") == 1
-      
-      rhs <- sapply(vars, function(z) 
-        if(length(z) > 1) paste0(z[1], "(", paste(z[-1], collapse = ", "), ")") else z)
-      rhs <- gsub(",\\s*(\\*)", ", \"*\"", rhs)
-      x <- formula(paste(dp, "~", paste(rhs, collapse = " + ")))
+      trms <- formula(paste(trms[[2]], "~", paste(vars, collapse = " + ")), env)
       if(!icp)
-        x <- update.formula(x, . ~ . -1)
+        trms <- update.formula(trms, . ~ . -1)
       else
         lagsTable <- c(list(NULL), lagsTable)
     }
   }
-  list(x = x, isARstar = isARstar, lagsTable = lagsTable)
+  list(x = trms, lagsTable = lagsTable)
 }
