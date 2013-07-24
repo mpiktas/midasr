@@ -655,18 +655,26 @@ checkARstar <- function(trms) {
       vars <- lapply(1:length(vars), function(w) {
         z <- vars[[w]]
         fun <- as.character(z[1])
+        
         if(length(z) >= 4 && eval(z[[4]], env) != 1) {
           l <- eval(z[[3]], env)
-          if(length(l) == 1 & fun %in% c("fmls", "dmls"))
-            l <- 0:l
-          else if(length(l) > 1 & fun == "fmls")
-            stop("fmls is not used with a vector of lag orders")
+          if(fun %in% c("fmls", "dmls")) {
+            if(length(l) == 1)
+              l <- 0:l
+            else
+              stop("fmls and dmls are not used with a vector of lag orders")                    
+          }          
           nl <- sort(unique(l + rep(c(0, push[[w]]), each = length(l))))
-          z[[3]] <- do.call("call", c("c", shortSeq(nl)))
-          ## Problem in case of dmls & grepl(",", z[3]), temporal solution:
-          if(fun == "dmls" & grepl(",", z[3]))
-            stop("Use fmls or mls instead of dmls")
-          z[1] <- call("mls")
+          if(fun == "mls")
+            z[[3]] <- do.call("call", c("c", shortSeq(nl)))
+          else if(all(diff(nl) == 1))
+            z[3] <- max(nl)
+          else if(fun == "fmls"){
+            z[1] <- call("mls")
+            z[[3]] <- do.call("call", c("c", shortSeq(nl)))
+          } else
+            # Problem in case of dmls and not full lag vector
+            stop("Use fmls or mls instead of dmls")          
         }; z
       })
       icp <- attr(trms, "intercept") == 1
