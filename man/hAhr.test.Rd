@@ -32,7 +32,7 @@
 }
 \examples{
 ##The parameter function
-theta.h0 <- function(p, dk) {
+theta.h0 <- function(p, dk, ...) {
    i <- (1:dk-1)
    (p[1] + p[2]*i)*exp(p[3]*i + p[4]*i^2)
 }
@@ -57,7 +57,7 @@ x <- window(x,start=start(y))
 mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)))
 
 ##The gradient function
-theta.h0.gradient <-function(p, dk) {
+theta.h0.gradient <-function(p, dk,...) {
    i <- (1:dk-1)
    a <- exp(p[3]*i + p[4]*i^2)
    cbind(a, a*i, a*i*(p[1]+p[2]*i), a*i^2*(p[1]+p[2]*i))

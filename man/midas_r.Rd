@@ -96,7 +96,7 @@
 }
 \examples{
 ##The parameter function
-theta.h0 <- function(p, dk) {
+theta.h0 <- function(p, dk, ...) {
    i <- (1:dk-1)/100
    pol <- p[3]*i + p[4]*i^2
    (p[1] + p[2]*i)*exp(pol)

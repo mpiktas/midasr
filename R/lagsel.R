@@ -84,7 +84,7 @@ iclagtab <- function(x,ldata=NULL,hdata=NULL,start,kmin=NULL,kmax=NULL,IC=c("AIC
         mm
     })
     mrm <- lapply(modellist,function(mm) {
-        res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cl,args,start,Ofunction,user.gradient,NULL,FALSE)
+        res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cl,args,start,Ofunction,user.gradient,NULL)
         class(res) <- "midas_r"
         res
     })
@@ -299,7 +299,7 @@ icwtab <- function(x,ldata=NULL,hdata=NULL,start=NULL,weights,wstart,IC=c("AIC",
     mrm <- mapply(function(mm,wst) {
         st <- c(list(wst),start)
         names(st)[1] <- winfo$varname
-        res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cl,args,st,Ofunction,user.gradient,NULL,FALSE)
+        res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cl,args,st,Ofunction,user.gradient,NULL)
         class(res) <- "midas_r"
         res
     },modellist,wstart,SIMPLIFY=FALSE)
@@ -416,6 +416,10 @@ icwlagtab <- function(x,ldata=NULL,hdata=NULL,start=NULL,weights,wstart,kmin,kma
 
     wlinfo <- do.call("c",wlinfo)
 
+    ##Remove those formulas for which the number of parameters is less or equal than number of lags.
+   # cond <- sapply(wlinfo, with, length())
+    
+
     modellist <- lapply(wlinfo, function(f) {    
         mff[[2L]] <- f$formula
         mmf <- eval(mff,Zenv)
@@ -438,7 +442,7 @@ icwlagtab <- function(x,ldata=NULL,hdata=NULL,start=NULL,weights,wstart,kmin,kma
     })
     
     mrm <- lapply(modellist,function(mm) {
-        res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cl,args,mm$start,Ofunction,user.gradient,NULL,FALSE)
+        res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cl,args,mm$start,Ofunction,user.gradient,NULL)
         class(res) <- "midas_r"
         res
     })

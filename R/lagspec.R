@@ -3,6 +3,7 @@
 ##' Calculate normalized exponential Almon lag coefficients given the parameters and required number of coefficients.
 ##' @param p parameters for Almon lag
 ##' @param d number of the coefficients
+##' @param m the frequency, currently ignored.
 ##' @return vector of coefficients
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @examples
@@ -27,10 +28,43 @@
 ##'
 ##' The parameter \eqn{\delta} should be the first element in vector \code{p}. The degree of the polynomial is then decided by the number of the remaining parameters.
 ##' @export
-nealmon <- function(p,d) {
+nealmon <- function(p,d,m) {
   i <- (1:d)/100
   plc <- poly(i,degree=length(p)-1,raw=TRUE) %*% p[-1]
   as.vector(p[1] * exp(plc)/sum(exp(plc)))
+}
+
+##' Combines given weight function into special combination used by E. Ghysels. 
+##'
+##' Given a weight function \eqn{w(\beta,\theta)} which has a property of being defined as \eqn{\beta g(\theta)} the following combinations are defined.
+##' \deqn{(w(\beta_1,\theta_1),...,w(\beta_k,theta_k))}
+##' \deqn{(w(\beta_1,\theta),...,w(\beta_k,\theta))}
+##' \deqn{\beta(w(1,\theta_1),...,w(1,\theta_k))}
+##' 
+##' @title Special combination of weights
+##' @param p parameters for weight functions, see details.
+##' @param d number of lags
+##' @param m the frequency
+##' @param weight the weight function
+##' @param type type of structure, a string, one of A, B or C.
+##' @return a vector of weights
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @export
+ghyselslag <- function(p,d,m,weight=nealmon,type=c("A","B","C")) {
+    type <- match.arg(type)
+    hf <- d%/%m
+        
+    if(d%%m!=0)stop("Number of high frequency lags should be a multiple of frequency")
+    if(type=="A") {
+        return(as.vector(apply(matrix(1:length(p),ncol=hf),2,function(x)weight(p[x],m,m))))
+    }
+    if(type=="B") {
+        theta <- p[-1:-hf]
+        return(as.vector(sapply(p[1:hf],function(beta)weight(c(beta,theta),m))))
+    }
+    if(type=="C") {
+        return(p[1]*as.vector(apply(matrix(2:length(p),ncol=hf),2,function(x)weight(c(1,p[x]),m,m))))
+    }
 }
 
 ##' Gradient function for normalized exponential Almon lag weights
@@ -38,10 +72,11 @@ nealmon <- function(p,d) {
 ##' Gradient function for normalized exponential Almon lag weights
 ##' @param p hyperparameters for Almon lag
 ##' @param d number of coefficients
+##' @param m the frequency ratio, currently ignored
 ##' @return the gradient matrix
 ##' @author Vaidotas Zemlys
 ##' @export
-nealmon.gradient <- function(p,d) {
+nealmon.gradient <- function(p,d,m) {
     i <- (1:d)/100
     pl <- poly(i,degree=length(p)-1,raw=TRUE)
     eplc <- exp(pl%*%p[-1])[,,drop=TRUE]
@@ -54,10 +89,11 @@ nealmon.gradient <- function(p,d) {
 ##' Calculate MIDAS weights according to normalized beta probability density function specification
 ##' @param p parameters for normalized beta probability density function
 ##' @param d number of coefficients
+##' @param m the frequency ratio, currently ignored
 ##' @return vector of coefficients
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-nbeta <- function(p,d) {
+nbeta <- function(p,d,m) {
     eps <- .Machine$double.eps
     xi <- (1:d - 1)/(d - 1)
     xi[1] <- xi[1]+eps
@@ -74,10 +110,11 @@ nbeta <- function(p,d) {
 ##' Calculate gradient function for normalized beta probability density function specification of MIDAS weights.
 ##' @param p parameters for normalized beta probability density function
 ##' @param d number of coefficients
+##' @param m the frequency ratio, currently ignored
 ##' @return vector of coefficients
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-nbeta.gradient <- function(p,d) {
+nbeta.gradient <- function(p,d,m) {
     eps <- .Machine$double.eps
     xi <- (1:d-1)/(d-1)
     xi[1] <- xi[1]+eps
@@ -104,10 +141,11 @@ nbeta.gradient <- function(p,d) {
 ##' Calculate Almon polynomial MIDAS weights
 ##' @param p parameters for Almon polynomial weights
 ##' @param d number of coefficients
+##' @param m the frequency ratio, currently ignored
 ##' @return vector of coefficients
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-almonp <- function(p,d) {
+almonp <- function(p,d,m) {
     i <- 1:d
     plc <- poly(i,degree=length(p)-1,raw=TRUE) %*%p[-1]+p[1]
     as.vector(plc)
@@ -118,10 +156,11 @@ almonp <- function(p,d) {
 ##' Calculate gradient for Almon polynomial MIDAS weights specification
 ##' @param p vector of parameters for Almon polynomial specification
 ##' @param d number of coefficients
+##' @param m the frequency ratio, currently ignored
 ##' @return vector of coefficients
 ##' @author Vaidotas Zemlys
 ##' @export
-almonp.gradient <- function(p,d) {
+almonp.gradient <- function(p,d,m) {
     i <- 1:d
     plc <- poly(i,degree=length(p)-1,raw=TRUE)
     cbind(1,plc)
@@ -132,11 +171,12 @@ almonp.gradient <- function(p,d) {
 ##' Step function specification for MIDAS weights
 ##' @param p vector of parameters
 ##' @param d number of coefficients
+##' @param m the frequency ratio, currently ignored
 ##' @param a vector of increasing positive integers indicating the steps
 ##' @return vector of coefficients
 ##' @author Vaidotas Zemlys
 ##' @export
-polystep <- function(p,d,a) {
+polystep <- function(p,d,m,a) {
     if(length(a)!=length(p)-1)stop("The number of steps should be number of parameters minus one")
     if(min(a)<=1 | max(a)>=d)stop("The steps are out of bounds")
     a <- c(0,a,d)
@@ -147,11 +187,12 @@ polystep <- function(p,d,a) {
 ##' Gradient of step function specification for MIDAS weights
 ##' @param p vector of parameters
 ##' @param d number of coefficients
+##' @param m the frequency ratio, currently ignored
 ##' @param a vector of increasing positive integers indicating the steps
 ##' @return vector of coefficients
 ##' @author Vaidotas Zemlys
 ##' @export
-polystep.gradient <- function(p,d,a) {
+polystep.gradient <- function(p,d,m,a) {
     if(length(a)!=length(p)-1)stop("The number of steps should be number of parameters minus one")
     if(min(a)<=1 | max(a)>=d)stop("The steps are out of bounds")
     a <- c(0,a,d)
@@ -168,10 +209,11 @@ polystep.gradient <- function(p,d,a) {
 ##' Calculate MIDAS weights according to normalized Gompertz probability density function specification
 ##' @param p parameters for normalized Gompertz probability density function
 ##' @param d number of coefficients
+##' @param m the frequency ratio, currently ignored
 ##' @return vector of coefficients
 ##' @author Julius Vainora
 ##' @export
-gompertzp <- function(p, d) {
+gompertzp <- function(p, d, m) {
   i <- 1:d / d
   gm <- exp(p[3] * i - p[2] * exp(p[3] * i))
   p[1] * gm / sum(gm)
@@ -181,10 +223,11 @@ gompertzp <- function(p, d) {
 ##' Calculate gradient function for normalized Gompertz probability density function specification of MIDAS weights.
 ##' @param p parameters for normalized Gompertz probability density function
 ##' @param d number of coefficients
+##' @param m the frequency ratio, currently ignored
 ##' @return vector of coefficients
 ##' @author Julius Vainora
 ##' @export
-gompertzp.gradient <- function(p, d) {
+gompertzp.gradient <- function(p, d, m) {
   i <- 1:d / d
   gm <- exp(p[3] * i - p[2] * exp(p[3] * i))
   dp2 <- -gm * exp(i * p[3])
@@ -197,10 +240,11 @@ gompertzp.gradient <- function(p, d) {
 ##' Calculate MIDAS weights according to normalized Nakagami probability density function specification
 ##' @param p parameters for normalized Nakagami probability density function
 ##' @param d number of coefficients
+##' @param m the frequency ratio, currently ignored
 ##' @return vector of coefficients
 ##' @author Julius Vainora
 ##' @export
-nakagamip <- function(p, d) {
+nakagamip <- function(p, d, m) {
   i <- 1:d / d
   ng <- i^(2 * p[2] - 1) * exp(-p[2] / p[3] * i^2)
   p[1] * ng / sum(ng)
@@ -210,10 +254,11 @@ nakagamip <- function(p, d) {
 ##' Calculate gradient function for normalized Nakagami probability density function specification of MIDAS weights.
 ##' @param p parameters for normalized Nakagami probability density function
 ##' @param d number of coefficients
+##' @param m the frequency ratio, currently ignored
 ##' @return vector of coefficients
 ##' @author Julius Vainora
 ##' @export
-nakagamip.gradient <- function(p, d) {
+nakagamip.gradient <- function(p, d, m) {
   i <- 1:d / d
   ng <- i^(2 * p[2] - 1) * exp(-p[2] / p[3] * i^2)
   dp2 <- ((2 * log(i) * p[3] - i^2) / p[3]) * ng
@@ -226,10 +271,11 @@ nakagamip.gradient <- function(p, d) {
 ##' Calculate MIDAS weights according to normalized log-Cauchy probability density function specification
 ##' @param p parameters for normalized log-Cauchy probability density function
 ##' @param d number of coefficients
+##' @param m the frequency ratio, currently ignored
 ##' @return vector of coefficients
 ##' @author Julius Vainora
 ##' @export
-lcauchyp <- function(p, d) {
+lcauchyp <- function(p, d, m) {
   i <- 1:d / d
   lc <- 1 / (i * ((log(i) - p[2])^2 + p[3]^2))
   p[1] * lc / sum(lc)
@@ -239,10 +285,11 @@ lcauchyp <- function(p, d) {
 ##' Calculate gradient function for normalized log-Cauchy probability density function specification of MIDAS weights.
 ##' @param p parameters for normalized log-Cauchy probability density function
 ##' @param d number of coefficients
+##' @param m the frequency ratio, currently ignored
 ##' @return vector of coefficients
 ##' @author Julius Vainora
 ##' @export
-lcauchyp.gradient <- function(p, d) {
+lcauchyp.gradient <- function(p, d, m) {
   i <- 1:d / d
   lc <- 1 / (i * ((log(i) - p[2])^2 + p[3]^2))
   dp2 <- 2 * lc^2 * i * (log(i) - p[2])

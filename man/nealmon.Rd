@@ -2,12 +2,14 @@
 \alias{nealmon}
 \title{Normalized Exponential Almon lag MIDAS coefficients}
 \usage{
-  nealmon(p, d)
+  nealmon(p, d, m)
 }
 \arguments{
   \item{p}{parameters for Almon lag}
 
   \item{d}{number of the coefficients}
+
+  \item{m}{the frequency, currently ignored.}
 }
 \value{
   vector of coefficients

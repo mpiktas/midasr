@@ -11,7 +11,7 @@
 ##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254 
 ##' @examples
 ##' ##The parameter function
-##' theta.h0 <- function(p, dk) {
+##' theta.h0 <- function(p, dk, ...) {
 ##'    i <- (1:dk-1)/100
 ##'    pol <- p[3]*i + p[4]*i^2
 ##'    (p[1] + p[2]*i)*exp(pol)
@@ -118,7 +118,7 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
 ##' @seealso midas_r.midas_r
 ##' @examples
 ##' ##The parameter function
-##' theta.h0 <- function(p, dk) {
+##' theta.h0 <- function(p, dk, ...) {
 ##'    i <- (1:dk-1)/100
 ##'    pol <- p[3]*i + p[4]*i^2
 ##'    (p[1] + p[2]*i)*exp(pol)
@@ -331,8 +331,11 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
     rfd <- vector("list",length(terms.lhs))
 
     wterm <- function(fr,type="fmls") {
-         mf <- fr[-4:-5]
+         mf <- fr[-5]
          mf[[1]] <- fr[[5]]
+         noarg <- length(formals(eval(fr[[5]],Zenv)))
+         if(noarg<2)stop("The weight function must have at least two arguments")
+         mf <- mf[1:min(length(mf),noarg+1)]
          for(j in 3:length(mf)) {
              mf[[j]] <- eval(mf[[j]],Zenv)
          }        
