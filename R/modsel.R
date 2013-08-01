@@ -349,7 +349,7 @@ make_ic_table <- function(formula,data=NULL,start=NULL,table,wstart,IC=c("AIC","
     tab <- do.call("rbind",tab)
 
     colnames(tab) <- c(paste(IC,"restricted",sep="."),paste(IC,"unrestricted",sep="."),paste(test,"p.value",sep="."))
-    tab <- data.frame(weights=wlinfo$weights,
+    tab <- data.frame(weights=names(wlinfo$weights),
                       lags=sapply(wlinfo$lags,deparse),
                       tab)
     res <- list(table=tab,candlist=candlist,IC=IC,weights=weights)
@@ -389,17 +389,31 @@ formula_table <- function(x,Zenv,table,start,wstart) {
     formulas <- vector("list",length(table[[1]]))
     starts <- formulas
     varname <- as.character(last.term[[2]])
+    table[[2]] <- as.list(table[[2]])
     for(i in 1:length(formulas)) {
         res <- x
         lt <- last.term
-        lt[[5]] <- as.name(table[[2]][i])
+        wght <- table[[c(2,i)]]
+        if(is.character(wght)) {
+            lt[[5]] <- as.name(wght)
+            nmwght <- wght
+            names(table[[2]])[i] <- nmwght
+        }
+        else {
+            if(!is.function(wght))stop("Supply either function name or a function")
+            nmwght <- names(table[[2]])[i]
+            assign(nmwght,wght,environment(res))
+            lt[[5]] <- as.name(nmwght)
+        }
         lt[[3]] <- table[[c(1,i)]]
         res[[ind]] <- lt
         formulas[[i]] <- res
-        wst <- list(wstart[[table[[2]][i]]])
+        wst <- list(wstart[[nmwght]])
         names(wst) <- varname
         starts[[i]] <- c(start,wst)
     }
+    ##FIX!!!
+    ##Adapt the code so it correctly assumes that wieghts is the list now
     list(formulas=formulas,
          lags=table[[1]],
          weights=table[[2]],
