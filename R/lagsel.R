@@ -260,7 +260,7 @@ icwtab <- function(x,ldata=NULL,hdata=NULL,start=NULL,weights,wstart,IC=c("AIC",
     cl <- match.call()
     mf <- match.call(expand.dots = FALSE)
     ##Fix this!!
-    m <- match(c("x", "ldata"), names(mf), 0L)
+    m <- match(c("x", "data"), names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf[[1L]] <- as.name("model.frame")
     mf[[3L]] <- as.name("ee")   
@@ -327,19 +327,16 @@ icwtab <- function(x,ldata=NULL,hdata=NULL,start=NULL,weights,wstart,IC=c("AIC",
 ##'
 ##' Creates a weight and lag selection table for MIDAS regression model with given information criteria and minimum and maximum lags.
 ##' @param x the formula for MIDAS regression, the lag selection is performed for the last MIDAS lag term in the formula
-##' @param ldata low frequency data, a \code{data.frame} object
-##' @param hdata high frequency data, a \code{data.frame} object
+##' @param data a list containing data with mixed frequencies
 ##' @param start the starting values for optimisation excluding the starting values for the last term
-##' @param weights the names of weight function
+##' @param table a list with first element a list of lag structures and the second element the vector of weight function names. The second element is recycled if its length does not coincide with the length of the first element.
 ##' @param wstart the starting values for weight functions, a named list.
-##' @param kmin the minimum high frequency lag, defaults to zero.
-##' @param kmax the highest high frequency lag, defaults to square root of number of low fequency observations
 ##' @param IC the information criterias which to compute
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
 ##' @param Ofunction see \link{midasr}
 ##' @param user.gradient see \link{midas_r}
 ##' @param ... additional parameters to optimisation function, see \link{midas_r}
-##' @return a \code{midas_r_icwlagtab} object which is the list with the following elements:
+##' @return a \code{midas_r_ICtable} object which is the list with the following elements:
 ##'
 ##' \item{table}{the table where each row contains calculated information criteria for both restricted and unrestricted MIDAS regression model with given lag structure}
 ##' \item{candlist}{the list containing fitted models}
@@ -353,83 +350,50 @@ icwtab <- function(x,ldata=NULL,hdata=NULL,start=NULL,weights,wstart,IC=c("AIC",
 ##' trend <- 1:length(y)
 ##' 
 ##'  
-##' mwlr <- icwlagtab(y~trend+fmls(x,12,12,nealmon),weights=c("nealmon","nbeta"),wstart=list(nealmon=rep(0,3),nbeta=c(1,1,1,0)),kmin=4,kmax=6)
+##' mwlr <- ICtable(y~trend+fmls(x,12,12,nealmon),weights=c("nealmon","nbeta"),wstart=list(nealmon=rep(0,3),nbeta=c(1,1,1,0)),kmin=4,kmax=6)
 ##'
 ##' mwlr
 ##'
 ##' @details This function estimates models sequentialy increasing the midas lag from \code{kmin} to \code{kmax} and varying the weights of the last term of the given formula 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-icwlagtab <- function(x,ldata=NULL,hdata=NULL,start=NULL,weights,wstart,kmin,kmax=NULL,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
+ICtable <- function(x,data=NULL,start=NULL,table,wstart,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
     
     Zenv <- new.env(parent=environment(x))
-      
-    if(missing(ldata)|missing(hdata)) {
-        ee <- NULL
-    }
-    else {
-        data <- check_mixfreq(ldata,hdata)
-
-        ee <- as.environment(c(as.list(data$lowfreq),as.list(data$highfreq)))
-        parent.env(ee) <- parent.frame()
-    }
-    assign("ee",ee,Zenv)
+    args <- list(...)
     cl <- match.call()
     mf <- match.call(expand.dots = FALSE)
-    ##Fix this!!
-    m <- match(c("x", "ldata"), names(mf), 0L)
-    mf <- mf[c(1L, m)]
-    mf[[1L]] <- as.name("model.frame")
-    mf[[3L]] <- as.name("ee")   
-    mf[[4L]] <- as.name("na.omit")
-    names(mf)[c(2,3,4)] <- c("formula","data","na.action")
+    prep <- prepenv(data,Zenv,cl,mf,parent.frame())
 
-    mff <- mf
+    Zenv <- prep$Zenv
+    mff <- prep$mf
     
-    mf <- eval(mf,Zenv)
-    mt <- attr(mf, "terms")
-        
-    args <- list(...)
-    y <- model.response(mf, "numeric")
-
-    if(is.null(kmax))kmax <- 10*log(length(y),base=10)
-
-    laginfo <- lagformula(x,Zenv,kmin=kmin,kmax=kmax)
-    winfo <- weightformula(x,Zenv,weights)
+    wlinfo <- formula_table(x,Zenv,table,start,wstart)
+    varname <- wlinfo$varname
+    wlinfo$varname <- NULL
     
-    starts <- lapply(wstart,function(wst) {
-        st <- c(list(wst),start)
-        names(st)[1] <- winfo$varname
-        st
-    })
-    
-    
-    wlinfo <- mapply(function(f,ll) {
-        wf <- weightformula(f,Zenv,weights)
-        res <- mapply(list,wf$formulas,starts,rep(list(ll),length(starts)),as.list(weights),SIMPLIFY=FALSE)
-        res <- lapply(res,function(x){
-            names(x) <- c("formula","start","lags","weight")
-            x
-        })
-        res
-    },laginfo$formulas,laginfo$lags,SIMPLIFY=FALSE)
-
-    wlinfo <- do.call("c",wlinfo)
-
     ##Remove those formulas for which the number of parameters is less or equal than number of lags.
-   # cond <- sapply(wlinfo, with, length())
     
-
-    modellist <- lapply(wlinfo, function(f) {    
-        mff[[2L]] <- f$formula
+    cond <- mapply(
+        function(lags,start){
+            ifelse(length(lags)>length(start),TRUE,FALSE)
+        },
+        wlinfo$lags,
+        lapply(wlinfo$starts,function(x)x[[varname]]),
+        SIMPLIFY=TRUE)
+    
+    wlinfo <- lapply(wlinfo,function(x)x[cond])
+    
+    modellist <- mapply(function(f,st) {    
+        mff[[2L]] <- f
         mmf <- eval(mff,Zenv)
         mmt <- attr(mmf, "terms")
         y <- model.response(mmf, "numeric")
         X <- model.matrix(mmt, mmf)
-        list(mt=mmt,y=y,X=X,start=f$start)
-    })
+        list(mt=mmt,y=y,X=X,start=st)
+    },wlinfo$formulas,wlinfo$starts,SIMPLIFY=FALSE)
 
-    maxlag <- which.max(sapply(wlinfo,with,max(lags)))
+    maxlag <- which.max(sapply(wlinfo$lags,max))
     
     lrn <- rownames(modellist[[maxlag]]$X)
 
@@ -460,11 +424,11 @@ icwlagtab <- function(x,ldata=NULL,hdata=NULL,start=NULL,weights,wstart,kmin,kma
     tab <- do.call("rbind",tab)
 
     colnames(tab) <- c(paste(IC,"restricted",sep="."),paste(IC,"unrestricted",sep="."),paste(test,"p.value",sep="."))
-    tab <- data.frame(weights=sapply(wlinfo,with,weight),
-                      lags=sapply(wlinfo,with,deparse(lags)),
+    tab <- data.frame(weights=wlinfo$weights,
+                      lags=sapply(wlinfo$lags,deparse),
                       tab)
     res <- list(table=tab,candlist=candlist,IC=IC,weights=weights)
-    class(res) <- "midas_r_icwlagtab"
+    class(res) <- "midas_r_ICtable"
     res
 }
 
@@ -482,7 +446,102 @@ print.midas_r_icwtab <- function(x,...) {
 }
 
 ##' @export
-##' @method print midas_r_icwlagtab
-print.midas_r_icwlagtab <- function(x,...) {
+##' @method print midas_r_ICtable
+print.midas_r_ICtable <- function(x,...) {
     print(x$table,...)
+}
+
+formula_table <- function(x,Zenv,table,start,wstart) {
+    last.term <- x[[3]]
+    if(length(last.term)==3) {
+        last.term <- x[[c(3,3)]]
+        ind <- c(3,3)
+    }
+    else {
+        ind <- 3
+    }
+    
+    mtype <- as.character(last.term[[1]])
+    if(!(mtype%in%c("fmls","dmls","mls")))stop("The last term in the formula must be a MIDAS lag term")
+
+    last.term[[1]] <- as.name("mls")
+       
+    if(length(table[[2]])<length(table[[1]])) {
+        table[[2]] <- rep(table[[2]],length.out(table[[1]]))
+    }else {
+        if(length(table[[1]])<length(table[[2]])) {
+            table[[1]] <- rep(table[[1]],length.out(table[[2]]))
+        }
+    }
+    
+    formulas <- vector("list",length(table[[1]]))
+    starts <- formulas
+    varname <- as.character(last.term[[2]])
+    for(i in 1:length(formulas)) {
+        res <- x
+        lt <- last.term
+        lt[[5]] <- as.name(table[[2]][i])
+        lt[[3]] <- table[[c(1,i)]]
+        res[[ind]] <- lt
+        formulas[[i]] <- res
+        wst <- list(wstart[[table[[2]][i]]])
+        names(wst) <- varname
+        starts[[i]] <- c(start,wst)
+    }
+    list(formulas=formulas,
+         lags=table[[1]],
+         weights=table[[2]],
+         starts=starts,
+         varname=varname)
+}
+
+prepenv <- function(data,Zenv,cl,mf,pf) {
+##Get the response of the model to get the number of observations
+##Get the model.frame object, not evaluated!
+##Prepare data if necessary    
+    if(is.null(data)) {
+        ee <- NULL
+    }
+    else {
+        if(is.matrix(data)) data <- data.frame(data)
+        if(is.data.frame(data)) {
+            ee <- as.enviroment(as.list(data))
+        }
+        else {
+            if(is.list(data)) {
+                data <- mapply(function(x,nm){
+                    if(is.null(dim(x))) {
+                        x <- list(x)
+                        names(x) <- nm
+                        x
+                    } else {
+                        as.list(x)
+                    }
+                },data,names(data),SIMPLIFY=FALSE)
+                names(data) <- NULL
+                ee <- as.environment(do.call("c",data))
+            } else {
+                stop("Argument data must be a matrix, data.frame or a list")
+            }
+        }
+        parent.env(ee) <- pf
+    }
+    assign("ee",ee,Zenv)
+    
+    ##Fix this!!
+    m <- match(c("x", "data"), names(mf), 0L)
+    mf <- mf[c(1L, m)]
+    mf[[1L]] <- as.name("model.frame")
+    mf[[3L]] <- as.name("ee")   
+    mf[[4L]] <- as.name("na.omit")
+    names(mf)[c(2,3,4)] <- c("formula","data","na.action")
+
+    
+    mff <- mf
+    
+    mf <- eval(mf,Zenv)
+    mt <- attr(mf, "terms")
+            
+    y <- model.response(mf, "numeric")
+    list(Zenv=Zenv,y=y,mf=mff)
 }
