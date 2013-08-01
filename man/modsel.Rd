@@ -25,8 +25,8 @@
   This function selects the model from the model selection
   table for which the chosen information criteria achieves
   the smallest value. The function works with model tables
-  produced by functions \link{iclagtab}, \link{icwtab} and
-  \link{icwlagtab}.
+  produced by functions \link{lf_lags_table},
+  \link{hf_lags_table} and \link{make_ic_table}.
 }
 \examples{
 data("USunempr")
@@ -35,15 +35,15 @@ y <- diff(log(USrealgdp))
 x <- window(diff(USunempr),start=1949)
 trend <- 1:length(y)
 
-mlr <- iclagtab(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),kmin=4,kmax=6)
+mhfr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),kmin=4,kmax=6)
 
-mwr <- icwtab(y~trend+fmls(x,12,12,nealmon),weights=c("nealmon","nbeta"),wstart=list(nealmon=rep(0,3),nbeta=c(1,1,1,0)))
+mlfr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),kmin=1,kmax=2)
 
-mwlr <- icwlagtab(y~trend+fmls(x,12,12,nealmon),weights=c("nealmon","nbeta"),wstart=list(nealmon=rep(0,3),nbeta=c(1,1,1,0)),kmin=4,kmax=6)
+mwlr <- make_ic_table(y~trend+fmls(x,12,12,nealmon),table=list(list(0:4,0:5,0:6),c("nealmon","nealmon","nbeta")),wstart=list(nealmon=rep(0,3),nbeta=c(1,1,1,0)))
 
-modsel(mlr,"BIC","unrestricted")
+modsel(mhfr,"BIC","unrestricted")
 
-modsel(mwr,"BIC","unrestricted")
+modsel(mlfr,"BIC","unrestricted")
 
 modsel(mwlr,"BIC","unrestricted")
 }

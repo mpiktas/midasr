@@ -1,26 +1,23 @@
-\name{icwtab}
-\alias{icwtab}
-\title{Create a lag selection table for MIDAS regression model}
+\name{weights_table}
+\alias{weights_table}
+\title{Create a weight function selection table for MIDAS regression model}
 \usage{
-  icwtab(x, ldata = NULL, hdata = NULL, start = NULL,
-    weights, wstart, IC = c("AIC", "BIC"),
-    test = c("hAh.test"), Ofunction = "optim",
-    user.gradient = FALSE, ...)
+  weights_table(formula, data, start = NULL, weights,
+    wstart, IC = c("AIC", "BIC"), test = c("hAh.test"),
+    Ofunction = "optim", user.gradient = FALSE, ...)
 }
 \arguments{
-  \item{x}{the formula for MIDAS regression, the lag
+  \item{formula}{the formula for MIDAS regression, the lag
   selection is performed for the last MIDAS lag term in the
   formula}
 
-  \item{ldata}{low frequency data, a \code{data.frame}
-  object}
-
-  \item{hdata}{high frequency data, a \code{data.frame}
-  object}
+  \item{data}{a list containing data with mixed
+  frequencies}
 
   \item{start}{the starting values for optimisation}
 
-  \item{weights}{the names of weight function}
+  \item{weights}{the names of weight functions. Weight
+  functions must have only 3 default parameters.}
 
   \item{wstart}{the starting values for weight functions, a
   named list.}
@@ -39,7 +36,7 @@
   function, see \link{midas_r}}
 }
 \value{
-  a \code{midas_r_iclagtab} object which is the list with
+  a \code{midas_r_ic_table} object which is the list with
   the following elements:
 
   \item{table}{the table where each row contains calculated
@@ -49,9 +46,9 @@
   \item{IC}{the argument IC}
 }
 \description{
-  Creates a lag selection table for MIDAS regression model
-  with given information criteria and minimum and maximum
-  lags.
+  Creates a weight function selection table for MIDAS
+  regression model with given information criteria and
+  weight functions.
 }
 \details{
   This function estimates models sequentialy increasing the
@@ -64,7 +61,7 @@ data("USrealgdp")
 y <- diff(log(USrealgdp))
 x <- window(diff(USunempr),start=1949)
 trend <- 1:length(y)
-mwr <- icwtab(y~trend+fmls(x,12,12,nealmon),weights=c("nealmon","nbeta"),wstart=list(nealmon=rep(0,3),nbeta=c(1,1,1,0)))
+mwr <- weights_table(y~trend+fmls(x,12,12,nealmon),weights=c("nealmon","nbeta"),wstart=list(nealmon=rep(0,3),nbeta=c(1,1,1,0)))
 
 mwr
 }

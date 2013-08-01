@@ -53,7 +53,7 @@ nealmon <- function(p,d,m) {
 ghyselslag <- function(p,d,m,weight=nealmon,type=c("A","B","C")) {
     type <- match.arg(type)
     hf <- d%/%m
-        
+    
     if(d%%m!=0)stop("Number of high frequency lags should be a multiple of frequency")
     if(type=="A") {
         return(as.vector(apply(matrix(1:length(p),ncol=hf),2,function(x)weight(p[x],m,m))))

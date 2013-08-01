@@ -1,31 +1,33 @@
-\name{iclagtab}
-\alias{iclagtab}
-\title{Create a lag selection table for MIDAS regression model}
+\name{lf_lags_table}
+\alias{lf_lags_table}
+\title{Create a low frequency lag selection table for MIDAS regression model}
 \usage{
-  iclagtab(x, ldata = NULL, hdata = NULL, start,
-    kmin = NULL, kmax = NULL, IC = c("AIC", "BIC"),
-    Ofunction = "optim", user.gradient = FALSE, ...)
+  lf_lags_table(formula, data, start, kmin = NULL,
+    kmax = NULL, IC = c("AIC", "BIC"),
+    test = c("hAh.test"), Ofunction = "optim",
+    user.gradient = FALSE, ...)
 }
 \arguments{
-  \item{x}{the formula for MIDAS regression, the lag
+  \item{formula}{the formula for MIDAS regression, the lag
   selection is performed for the last MIDAS lag term in the
   formula}
 
-  \item{ldata}{low frequency data, a \code{data.frame}
-  object}
-
-  \item{hdata}{high frequency data, a \code{data.frame}
-  object}
+  \item{data}{a list containing data with mixed
+  frequencies}
 
   \item{start}{the starting values for optimisation}
 
-  \item{kmin}{the minimum high frequency lag, defaults to
+  \item{kmin}{the minimum low frequency lag, defaults to
   zero.}
 
-  \item{kmax}{the highest high frequency lag, defaults to
+  \item{kmax}{the highest low frequency lag, defaults to
   square root of number of low fequency observations}
 
   \item{IC}{the information criterias which to compute}
+
+  \item{test}{the names of statistical tests to perform on
+  restricted model, p-values are reported in the columns of
+  model selection table}
 
   \item{Ofunction}{see \link{midasr}}
 
@@ -35,7 +37,7 @@
   function, see \link{midas_r}}
 }
 \value{
-  a \code{midas_r_iclagtab} object which is the list with
+  a \code{midas_r_ic_table} object which is the list with
   the following elements:
 
   \item{table}{the table where each row contains calculated
@@ -45,9 +47,9 @@
   \item{IC}{the argument IC}
 }
 \description{
-  Creates a lag selection table for MIDAS regression model
-  with given information criteria and minimum and maximum
-  lags.
+  Creates a low frequency lag selection table for MIDAS
+  regression model with given information criteria and
+  minimum and maximum lags.
 }
 \details{
   This function estimates models sequentialy increasing the
@@ -61,7 +63,7 @@ y <- diff(log(USrealgdp))
 x <- window(diff(USunempr),start=1949)
 trend <- 1:length(y)
 
-mlr <- iclagtab(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),kmin=4,kmax=6)
+mlr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),kmin=2,kmax=3)
 mlr
 }
 \author{
