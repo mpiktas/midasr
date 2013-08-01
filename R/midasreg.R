@@ -182,8 +182,10 @@ midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim",
         parent.env(ee) <- parent.frame()
     }
     assign("ee",ee,Zenv)
-    cl <- match.call()
+    x <- as.formula(x)
+    cl <- match.call()    
     mf <- match.call(expand.dots = FALSE)
+    mf$x <- x
     ##Fix this!!
     m <- match(c("x", "ldata"), names(mf), 0L)
     mf <- mf[c(1L, m)]
