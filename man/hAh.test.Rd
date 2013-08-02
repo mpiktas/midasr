@@ -50,7 +50,7 @@ y <- midas.sim(500,theta0,x,1)
 x <- window(x,start=start(y))
 
 ##Fit restricted model
-mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)))
+mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,list(y=y,x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)))
 
 ##Perform test (the expected result should be the acceptance of null)
 
@@ -65,7 +65,7 @@ theta.h0.gradient<-function(p, dk,...) {
    cbind(a, a*i, a*i*(p[1]+p[2]*i), a*i^2*(p[1]+p[2]*i))
 }
 
-mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)),user.gradient=TRUE)
+mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,list(y=y,x=x),start=list(x=c(-0.1,0.1,-0.1,-0.001)),user.gradient=TRUE)
 
 ##The test will use an user supplied gradient of weight function. See the
 ##help of midas_r on how to supply the gradient.

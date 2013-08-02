@@ -29,7 +29,7 @@
 ##' The parameter \eqn{\delta} should be the first element in vector \code{p}. The degree of the polynomial is then decided by the number of the remaining parameters.
 ##' @export
 nealmon <- function(p,d,m) {
-  i <- (1:d)/100
+  i <- 1:d
   plc <- poly(i,degree=length(p)-1,raw=TRUE) %*% p[-1]
   as.vector(p[1] * exp(plc)/sum(exp(plc)))
 }
@@ -77,7 +77,7 @@ ghyselslag <- function(p,d,m,weight=nealmon,type=c("A","B","C")) {
 ##' @author Vaidotas Zemlys
 ##' @export
 nealmon.gradient <- function(p,d,m) {
-    i <- (1:d)/100
+    i <- 1:d
     pl <- poly(i,degree=length(p)-1,raw=TRUE)
     eplc <- exp(pl%*%p[-1])[,,drop=TRUE]
     ds <- apply(pl*eplc,2,sum)

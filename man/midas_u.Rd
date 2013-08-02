@@ -2,14 +2,13 @@
 \alias{midas_u}
 \title{Estimate unrestricted MIDAS regression}
 \usage{
-  midas_u(formula, ldata = NULL, hdata = NULL, ...)
+  midas_u(formula, data, ...)
 }
 \arguments{
   \item{formula}{MIDAS regression model formula}
 
-  \item{ldata}{low frequency data}
-
-  \item{hdata}{high frequency data}
+  \item{data}{a named list containing data with mixed
+  frequencies}
 
   \item{...}{further arguments, which could be passed to
   \code{\link{lm}} function.}
@@ -69,11 +68,15 @@ ldt <- data.frame(y=y,trend=1:length(y))
 hdt <- data.frame(x=window(x, start=start(y)))
 
 ##Fit unrestricted model
-mu <- midas_u(y~fmls(x,2,12)-1, ldt, hdt)
+mu <- midas_u(y~fmls(x,2,12)-1, list(ldt, hdt))
 
 ##Include intercept and trend in regression
 
-mu.it <- midas_u(y~fmls(x,2,12)+trend, ldt, hdt)
+mu.it <- midas_u(y~fmls(x,2,12)+trend, list(ldt, hdt))
+
+##Pass data as partialy named list
+
+mu.it <- midas_u(y~fmls(x,2,12)+trend, list(ldt, x=hdt$x))
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

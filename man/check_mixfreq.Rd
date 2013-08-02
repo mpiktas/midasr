@@ -2,29 +2,28 @@
 \alias{check_mixfreq}
 \title{Check data for MIDAS regression}
 \usage{
-  check_mixfreq(lowfreq, highfreq)
+  check_mixfreq(data)
 }
 \arguments{
-  \item{lowfreq}{\code{data.frame} object containing low
-  frequency data}
-
-  \item{highfreq}{\code{data.frame} object containing high
-  frequency data}
+  \item{data}{a list containing mixed frequency data}
 }
 \value{
-  a list with elements \code{lowfreq} and \code{highfreq}
+  a boolean TRUE, if mixed frequency data is conformable,
+  FALSE if it is not.
 }
 \description{
-  Given low and high frequency data check whether high
-  frequency data can be converted to low frequency.
+  Given mixed frequency data check whether higher frequency
+  data can be converted to the lowest frequency.
 }
 \details{
-  If m is a frequency ratio, and n is the number of data
-  points for low frequency data, then there should be n*m
-  data points for high frequency data. This function checks
-  whether this is the case. This function is used to
-  prepare data for MIDAS regression and in general should
-  not be interesting to ordinary users.
+  The number of observations in higher frequency data
+  elements should have a common divisor with the number of
+  observations in response variable. It is always assumed
+  that the response variable is of the lowest frequency.
+
+  This function is used to prepare data for MIDAS
+  regression and in general should not be interesting to
+  ordinary users.
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

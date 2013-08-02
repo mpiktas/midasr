@@ -82,22 +82,20 @@ dmls <- function(x,k,m,...) {
 
 ##' Check data for MIDAS regression
 ##'
-##' Given low and high frequency data check whether high frequency data can be converted to low frequency.
+##' Given mixed frequency data check whether higher frequency data can be converted to the lowest frequency.
 ##' 
-##' @param lowfreq \code{data.frame} object containing low frequency data 
-##' @param highfreq \code{data.frame} object containing high frequency data
-##' @return a list with elements \code{lowfreq} and \code{highfreq}
-##' @details If m is a frequency ratio, and n is the number of data points for low frequency data, then there should be n*m data points for high frequency data. This function checks whether this is the case. 
+##' @param data a list containing mixed frequency data
+##' @return a boolean TRUE, if mixed frequency data is conformable, FALSE if it is not.
+##' @details The number of observations in higher frequency data elements should have a common divisor with the number of observations in response variable. It is always assumed that the response variable is of the lowest frequency. 
+##' 
 ##' This function is used to prepare data for MIDAS regression and in general should not be interesting to ordinary users.
 ##' 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-check_mixfreq <- function(lowfreq,highfreq) {
-    nl <- nrow(lowfreq)
-    nh <- nrow(highfreq)
+check_mixfreq <- function(data) {
 
-    m <- nh %/% nl
+    obsno <- sapply(data,function(l)ifelse(is.null(dim(l)),length(l),nrow(l)))
+    m <- obsno %% min(obsno)
 
-    if(nl*m!=nh) stop("Low and high frequency data sets are not conformable")   
-    list(lowfreq=as.data.frame(lowfreq),highfreq=as.data.frame(highfreq))
+    sum(m>0)==0
 }

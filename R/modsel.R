@@ -412,8 +412,6 @@ formula_table <- function(x,Zenv,table,start,wstart) {
         names(wst) <- varname
         starts[[i]] <- c(start,wst)
     }
-    ##FIX!!!
-    ##Adapt the code so it correctly assumes that wieghts is the list now
     list(formulas=formulas,
          lags=table[[1]],
          weights=table[[2]],
@@ -431,7 +429,7 @@ prepenv <- function(data,Zenv,cl,mf,pf) {
     else {
         if(is.matrix(data)) data <- data.frame(data)
         if(is.data.frame(data)) {
-            ee <- as.enviroment(as.list(data))
+            ee <- as.environment(as.list(data))
         }
         else {
             if(is.list(data)) {

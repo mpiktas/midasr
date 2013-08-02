@@ -5,19 +5,16 @@
 \usage{
   midas_r(x, ...)
 
-  \method{midas_r}{default} (x, ldata = NULL, hdata = NULL,
-    start, Ofunction = "optim", user.gradient = FALSE, ...)
+  \method{midas_r}{default} (x, data, start,
+    Ofunction = "optim", user.gradient = FALSE, ...)
 }
 \arguments{
   \item{x}{either formula for restricted MIDAS regression
   or \code{midas_r} object. Formula must include
   \code{\link{fmls}} function}
 
-  \item{ldata}{low frequency data, a \code{data.frame}
-  object}
-
-  \item{hdata}{high frequency data, a \code{data.frame}
-  object}
+  \item{data}{a named list containing data with mixed
+  frequencies}
 
   \item{start}{the starting values for optimisation. Must
   be a list with named elements.}
@@ -118,11 +115,11 @@ y <- midas.sim(500,theta0,x,1)
 x <- window(x,start=start(y))
 
 ##Fit restricted model
-mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,10,-10,-10)))
+mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,list(y=y,x=x),start=list(x=c(-0.1,10,-10,-10)))
 
 ##Include intercept and trend in regression
 
-mr.it <- midas_r(y~fmls(x,4*12-1,12,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(x=c(-0.1,10,-10,-10)))
+mr.it <- midas_r(y~fmls(x,4*12-1,12,theta.h0)+trend,list(data.frame(y=y,trend=1:500),x=x),start=list(x=c(-0.1,10,-10,-10)))
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

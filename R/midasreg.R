@@ -3,8 +3,7 @@
 ##' Estimate unrestricted MIDAS regression using OLS. This function is a wrapper for \code{lm}.
 ##' 
 ##' @param formula MIDAS regression model formula
-##' @param ldata low frequency data
-##' @param hdata high frequency data
+##' @param data  a named list containing data with mixed frequencies
 ##' @param ... further arguments, which could be passed to \code{\link{lm}} function.
 ##' @return \code{\link{lm}} object.
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
@@ -38,11 +37,15 @@
 ##' hdt <- data.frame(x=window(x, start=start(y)))
 ##' 
 ##' ##Fit unrestricted model
-##' mu <- midas_u(y~fmls(x,2,12)-1, ldt, hdt)
+##' mu <- midas_u(y~fmls(x,2,12)-1, list(ldt, hdt))
 ##'
 ##' ##Include intercept and trend in regression
 ##'
-##' mu.it <- midas_u(y~fmls(x,2,12)+trend, ldt, hdt)
+##' mu.it <- midas_u(y~fmls(x,2,12)+trend, list(ldt, hdt))
+##'
+##' ##Pass data as partialy named list
+##'
+##' mu.it <- midas_u(y~fmls(x,2,12)+trend, list(ldt, x=hdt$x))
 ##' 
 ##' @details MIDAS regression has the following form:
 ##' 
@@ -59,16 +62,35 @@
 ##' MIDAS regression involves times series with different frequencies.
 ##' 
 ##' @export
-midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
+midas_u <- function(formula, data ,...) {
     Zenv <- new.env(parent=environment(formula))
 
-    if(missing(ldata) | missing(hdata)) {
+    if(missing(data)) {
         ee <- NULL
     }
     else {
-        data <- check_mixfreq(ldata,hdata)
-
-        ee <- as.environment(c(as.list(data$lowfreq),as.list(data$highfreq)))
+        if(is.matrix(data)) data <- data.frame(data)
+        if(is.data.frame(data)) {
+            ee <- as.environment(as.list(data))
+        }
+        else {
+            if(is.list(data)) {
+                if(is.null(names(data))) names(data) <- rep("",length(data))
+                data <- mapply(function(x,nm){
+                    if(is.null(dim(x))) {
+                        x <- list(x)
+                        names(x) <- nm
+                        x
+                    } else {
+                        as.list(x)
+                    }
+                },data,names(data),SIMPLIFY=FALSE)
+                names(data) <- NULL
+                ee <- as.environment(do.call("c",data))
+            } else {
+                stop("Argument data must be a matrix, data.frame or a list")
+            }
+        }
         parent.env(ee) <- parent.frame()
     }
     
@@ -77,7 +99,7 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
     mf <- mf[-4]
     mf[[1L]] <- as.name("lm")
     mf[[3L]] <- as.name("ee")   
-    names(mf)[3] <- "data"    
+   
     eval(mf,Zenv)
 }
 
@@ -86,8 +108,7 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
 ##' Estimate restricted MIDAS regression using non-linear least squares.
 ##'
 ##' @param x either formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function
-##' @param ldata low frequency data, a \code{data.frame} object
-##' @param hdata high frequency data, a \code{data.frame} object
+##' @param data a named list containing data with mixed frequencies
 ##' @param start the starting values for optimisation. Must be a list with named elements.
 ##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
 ##' @param user.gradient the default value is FALSE, which means that the numeric approximation of weight function gradient is calculated. If TRUE  it is assumed that the R function for weight function gradient has the name of the weight function appended with \code{.gradient}. This function must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. 
@@ -140,11 +161,11 @@ midas_u <- function(formula, ldata=NULL, hdata=NULL,...) {
 ##' x <- window(x,start=start(y))
 ##' 
 ##' ##Fit restricted model
-##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,data.frame(y=y),data.frame(x=x),start=list(x=c(-0.1,10,-10,-10)))
+##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,list(y=y,x=x),start=list(x=c(-0.1,10,-10,-10)))
 ##'
 ##' ##Include intercept and trend in regression
 ##'
-##' mr.it <- midas_r(y~fmls(x,4*12-1,12,theta.h0)+trend,data.frame(y=y,trend=1:500),data.frame(x=x),start=list(x=c(-0.1,10,-10,-10)))
+##' mr.it <- midas_r(y~fmls(x,4*12-1,12,theta.h0)+trend,list(data.frame(y=y,trend=1:500),x=x),start=list(x=c(-0.1,10,-10,-10)))
 ##' 
 ##' @details Given MIDAS regression:
 ##'
@@ -168,26 +189,45 @@ is.midas_r <- function(x) inherits(x,"midas_r")
 #' @rdname midas_r
 #' @method midas_r default
 #' @export
-midas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim", user.gradient=FALSE,...) {
+midas_r.default <- function(x, data, start, Ofunction="optim", user.gradient=FALSE,...) {
 
     Zenv <- new.env(parent=environment(x))
-      
-    if(missing(ldata)|missing(hdata)) {
+
+    if(missing(data)) {
         ee <- NULL
     }
     else {
-        data <- check_mixfreq(ldata,hdata)
-
-        ee <- as.environment(c(as.list(data$lowfreq),as.list(data$highfreq)))
+        if(is.matrix(data)) data <- data.frame(data)
+        if(is.data.frame(data)) {
+            ee <- as.environment(as.list(data))
+        }
+        else {
+            if(is.list(data)) {
+                if(is.null(names(data))) names(data) <- rep("",length(data))
+                data <- mapply(function(x,nm){
+                    if(is.null(dim(x))) {
+                        x <- list(x)
+                        names(x) <- nm
+                        x
+                    } else {
+                        as.list(x)
+                    }
+                },data,names(data),SIMPLIFY=FALSE)
+                names(data) <- NULL
+                ee <- as.environment(do.call("c",data))
+            } else {
+                stop("Argument data must be a matrix, data.frame or a list")
+            }
+        }
         parent.env(ee) <- parent.frame()
     }
+    
     assign("ee",ee,Zenv)
     x <- as.formula(x)
     cl <- match.call()    
     mf <- match.call(expand.dots = FALSE)
     mf$x <- x
-    ##Fix this!!
-    m <- match(c("x", "ldata"), names(mf), 0L)
+    m <- match(c("x", "data"), names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf[[1L]] <- as.name("model.frame")
     mf[[3L]] <- as.name("ee")   
