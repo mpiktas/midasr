@@ -88,8 +88,6 @@ dmls <- function(x,k,m,...) {
 ##' @return a boolean TRUE, if mixed frequency data is conformable, FALSE if it is not.
 ##' @details The number of observations in higher frequency data elements should have a common divisor with the number of observations in response variable. It is always assumed that the response variable is of the lowest frequency. 
 ##' 
-##' This function is used to prepare data for MIDAS regression and in general should not be interesting to ordinary users.
-##' 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
 check_mixfreq <- function(data) {

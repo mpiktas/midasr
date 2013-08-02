@@ -37,10 +37,10 @@ hf_lags_table<- function(formula,data,start,kmin=NULL,kmax=NULL,IC=c("AIC","BIC"
     mf <- match.call(expand.dots = FALSE)
     if(missing(data))data <- NULL
 
-    prep <- prepenv(data,Zenv,cl,mf,parent.frame())
+    prep <- prepare_model_frame(data,Zenv,cl,mf,parent.frame())
 
     if(is.null(kmax))kmax <- round(10*log(length(prep$y),base=10))
-    lti <- lastterminfo(formula,prep$Zenv)
+    lti <- last_term_info(formula,prep$Zenv)
 
     nop <- length(start[[lti$varname]])
 
@@ -102,8 +102,8 @@ lf_lags_table<- function(formula,data,start,kmin=NULL,kmax=NULL,IC=c("AIC","BIC"
     mf <- match.call(expand.dots = FALSE)
     if(missing(data))data <- NULL
 
-    prep <- prepenv(data,Zenv,cl,mf,parent.frame())
-    lti <- lastterminfo(formula,prep$Zenv)
+    prep <- prepare_model_frame(data,Zenv,cl,mf,parent.frame())
+    lti <- last_term_info(formula,prep$Zenv)
     nop <- length(start[[lti$varname]])
     m <- lti$frequency
 
@@ -130,7 +130,7 @@ lf_lags_table<- function(formula,data,start,kmin=NULL,kmax=NULL,IC=c("AIC","BIC"
 }
 
 
-lastterminfo <- function(x,Zenv) {
+last_term_info <- function(x,Zenv) {
     last.term <- x[[3]]
     if(length(last.term)==3) {
         last.term <- x[[c(3,3)]]
@@ -236,9 +236,9 @@ weights_table <- function(formula,data,start=NULL,weights,wstart,IC=c("AIC","BIC
     mf <- match.call(expand.dots = FALSE)
     if(missing(data))data <- NULL
 
-    prep <- prepenv(data,Zenv,cl,mf,parent.frame())
+    prep <- prepare_model_frame(data,Zenv,cl,mf,parent.frame())
 
-    lti <- lastterminfo(formula,prep$Zenv)
+    lti <- last_term_info(formula,prep$Zenv)
     lags <- lti$lags
  
     make_ic_table(formula,data,start=start,wstart=wstart,table=list(list(lags),weights),IC=IC,test=test,Ofunction=Ofunction,user.gradient=FALSE,...)
@@ -288,7 +288,7 @@ make_ic_table <- function(formula,data=NULL,start=NULL,table,wstart,IC=c("AIC","
     mf <- match.call(expand.dots = FALSE)
     mf$formula <- formula
 
-    prep <- prepenv(data,Zenv,cl,mf,parent.frame())
+    prep <- prepare_model_frame(data,Zenv,cl,mf,parent.frame())
 
     Zenv <- prep$Zenv
     mff <- prep$mf
@@ -340,10 +340,15 @@ make_ic_table <- function(formula,data=NULL,start=NULL,table,wstart,IC=c("AIC","
     
     ICfun <- lapply(IC,function(ic)eval(as.name(ic)))
     tfun <- lapply(test,function(ic)eval(as.name(ic)))
+
     tab <- lapply(candlist,function(mm) {
         c(sapply(ICfun,function(ic)ic(mm)),
-          sapply(ICfun,function(ic)ic(mm$unrestricted)),
-          sapply(tfun,function(tt)tt(mm)$p.value)
+          sapply(ICfun,function(ic)ifelse(is.null(mm$unrestricted),NA,ic(mm$unrestricted))),
+          sapply(tfun,function(tt){
+              tst <- try(tt(mm))
+              ifelse(class(tst)=="try-error",NA,
+              tst$p.value)
+          })
           )        
     })
     tab <- do.call("rbind",tab)
@@ -356,6 +361,7 @@ make_ic_table <- function(formula,data=NULL,start=NULL,table,wstart,IC=c("AIC","
     class(res) <- "midas_r_ic_table"
     res
 }
+
 
 ##' @export
 ##' @method print midas_r_ic_table
@@ -419,7 +425,7 @@ formula_table <- function(x,Zenv,table,start,wstart) {
          varname=varname)
 }
 
-prepenv <- function(data,Zenv,cl,mf,pf) {
+prepare_model_frame <- function(data,Zenv,cl,mf,pf) {
 ##Get the response of the model to get the number of observations
 ##Get the model.frame object, not evaluated!
 ##Prepare data if necessary    
@@ -475,3 +481,45 @@ prepenv <- function(data,Zenv,cl,mf,pf) {
     list(Zenv=Zenv,y=y,mf=mff)
 }
 
+expand_lags_weights <- function(weights,kmin,kmax,m=1,mkmin=0) {
+    weights <- as.list(weights)
+
+    if(m>1) {
+        lags <- lapply(kmin:kmax,function(x)(mkmin*m):(x*m-1))
+    }
+    else {
+        lags <- lapply(kmin:kmax,function(x)mkmin:x)
+    }
+    
+    weights <- rep(weights,each=length(lags))
+    lags <- rep(lags,length.out=length(weights))
+    list(lags=lags,weights=weights)
+}
+
+expand_lwg <- function(weight,type=c("A","B","C"),kmin,kmax,m,start,mkmin=0) {
+    lags <- lapply(kmin:kmax,function(x)(mkmin*m):(x*m-1))
+    d <- sapply(lags,length)
+    nm <- paste(weight,type,d,sep="_")
+    type <- match.arg(type)
+    if(type=="A") {
+        starts <- lapply(d%/%m,function(lf)rep(start,times=lf))
+    }
+    if(type=="B") {
+        starts <- lapply(d%/%m,function(lf)c(rep(start[1],lf),start[-1]))
+    }
+    if(type=="C") {
+        starts <- lapply(d%/%m,function(lf)c(start[1],rep(start[-1],times=lf)))
+    }    
+    names(starts) <- nm
+    ff <- expression(ghyselslag(p,d,m,weight,type))
+    ff[[c(1,4)]] <- m
+    ff[[c(1,5)]] <- as.name(weight)
+    ff[[c(1,6)]] <- as.character(type)
+    weights <- mapply(function(fun,e,dk){
+        e[[c(1,3)]] <- as.numeric(dk)
+        fun[[c(1,3,3,2)]] <- e[[1]]
+        eval(fun)
+    },rep(list(expression(f<-function(p,d,m){p})),length(d)),rep(list(ff),length(d)),as.list(d),SIMPLIFY=FALSE)
+    names(weights) <- nm
+    list(lags=lags,weights=weights,starts=starts)
+}
