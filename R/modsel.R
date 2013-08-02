@@ -464,10 +464,15 @@ prepenv <- function(data,Zenv,cl,mf,pf) {
 
     
     mff <- mf
-    
+
+    #We need only response to get the number of low frequency observations.
+    resf <- mf$formula
+    resf[[3]] <- 1
+    mf$formula <- resf
+
     mf <- eval(mf,Zenv)
     mt <- attr(mf, "terms")
-            
+    
     y <- model.response(mf, "numeric")
     list(Zenv=Zenv,y=y,mf=mff)
 }
