@@ -2,13 +2,17 @@
 \alias{modsel}
 \title{Select the model based on given information criteria}
 \usage{
-  modsel(x, IC = x$IC[1],
+  modsel(x, IC = x$IC[1], test = x$test[1],
     type = c("restricted", "unrestricted"))
 }
 \arguments{
   \item{x}{and output from iclagtab function}
 
-  \item{IC}{the name of information criteria to choose}
+  \item{IC}{the name of information criteria to base the
+  choosing of the model}
+
+  \item{test}{the name of the test for which to print out
+  the p-value}
 
   \item{type}{the type of MIDAS model, either restricted or
   unrestricted}
@@ -26,7 +30,8 @@
   table for which the chosen information criteria achieves
   the smallest value. The function works with model tables
   produced by functions \link{lf_lags_table},
-  \link{hf_lags_table} and \link{make_ic_table}.
+  \link{hf_lags_table}, \link{ghysels_table} and
+  \link{midas_r_ic_table}.
 }
 \examples{
 data("USunempr")
@@ -39,13 +44,9 @@ mhfr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),kmin=
 
 mlfr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),kmin=1,kmax=2)
 
-mwlr <- make_ic_table(y~trend+fmls(x,12,12,nealmon),table=list(list(0:4,0:5,0:6),c("nealmon","nealmon","nbeta")),wstart=list(nealmon=rep(0,3),nbeta=c(1,1,1,0)))
-
 modsel(mhfr,"BIC","unrestricted")
 
 modsel(mlfr,"BIC","unrestricted")
-
-modsel(mwlr,"BIC","unrestricted")
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

@@ -18,7 +18,7 @@
   \item{start}{the starting values for optimisation}
 
   \item{kmin}{the minimum low frequency lag, defaults to
-  zero.}
+  1.}
 
   \item{kmax}{the highest low frequency lag, defaults to
   square root of number of low fequency observations}

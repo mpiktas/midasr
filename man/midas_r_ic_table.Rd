@@ -1,10 +1,14 @@
-\name{make_ic_table}
-\alias{make_ic_table}
+\name{midas_r_ic_table}
+\alias{midas_r_ic_table}
+\alias{midas_r_ic_table.default}
 \title{Create a weight and lag selection table for MIDAS regression model}
 \usage{
-  make_ic_table(formula, data = NULL, start = NULL, table,
-    wstart, IC = c("AIC", "BIC"), test = c("hAh.test"),
-    Ofunction = "optim", user.gradient = FALSE, ...)
+  midas_r_ic_table(formula, ...)
+
+  \method{midas_r_ic_table}{default} (formula, data = NULL,
+    start = NULL, table, IC = c("AIC", "BIC"),
+    test = c("hAh.test"), Ofunction = "optim",
+    user.gradient = FALSE, ...)
 }
 \arguments{
   \item{formula}{the formula for MIDAS regression, the lag
@@ -17,16 +21,11 @@
   \item{start}{the starting values for optimisation
   excluding the starting values for the last term}
 
-  \item{table}{a list with first element a list of lag
-  structures and the second element the vector of weight
-  function names. The second element is recycled if its
-  length does not coincide with the length of the first
-  element.}
+  \item{table}{an wls_table object, see
+  \link{expand_weights_lags}}
 
-  \item{wstart}{the starting values for weight functions, a
-  named list.}
-
-  \item{IC}{the information criterias which to compute}
+  \item{IC}{the names of information criterias which to
+  compute}
 
   \item{test}{the names of statistical tests to perform on
   restricted model, p-values are reported in the columns of
@@ -40,7 +39,7 @@
   function, see \link{midas_r}}
 }
 \value{
-  a \code{midas_r_ICtable} object which is the list with
+  a \code{midas_r_ic_table} object which is the list with
   the following elements:
 
   \item{table}{the table where each row contains calculated
@@ -67,7 +66,7 @@ x <- window(diff(USunempr),start=1949)
 trend <- 1:length(y)
 
 
-mwlr <- make_ic_table(y~trend+fmls(x,12,12,nealmon),table=list(list(0:4,0:5,0:6),c("nealmon","nealmon","nbeta")),wstart=list(nealmon=rep(0,3),nbeta=c(1,1,1,0)))
+mwlr <- midas_r_ic_table(y~trend+fmls(x,12,12,nealmon), table=list(weights=as.list(c("nealmon","nealmon","nbeta")), lags=list(0:4,0:5,0:6),starts=list(rep(0,3),rep(0,3,),c(1,1,1,0))))
 
 mwlr
 }
