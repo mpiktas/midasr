@@ -494,6 +494,9 @@ prepare_model_frame <- function(data,Zenv,cl,mf,pf) {
     mf[[4L]] <- as.name("na.omit")
     names(mf)[c(2,3,4)] <- c("formula","data","na.action")
 
+    itr <- checkARstar(terms(eval(mf[[2]], Zenv)))
+    if(!is.null(itr$lagsTable)) 
+      mf[[2]] <- itr$x
     
     mff <- mf
 
@@ -506,7 +509,7 @@ prepare_model_frame <- function(data,Zenv,cl,mf,pf) {
     mt <- attr(mf, "terms")
     
     y <- model.response(mf, "numeric")
-    list(Zenv=Zenv,y=y,mf=mff)
+    list(Zenv=Zenv,y=y,mf=mff,itr=itr)
 }
 
 ##' Creates table of weights, lags and starting values 
