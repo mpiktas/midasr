@@ -699,9 +699,9 @@ checkARstar <- function(trms) {
       
       vars <- lapply(1:length(vars), function(w) {
         z <- vars[[w]]
-        fun <- as.character(z[1])
         
         if(length(z) >= 4 && eval(z[[4]], env) != 1) {
+          fun <- as.character(z[1])
           l <- eval(z[[3]], env)
           if(fun %in% c("fmls", "dmls")) {
             if(length(l) == 1)
