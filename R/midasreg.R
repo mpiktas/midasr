@@ -164,9 +164,21 @@ midas_u <- function(formula, data ,...) {
 ##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,list(y=y,x=x),start=list(x=c(-0.1,10,-10,-10)))
 ##'
 ##' ##Include intercept and trend in regression
-##'
 ##' mr.it <- midas_r(y~fmls(x,4*12-1,12,theta.h0)+trend,list(data.frame(y=y,trend=1:500),x=x),start=list(x=c(-0.1,10,-10,-10)))
 ##' 
+##' data("USrealgdp")
+##' data("USunempr")
+##' 
+##' y.ar <- diff(log(USrealgdp))
+##' xx <- window(diff(USunempr), start = 1949)
+##' trend <- 1:length(y.ar)
+##' 
+##' ##Fit AR(1) model
+##' mr.ar <- midas_r(y.ar ~ trend + mls(y.ar, 1, 1) + fmls(xx, 11, 12, nealmon), start = list(xx = rep(0, 3)))
+##' 
+##' ##First order MIDAS-AR* restricted model 
+##' mr.arstar <-  midas_r(y.ar ~ trend + mls(y.ar, 1, 1, "*") + fmls(xx, 11, 12, nealmon), start = list(xx = rep(0, 3)))
+##'
 ##' @details Given MIDAS regression:
 ##'
 ##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+\mathbf{z_t}\beta+u_t}
@@ -516,21 +528,56 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
         rrow <- cumsum(rownos)
         pindm <- cbind(c(1,rrow[-np]+1),rrow,
                        c(1,ccol[-np]+1),ccol)
-        pindm <- apply(pindm,1,function(x)list(row=x[1]:x[2],col=x[3]:x[4]))                
-        gradD <- function(p) {
+        pindm <- apply(pindm,1,function(x)list(row=x[1]:x[2],col=x[3]:x[4]))
+        if(is.null(lagsTable)) {
+          gradD <- function(p) {
             pp <- lapply(pinds,function(x)p[x])
             grmat <- mapply(function(fun,param)fun(param),grf,pp,SIMPLIFY=FALSE)
             if(length(grmat)==1) {
-                res <- grmat[[1]]
+              res <- grmat[[1]]
             }
             else {
-                res <- matrix(0,nrow=sum(rownos),ncol=sum(colnos))
-                for(j in 1:length(grmat)) {
-                    ind <- pindm[[j]]
-                    res[ind$row,ind$col] <- grmat[[j]]                    
-                }
+              res <- matrix(0,nrow=sum(rownos),ncol=sum(colnos))
+              for(j in 1:length(grmat)) {
+                ind <- pindm[[j]]
+                res[ind$row,ind$col] <- grmat[[j]]                    
+              }
             }
             res
+          }
+        } else {
+          gradD <- function(p) {
+            dind <- grep("\"*\"", names(pinds))
+            cr <- c(1, -p[pinds[[dind]]])
+            pp <- lapply(pinds, function(x) p[x])
+            grmat <- mapply(function(fun, param) fun(param), grf, pp, SIMPLIFY = FALSE)
+            if(length(grmat) == 1) {
+              res <- grmat[[1]]
+            } else {
+              res <- matrix(0, nrow = sum(rownos), ncol = sum(colnos))
+              mlv <- matrix(0, nrow = sum(rownos), ncol = length(pinds[[dind]]))
+              for(j in 1:length(grmat)) {
+                ind <- pindm[[j]]
+                mltp <- 1
+                if(!is.null(lagsTable[[j]])) {
+                  mltp <- rowSums(lagsTable[[j]] %*% diag(cr))
+                  mltp <- mltp[rowSums(lagsTable[[j]]) != 0]
+                } else if(j == dind) {
+                  hfv <- !sapply(lagsTable, is.null)
+                  for(k in which(hfv)) {
+                    for(cl in 1:ncol(mlv) + 1) {
+                      ltb <- lagsTable[[k]]
+                      mlv[pindm[[k]]$row, cl - 1] <- mlv[ind$row, cl - 1] + rf[[k]](pp[[k]]) * ltb[rowSums(ltb) != 0, cl]
+                    }
+                  }
+                }
+                res[ind$row,ind$col] <- grmat[[j]] * mltp
+                if(j == dind) 
+                  res[, ind$col] <- res[, ind$col] - mlv %*% grmat[[dind]]
+              }
+            }
+            res
+          }
         }
         gr <- function(p) {
              XD <- X%*%gradD(p)
@@ -699,9 +746,9 @@ checkARstar <- function(trms) {
       
       vars <- lapply(1:length(vars), function(w) {
         z <- vars[[w]]
-        fun <- as.character(z[1])
         
         if(length(z) >= 4 && eval(z[[4]], env) != 1) {
+          fun <- as.character(z[1])
           l <- eval(z[[3]], env)
           if(fun %in% c("fmls", "dmls")) {
             if(length(l) == 1)
