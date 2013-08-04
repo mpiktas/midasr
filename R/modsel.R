@@ -323,13 +323,18 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
     
     modellist <- mapply(function(f,st) {    
         mff[[2L]] <- f
+        if(!is.null(prep$itr$lagsTable)) {
+            itr <-  checkARstar(terms(eval(mff[[2]], Zenv)))
+            mff[[2]] <- itr$x
+        } else itr <- NULL
         mmf <- eval(mff,Zenv)
         mmt <- attr(mmf, "terms")
         y <- model.response(mmf, "numeric")
         X <- model.matrix(mmt, mmf)
-        list(mt=mmt,y=y,X=X,start=st)
+       # st <- st[!sapply(st,is.null)] #this is AR*, not working currently
+        list(mt=mmt,y=y,X=X,start=st,itr=itr)
     },wlinfo$formulas,wlinfo$starts,SIMPLIFY=FALSE)
-
+  
     maxlag <- which.max(sapply(wlinfo$lags,max))
     
     lrn <- rownames(modellist[[maxlag]]$X)
@@ -343,7 +348,7 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
     })
     
     mrm <- lapply(modellist,function(mm) {
-        res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cl,args,mm$start,Ofunction,user.gradient,NULL)
+        res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cl,args,mm$start,Ofunction,user.gradient,mm$itr$lagsTable)
         class(res) <- "midas_r"
         res
     })
@@ -495,8 +500,6 @@ prepare_model_frame <- function(data,Zenv,cl,mf,pf) {
     names(mf)[c(2,3,4)] <- c("formula","data","na.action")
 
     itr <- checkARstar(terms(eval(mf[[2]], Zenv)))
-    if(!is.null(itr$lagsTable)) 
-      mf[[2]] <- itr$x
     
     mff <- mf
 
