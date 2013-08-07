@@ -156,6 +156,24 @@ last_term_info <- function(x,Zenv) {
     list(lags=lags,weight=weightname,varname=as.character(last.term[[2]]),frequency=freq)  
 }
 
+term_info <- function(mt,term.name,Zenv) {
+    vars <- as.list(attr(mt,"variables"))[-1]
+    term.no <- find_mls_terms(varname,vars)
+    
+    last.term <- vars[[term.no]]
+    
+    lags <- as.numeric(eval(last.term[[3]],Zenv))
+    freq <- as.numeric(eval(last.term[[4]],Zenv))
+    weightname <- as.character(last.term[[5]])
+    mtype <- as.character(last.term[[1]])
+  
+    if(!(mtype%in%c("fmls","dmls","mls")))stop("The last term in the formula must be a MIDAS lag term")
+    if(mtype=="fmls")lags <- 0:lags
+
+    list(lags=lags,weight=weightname,varname=as.character(last.term[[2]]),frequency=freq)  
+}
+
+
 ##' Select the model based on given information criteria
 ##'
 ##' Selects the model with minimum of given information criteria and model type
@@ -304,22 +322,39 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
 
     Zenv <- prep$Zenv
     mff <- prep$mf
-    
-    wlinfo <- formula_table(formula,Zenv,table,start)
-    varname <- wlinfo$varname
-    wlinfo$varname <- NULL
 
     ##Remove those formulas for which the number of parameters is less or equal than number of lags.
+    remove_incomplete <- function(info,nm) {
+        cond <- mapply(
+            function(lags,start){
+                ifelse(length(lags)>length(start),TRUE,FALSE)
+            },
+            info$lags,
+            lapply(info$starts,function(x)x[[nm]]),
+            SIMPLIFY=TRUE)    
+        lapply(info,function(x)x[cond])
+    }
     
-    cond <- mapply(
-        function(lags,start){
-            ifelse(length(lags)>length(start),TRUE,FALSE)
-        },
-        wlinfo$lags,
-        lapply(wlinfo$starts,function(x)x[[varname]]),
-        SIMPLIFY=TRUE)
+    wlinfo <- remove_incomplete(formula_table(prep$mt,names(table)[1],Zenv,table[[1]],start),names(table)[1])
+
+    combine <- function(l) {
+        nms <- names(l[[1]])
+        out <- lapply(nms,function(nm)do.call("c",lapply(l,function(x)x[[nm]])))
+        names(out) <- nms
+        out
+    }
     
-    wlinfo <- lapply(wlinfo,function(x)x[cond])
+    if(length(table)>1) {
+        for(i in 2:length(table)) {
+            res <- mapply(function(f,s) {
+                formula_table(terms(f),names(table)[i],Zenv,table[[i]],s)
+            },wlinfo$formulas,wlinfo$starts,SIMPLIFY=FALSE)
+            wlinfo <- combine(res)
+            wlinfo <- remove_incomplete(wlinfo,names(table)[i])
+        }        
+    }
+    
+    
     
     modellist <- mapply(function(f,st) {    
         mff[[2L]] <- f
@@ -355,7 +390,7 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
         
     candlist <- lapply(mrm,midas_r)
 
-    make_ic_table(candlist,IC,test,names(wlinfo$weights),sapply(wlinfo$lags,deparse))
+    make_ic_table(candlist,IC,test)
 }
 
 ##' @method midas_r_ic_table midas_r_ic_table
@@ -364,13 +399,13 @@ midas_r_ic_table.midas_r_ic_table <- function(formula,...) {
     do.call("make_ic_table",formula[-1])
 }
 
-make_ic_table <- function(candlist,IC,test,weights=NULL,lags=NULL) {
+make_ic_table <- function(candlist,IC,test) {
 
-    if(is.null(weights)|is.null(lags)) {
-        wl <- get_wl_from_cl(candlist)
-        if(is.null(weights)) weights <- wl$weights
-        if(is.null(lags)) lags <- wl$lags
-    }
+  #  if(is.null(weights)|is.null(lags)) {
+  #      wl <- get_wl_from_cl(candlist)
+  #      if(is.null(weights)) weights <- wl$weights
+  #      if(is.null(lags)) lags <- wl$lags
+  #  }
     
     ICfun <- lapply(IC,function(ic)eval(as.name(ic)))
     tfun <- lapply(test,function(ic)eval(as.name(ic)))
@@ -388,8 +423,7 @@ make_ic_table <- function(candlist,IC,test,weights=NULL,lags=NULL) {
     tab <- do.call("rbind",tab)
 
     colnames(tab) <- c(paste(IC,"restricted",sep="."),paste(IC,"unrestricted",sep="."),paste(test,"p.value",sep="."))
-    tab <- data.frame(weights=weights,
-                      lags=lags,
+    tab <- data.frame(model=sapply(candlist,with,deparse(terms)),
                       tab)
     res <- list(table=tab,candlist=candlist,IC=IC,test=test,weights=tab[,1],lags=tab[,2])
     class(res) <- "midas_r_ic_table"
@@ -410,30 +444,32 @@ print.midas_r_ic_table <- function(x,...) {
     print(x$table,...)
 }
 
-formula_table <- function(x,Zenv,table,start) {
+formula_table <- function(mt,varname,Zenv,table,start) {
     if(is.null(names(table)))names(table) <- c("weights","lags","names")
-    
-    last.term <- x[[3]]
-    if(length(last.term)==3) {
-        last.term <- x[[c(3,3)]]
-        ind <- c(3,3)
-    }
-    else {
-        ind <- 3
-    }
-    
-    mtype <- as.character(last.term[[1]])
-    if(!(mtype%in%c("fmls","dmls","mls")))stop("The last term in the formula must be a MIDAS lag term")
 
-    last.term[[1]] <- as.name("mls")
+    vars <- as.list(attr(mt,"variables"))[-1]
+    term.no <- find_mls_terms(varname,vars)
+    
+#    last.term <- x[[3]]
+#    if(length(last.term)==3) {
+#        last.term <- x[[c(3,3)]]
+#        ind <- c(3,3)
+#    }
+#    else {
+#        ind <- 3
+#    }
+    
+#    mtype <- as.character(last.term[[1]])
+#    if(!(mtype%in%c("fmls","dmls","mls")))stop("The last term in the formula must be a MIDAS lag term")
+    vars[[term.no]][[1]] <- as.name("mls")
+#    last.term[[1]] <- as.name("mls")
 
     
     formulas <- vector("list",length(table$lags))
     starts <- formulas
-    varname <- as.character(last.term[[2]])
     for(i in 1:length(formulas)) {
-        res <- x
-        lt <- last.term
+        res <- vars
+        lt <- res[[term.no]]
         wght <- table$weights[[i]]
         if(is.character(wght)) {
             lt[[5]] <- as.name(wght)
@@ -445,8 +481,8 @@ formula_table <- function(x,Zenv,table,start) {
             lt[[5]] <- as.name(nmwght)
         }
         lt[[3]] <- table$lags[[i]]
-        res[[ind]] <- lt
-        formulas[[i]] <- res
+        res[[term.no]] <- lt
+        formulas[[i]] <- variables_to_formula(res)
         wst <- list(table$starts[[i]])
         names(wst) <- varname
         starts[[i]] <- c(start,wst)
@@ -454,8 +490,7 @@ formula_table <- function(x,Zenv,table,start) {
     list(formulas=formulas,
          lags=table$lags,
          weights=table$weights,
-         starts=starts,
-         varname=varname)
+         starts=starts)
 }
 
 prepare_model_frame <- function(data,Zenv,cl,mf,pf) {
@@ -502,6 +537,8 @@ prepare_model_frame <- function(data,Zenv,cl,mf,pf) {
     itr <- checkARstar(terms(eval(mf[[2]], Zenv)))
     
     mff <- mf
+    mtf <- eval(mf,Zenv)
+    mtt <- attr(mtf,"terms")
 
     #We need only response to get the number of low frequency observations.
     resf <- mf$formula
@@ -509,10 +546,9 @@ prepare_model_frame <- function(data,Zenv,cl,mf,pf) {
     mf$formula <- resf
 
     mf <- eval(mf,Zenv)
-    mt <- attr(mf, "terms")
     
     y <- model.response(mf, "numeric")
-    list(Zenv=Zenv,y=y,mf=mff,itr=itr)
+    list(Zenv=Zenv,y=y,mf=mff,itr=itr,mt=mtt)
 }
 
 ##' Creates table of weights, lags and starting values 
@@ -747,3 +783,49 @@ ghysels_table <- function(formula,data,weights,wstart,type,start=NULL,kmin=NULL,
     midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,user.gradient=FALSE,...)
 }
     
+
+add_expressions <- function(l) {
+    if(length(l)<2) stop("You need 2 elements for addition")
+    base <- expression(a+b)
+    base[[c(1,2)]] <- l[[1]]
+    base[[c(1,3)]] <- l[[2]]
+    if(length(l)>2) {
+        l <- l[-2:-1]
+        for(i in 1:length(l)) {
+            tmp <- expression(a+b)
+            tmp[[c(1,2)]] <- base[[1]]
+            tmp[[c(1,3)]] <- l[[i]]
+            base[[1]] <- tmp[[1]]
+        }
+    }
+    base[[1]]    
+}
+
+variables_to_formula <- function(vars,intercept=0) {
+    rhs <- add_expressions(vars[-1])
+    if(intercept==1) {
+        res <- formula(a~b-1)
+        res[[2]] <- vars[[1]]
+        res[[c(3,2)]] <- rhs        
+    }
+    else {
+        res <- formula(a~b)
+        res[[2]] <- vars[[1]]
+        res[[3]] <- rhs
+    }
+    res
+}
+
+find_mls_terms <- function(term.name,vars) {
+    res<-sapply(vars, function(l) {
+        if(length(l)>1) {
+            if(as.character(l[[1]])%in%c("mls","fmls","dmls")) {
+                ifelse(as.character(l[[2]])==term.name, TRUE,FALSE)
+            }
+            else FALSE
+        }
+        else FALSE
+    })
+    which(res)
+}
+
