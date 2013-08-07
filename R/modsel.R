@@ -61,7 +61,7 @@ hf_lags_table<- function(formula,data,start,kmin=NULL,kmax=NULL,IC=c("AIC","BIC"
     names(wstart) <- lti$weight
     start <- start[names(start)!=lti$varname]
     
-    table <- expand_weights_lags(lti$weight,kmin,kmax,m,mkmin,start=wstart)
+    table <- expand_weights_lags(lti$weight,kmin,kmax,1,mkmin,start=wstart)
     
     midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,user.gradient=FALSE,...)
 }
