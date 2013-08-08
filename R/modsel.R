@@ -30,7 +30,7 @@
 ##' @details This function estimates models sequentialy increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-hf_lags_table<- function(formula,data,start,kmin=NULL,kmax=NULL,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
+hf_lags_table<- function(formula,data,start,lagsinfo,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
     
     Zenv <- new.env(parent=environment(formula))
     cl <- match.call()
@@ -39,13 +39,15 @@ hf_lags_table<- function(formula,data,start,kmin=NULL,kmax=NULL,IC=c("AIC","BIC"
 
     prep <- prepare_model_frame(data,Zenv,cl,mf,parent.frame())
 
-    if(is.null(kmax))kmax <- round(10*log(length(prep$y),base=10))
-    lti <- last_term_info(formula,prep$Zenv)
+#    if(is.null(kmax))kmax <- round(10*log(length(prep$y),base=10))
 
-    nop <- length(start[[lti$varname]])
-    m <- lti$frequency
+    lti <- sapply(names(lagsinfo),function(nm)term_info(prep$mt,nm,prep$Zenv))
+
+    nop <-sapply(start[sapply(lti,with,varname)],length)
+    m <- sapply(lti,with,frequency)
     
-    mkmin <- min(lti$lags)
+    mkmin <- sapply(lapply(lti,with,lags),min)
+    ###Fix to the end
     if(is.null(kmin)) {
         kmin <- mkmin+nop
     }
@@ -556,31 +558,32 @@ prepare_model_frame <- function(data,Zenv,cl,mf,pf) {
 ##' For each weight function creates lags starting from \code{kmin} to \code{kmax}. This is a convenience function for easier work with the function \link{midas_r_ic_table}. 
 ##' @title Create table of weights, lags and starting values
 ##' @param weights either a vector with names of the weight functions or a named list of weight functions
-##' @param kmin the minimum lag, high frequency if \code{m=1}, low frequency otherwise 
-##' @param kmax the highest lag, high frequency if \code{m=1}, low frequency otherwise
+##' @param from the high frequency lags from which to start the fitting
+##' @param to a vector of length two, containing minimum and maxmimum lags, high frequency if \code{m=1}, low frequency otherwise.
 ##' @param m the frequency ratio
-##' @param mkmin the high frequency lags from which to start the fitting
 ##' @param start a named list with the starting values for weight functions
 ##' @return a \code{lws_table} object, a list with elements \code{weights}, \code{lags} and \code{starts}.
 ##' @examples
 ##'
-##' expand_weights_lags(c("nealmon","nbeta"),4,8,1,0,start=list(nealmon=rep(0,3),nbeta=rep(0,4)))
-##' nlmn <- expand_weights_lags("nealmon",4,8,1,0,start=list(nealmon=rep(0,3)))
-##' nbt <- expand_weights_lags("nbeta",4,8,1,0,start=list(nbeta=rep(0,4)))
+##' expand_weights_lags(c("nealmon","nbeta"),0,c(4,8),1,start=list(nealmon=rep(0,3),nbeta=rep(0,4)))
+##' nlmn <- expand_weights_lags("nealmon",0,c(4,8),1,start=list(nealmon=rep(0,3)))
+##' nbt <- expand_weights_lags("nbeta",0,c(4,8),1,start=list(nbeta=rep(0,4)))
 ##'
 ##' nlmn+nbt
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
 ##' 
-expand_weights_lags <- function(weights,kmin,kmax,m=1,mkmin=0,start) {
+expand_weights_lags <- function(weights,from=0,to,m=1,start) {
     weights <- as.list(weights)
-
+    kmin <- min(to)
+    kmax <- max(to)
+    mkmin <- from
     chnm <- sapply(weights,is.character)
     names(weights)[chnm] <- unlist(weights[chnm])
     if(!identical(names(weights),names(start)))stop("Mismatch between the  weight function names and the names of starting values")
     
     if(m>1) {
-        lags <- lapply(kmin:kmax,function(x)(mkmin*m):(x*m-1))
+        lags <- lapply(kmin:kmax,function(x)(mkmin):(x*m-1))
     }
     else {
         lags <- lapply(kmin:kmax,function(x)mkmin:x)
