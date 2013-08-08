@@ -603,6 +603,7 @@ is.lws_table <- function(x) {
 }
 
 ## @export
+## @method print lws_table
 print.lws_table <- function(x) {
     if(is.null(names(x)))names(x) <- c("weights","lags","starts")
     print(data.frame(weights=names(x$weights),lags=sapply(x$lags,deparse),starts=sapply(x$starts,deparse)))
