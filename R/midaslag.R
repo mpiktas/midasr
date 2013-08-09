@@ -46,16 +46,18 @@ mls <- function(x, k, m, ...) {
 
     lk <- k
     k <- max(k)+1    
+    mk <- min(k)
+    if(mk>0) mk <- 0
     
     if(n.x%%m != 0) stop("Incomplete high frequency data")
-    idx <- m*(((k-1)%/%m+1):n)    
+    idx <- m*(((k-1)%/%m+1):(n-mk))    
 
-    X <- lapply(0:(k-1),function(h.x)x[idx-h.x])
+    X <- lapply(mk:(k-1),function(h.x)x[idx-h.x])
     X <- do.call("cbind",X)
     
     if(k==1) X <- matrix(X,ncol=1)
     
-    colnames(X) <- paste0("X", ".", 1:k-1,"/","m")
+    colnames(X) <- paste0("X", ".", (mk+1):k-1,"/","m")
     padd <- matrix(NA,nrow=n-nrow(X),ncol=ncol(X))
     res <- rbind(padd,X)
     res[,lk+1,drop=FALSE]

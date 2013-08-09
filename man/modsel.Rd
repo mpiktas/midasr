@@ -3,7 +3,7 @@
 \title{Select the model based on given information criteria}
 \usage{
   modsel(x, IC = x$IC[1], test = x$test[1],
-    type = c("restricted", "unrestricted"))
+    type = c("restricted", "unrestricted"), print = TRUE)
 }
 \arguments{
   \item{x}{and output from iclagtab function}

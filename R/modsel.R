@@ -203,20 +203,21 @@ term_info <- function(mt,term.name,Zenv) {
 ##' modsel(mlfr,"BIC","unrestricted")
 ##' 
 ##' @details This function selects the model from the model selection table for which the chosen information criteria achieves the smallest value. The function works with model tables produced by functions \link{lf_lags_table}, \link{hf_lags_table}, \link{ghysels_table} and \link{midas_r_ic_table}.
-modsel <- function(x,IC=x$IC[1],test=x$test[1],type=c("restricted","unrestricted")) {
+modsel <- function(x,IC=x$IC[1],test=x$test[1],type=c("restricted","unrestricted"),print=TRUE) {
     if(!(IC%in%x$IC))stop("The supplied information criteria was not used in creating lag selection table")
     type <- match.arg(type)
     coln <- paste(IC,type,sep=".")
     i <- which.min(x$table[,coln])
-    cat("\n Selected model with ")
-    #if("lags"%in% names(x$table))cat("lag structure: ", as.character(x$table$lags[i]))
-    #if("weights"%in% names(x$table))cat(" weight function: ", as.character(x$table$weights[i]))
     
-    cat(IC," = ",x$table[i,coln],"")
-    cat("\n Based on",type, "MIDAS regression model\n")
-    cat(" The p-value for the null hypothesis of the test", test, "is", x$table[i,paste(test,"p.value",sep=".")],"\n")
-    print(summary(x$candlist[[i]]))
-    invisible(x)
+    if(print) {
+        cat("\n Selected model with ")
+    
+        cat(IC," = ",x$table[i,coln],"")
+        cat("\n Based on",type, "MIDAS regression model\n")
+        cat(" The p-value for the null hypothesis of the test", test, "is", x$table[i,paste(test,"p.value",sep=".")],"\n")
+        print(summary(x$candlist[[i]]))
+    }
+    invisible(x$candlist[[i]])
 }
 
 ##' Create a weight function selection table for MIDAS regression model
@@ -602,9 +603,9 @@ is.lws_table <- function(x) {
     length(unique(sapply(x,length)))==1
 }
 
-## @export
-## @method print lws_table
-print.lws_table <- function(x) {
+##' @export
+##' @method print lws_table
+print.lws_table <- function(x,...) {
     if(is.null(names(x)))names(x) <- c("weights","lags","starts")
     print(data.frame(weights=names(x$weights),lags=sapply(x$lags,deparse),starts=sapply(x$starts,deparse)))
 }
@@ -833,3 +834,196 @@ find_mls_terms <- function(term.name,vars) {
     which(res)
 }
 
+
+##' Creates tables for different forecast horizons and table for combined forecasts
+##'
+##' Divide data into in-sample and out-of-sample. Fit different forecasting horizons for in-sample data. Calculate various statistics for out-of-sample.
+##' @title Create table for different forecast horizons
+##' @param formula initial formula for the 
+##' @param data list of data
+##' @param from a named list of starts of lags from where to fit. Denotes the horizon
+##' @param to a named list for lag selections
+##' @param insample low-frequency in-sample indexes
+##' @param outsample low-frequency out-of-sample indexes
+##' @param weights names of weight function candidates
+##' @param wstart starting values for weight functions
+##' @param start other starting values
+##' @param IC name of information criteria to choose model from
+##' @param type argument to modsel
+##' @param test argument to modsel
+##' @param measures the names of goodness of fit measures
+##' @param fweights names of weighting schemes
+##' @return a list of tables, bestmodels, indata and outdata
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @export
+combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,wstart,start=NULL,IC="AIC",type="restricted",test="hAh.test",measures=c("MSE","MAPE","MASE"),fweights=c("EW","BICW","MSFE","DMSFE")) {
+
+    #High frequency only
+    
+    #indata <- getsample(data,insample)
+    #outdata <- getsample(data,outsample)
+
+    ##One h
+    ##Get m
+    ##Construct tables
+
+    ##Perform model selection for each weight combination
+
+    Zenv <-  Zenv <- new.env(parent=environment(formula))
+    formula <- as.formula(formula)
+
+    if(missing(data)||is.null(data)) dataenv <- Zenv
+    else dataenv <- data_to_env(data)
+
+    mt <- terms(formula)
+    nms <- all.vars(mt)
+    fullsample <- lapply(nms,function(nm)eval(as.name(nm),dataenv))
+    names(fullsample) <- nms
+
+    fullsample <- fullsample[!sapply(fullsample,is.function)]
+    yname <- all.vars(mt[[2]])
+    minfo <- get_mls_info(mt,Zenv)
+    m <- lapply(minfo,with,m)
+    names(m) <- lapply(minfo,with,varname)
+
+    m1 <- lapply(setdiff(names(fullsample),names(m)),function(x)1)   
+    names(m1) <- setdiff(names(fullsample),names(m))
+    m <- c(m,m1)
+ 
+    nmx <- names(fullsample)
+    nmx <- nmx[nmx!=yname]
+    
+    indata <- mapply(function(var,freq){
+        var[lf_range_to_hf(insample,freq)]
+    },fullsample,m[names(fullsample)],SIMPLIFY=FALSE)
+
+    outdata <- mapply(function(var,freq){
+        var[lf_range_to_hf(outsample,freq)]
+    },fullsample,m[names(fullsample)],SIMPLIFY=FALSE)
+    
+    
+    wperm <- do.call("expand.grid",weights)
+    nperm <- colnames(wperm)
+    
+    fhtab <- vector("list",length(from[[1]]))
+    for(h in 1:length(from)) {
+        res <- vector("list",nrow(wperm))
+        for(i in 1:nrow(wperm)) {
+            res[[i]] <- lapply(nperm,function(nm){
+                wname <- as.character(wperm[i,nm])
+                expand_weights_lags(wname,from[[nm]][h],to[[nm]][h,],1,start=wstart[wname])
+            })
+            names(res[[i]]) <- nperm
+        }
+        fhtab[[h]] <- res
+    }
+
+    
+    bestm <- lapply(fhtab,function(fh)lapply(fh,function(tb){
+        modsel(midas_r_ic_table(formula,data=indata,start=start,table=tb,IC=IC,test=test),IC=IC,type=type,print=FALSE)
+    }))
+
+    outf <- lapply(bestm,function(fh)
+                   lapply(fh,function(mod) {
+                       cbind(outdata[[yname]],forecast.midas_r(mod,newdata=outdata[nmx]))
+                      }))
+
+    inf <- lapply(bestm,function(fh)
+                  lapply(fh,function(mod){
+                      cbind(mod$model[,1],fitted(mod))
+                  }))
+
+    msrfun <- lapply(measures,function(msr)eval(as.name(msr)))
+
+    calcmsr <- function(ll) {
+        lapply(ll,function(fh){
+        sapply(msrfun,function(msr) {
+            sapply(fh,function(a)msr(a[,1],a[,2]))
+        })
+    })
+    }
+    outstat <- calcmsr(outf)
+    instat <- calcmsr(inf)
+
+    combine_table <- function(tb,nm) {
+        res <- do.call("rbind",tb)
+        colnames(res) <- nm
+        res
+    }
+    
+    modi <- lapply(bestm,function(fh)sapply(fh,with,deparse(terms)))
+
+    tabfh <- data.frame(Model=do.call("c",modi),
+                   combine_table(instat,paste0(measures,".in-sample")),
+                   combine_table(outstat,paste0(measures,".out-of-sample"))
+                                 )
+    
+    EW <- function(hh) {
+        n <- length(hh)
+        rep(1/n,n)
+    }
+    BICW <- function(hh) {
+        bic <- sapply(hh,BIC)
+        exp(-bic)/sum(exp(-bic))
+    }
+    MSFEd <- function(hh,delta) {
+        mi <- sapply(hh,function(xx) {
+            sum((xx[,1]-xx[,2])^2*delta^(max(outsample)-outsample))
+        })
+        imi <- 1/mi
+        imi/sum(imi)
+    }
+    MSFE <-  function(hh) MSFEd(hh,1)
+    DMSFE <- function(hh) MSFEd(hh,0.9)
+
+    w1 <- lapply(bestm,EW)
+    w2 <- lapply(bestm,BICW)
+    w3 <- lapply(outf,MSFE)
+    w4 <- lapply(outf,DMSFE)
+
+    combine_ff <- function(fh,ww) {
+        ff <- sapply(fh,function(ll)ll[,2])
+        cbind(fh[[1]][,1],apply(ff,1,function(r)sum(r*ww)))
+    }
+
+    outc <- lapply(list(w1,w2,w3,w4),function(ww)mapply(combine_ff,outf,ww,SIMPLIFY=FALSE))
+    
+
+    inc <- lapply(list(w1,w2,w3,w4),function(ww)mapply(combine_ff,inf,ww,SIMPLIFY=FALSE))
+
+    names(outc) <- c("EW","BICW","MSFE","DMSFE") -> names(inc)
+
+    tboutc <- calcmsr(outc)
+    tbinc <- calcmsr(inc)
+    hhname <- lapply(tboutc,function(l)1:nrow(l))
+    hh1 <- do.call("rbind",mapply(function(w,h)data.frame(Scheme=w,Horizon=h),as.list(names(outc)),hhname,SIMPLIFY=FALSE))
+    
+    
+    tabh <- data.frame(hh1,
+                       combine_table(tbinc,paste0(measures,".in-sample")),
+                       combine_table(tboutc,paste0(measures,".out-of-sample"))
+                       )
+    tabh[order(tabh$Horizon,tabh$Scheme),]
+    
+    
+    list(tabfh=tabfh,tabh=tabh,lws=fhtab,indata=indata,outdata=outdata,bestlist=bestm)
+    
+    
+}
+
+    
+lf_range_to_hf <- function(range,m) {
+    unlist(lapply(range,function(lf)(lf-1)*m+1:m))
+}
+
+MSE <- function(o,p) {
+    mean(sum(o-p)^2)
+}
+
+MAPE <- function(o,p) {
+    mean(abs((o-p)/o)*100)
+}
+
+MASE <- function(o,p) {
+    mean(abs(o-p)/mean(abs(diff(o))))
+}

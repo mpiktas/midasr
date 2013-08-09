@@ -2,23 +2,20 @@
 \alias{expand_weights_lags}
 \title{Create table of weights, lags and starting values}
 \usage{
-  expand_weights_lags(weights, kmin, kmax, m = 1,
-    mkmin = 0, start)
+  expand_weights_lags(weights, from = 0, to, m = 1, start)
 }
 \arguments{
   \item{weights}{either a vector with names of the weight
   functions or a named list of weight functions}
 
-  \item{kmin}{the minimum lag, high frequency if
-  \code{m=1}, low frequency otherwise}
+  \item{from}{the high frequency lags from which to start
+  the fitting}
 
-  \item{kmax}{the highest lag, high frequency if
-  \code{m=1}, low frequency otherwise}
+  \item{to}{a vector of length two, containing minimum and
+  maxmimum lags, high frequency if \code{m=1}, low
+  frequency otherwise.}
 
   \item{m}{the frequency ratio}
-
-  \item{mkmin}{the high frequency lags from which to start
-  the fitting}
 
   \item{start}{a named list with the starting values for
   weight functions}
@@ -37,9 +34,9 @@
   \link{midas_r_ic_table}.
 }
 \examples{
-expand_weights_lags(c("nealmon","nbeta"),4,8,1,0,start=list(nealmon=rep(0,3),nbeta=rep(0,4)))
-nlmn <- expand_weights_lags("nealmon",4,8,1,0,start=list(nealmon=rep(0,3)))
-nbt <- expand_weights_lags("nbeta",4,8,1,0,start=list(nbeta=rep(0,4)))
+expand_weights_lags(c("nealmon","nbeta"),0,c(4,8),1,start=list(nealmon=rep(0,3),nbeta=rep(0,4)))
+nlmn <- expand_weights_lags("nealmon",0,c(4,8),1,start=list(nealmon=rep(0,3)))
+nbt <- expand_weights_lags("nbeta",0,c(4,8),1,start=list(nbeta=rep(0,4)))
 
 nlmn+nbt
 }

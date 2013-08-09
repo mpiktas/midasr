@@ -22,24 +22,46 @@ deviance.midas_r <- function(object,...) {
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @method predict midas_r
 ##' @export
-predict.midas_r <- function(object, newldata, newhdata, ... ) {
-    if(missing(newldata) | missing(newhdata))
+predict.midas_r <- function(object, newdata, ... ) {
+    Zenv <- new.env(parent=parent.frame())
+    
+    if(missing(newdata))
       return(as.vector(fitted(object)))
 
-    if(!is.data.frame(newldata)| !is.data.frame(newhdata)) stop("New data must supplied as data.frame")
+    if(is.matrix(newdata)) newdata <- data.frame(newdata)
+    if(is.data.frame(newdata)) {
+        ee <- as.environment(as.list(newdata))
+    }
+    else {
+        if(is.list(newdata)) {
+            if(is.null(names(newdata))) names(newdata) <- rep("",length(newdata))
+            newdata <- mapply(function(x,nm){
+                if(is.null(dim(x))) {
+                    x <- list(x)
+                    names(x) <- nm
+                    x
+                } else {
+                    as.list(x)
+                    }
+            },newdata,names(newdata),SIMPLIFY=FALSE)
+            names(newdata) <- NULL
+            ee <- as.environment(do.call("c",newdata))
+        } else {
+            stop("Argument data must be a matrix, data.frame or a list")
+        }
+    }
+        
     
-    Zenv <- new.env(parent=parent.frame())
-
-    ee <- as.environment(c(as.list(newldata),as.list(newhdata)))
     parent.env(ee) <- parent.frame()
     
     assign("ee",ee,Zenv)
     cll <- match.call()
     mf <- match.call(expand.dots = FALSE)
-    m <- match(c("object", "newldata"), names(mf), 0L)
+    m <- match(c("object", "newdata"), names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf[[1L]] <- as.name("model.frame")
-    mf[[2L]] <- formula(object)
+    Terms <- delete.response(terms(object))
+    mf[[2L]] <- Terms    
     mf[[3L]] <- as.name("ee")   
     mf[[4L]] <- as.name("na.omit")
     names(mf)[c(2,3,4)] <- c("formula","data","na.action")
@@ -222,4 +244,105 @@ AICc.midas_r <- function(mod) {
     LL <- logLik(mod)[1]
     K <- attr(logLik(mod), "df")
     -2 * LL + 2 * K * (n/(n - K - 1))
+}
+
+get_mls_info<- function(mt,Zenv) {
+    vars <- as.list(attr(mt,"variables"))[-2:-1]
+    res <- lapply(vars, function(l) {
+        if(length(l)>1) {
+            if(as.character(l[[1]])%in%c("mls","fmls","dmls")) {
+                lags <- eval(l[[3]],Zenv)
+                m <-eval(l[[4]],Zenv)              
+                varname <- as.character(l[[2]])
+                if(length(l)>=5)weight <- as.character(l[[5]])
+                else weight <- NULL
+                list(varname=varname,lags=lags,m=m,weight=weight)
+            }
+            else NULL
+        }
+        else NULL
+    })    
+    res[!sapply(res,is.null)]
+}
+
+##' @export
+forecast <- function(object,...) UseMethod("forecast") 
+
+##' Forecasts MIDAS regression. Differs from \code{predict}, that it respects history
+##'
+##' Add later
+##' @title Forecast MIDAS regression
+##' @param x midas_r object
+##' @param newdata newdata
+##' @return a vector of forecasts
+##' @author Vaidotas Zemlys
+##' @export
+##' @method forecast midas_r
+forecast.midas_r <- function(object,newdata) {
+
+    ee <- data_to_env(newdata)
+    
+    nms <- all.vars(object$terms)
+    dataenv <- eval(as.name("ee"),object$Zenv)
+    if(is.null(dataenv))dataenv <- object$Zenv
+    
+    insample <- lapply(nms,function(nm)eval(as.name(nm),dataenv))
+    names(insample) <- nms
+    #The weights in the mls terms come up as variables, we do not need them
+    insample <- insample[!sapply(insample,is.function)]
+    yname <- all.vars(object$terms[[2]])
+    minfo <- get_mls_info(object$terms,object$Zenv)
+   
+    minfo <- minfo[sapply(minfo,with,varname)!=yname]
+
+    nmobject <- setdiff(names(insample),yname)
+    ##No support for AR for the moment
+    outsample <- lapply(nmobject,function(nm)eval(as.name(nm),ee))
+    names(outsample) <- nmobject
+    
+    h <- length(outsample[[minfo[[1]]$varname]])%/%minfo[[1]]$m
+    
+    data <- rbind_list(insample[nmobject],outsample)
+    res <- predict(object,newdata=data)
+
+    n <- length(res)
+
+    res[n+1-h:1]
+        
+}
+
+rbind_list <- function(el1,el2) {
+    if(!identical(names(el1),names(el2)))stop("You can rbind only lists with identical names")
+
+    nms <- names(el1)
+    l <- list(el1,el2)
+    out <- lapply(nms,function(nm)do.call("c",lapply(l,function(x)x[[nm]])))
+    names(out) <- nms
+    out
+}
+
+data_to_env <- function(data) {
+    if(is.matrix(data)) data <- data.frame(data)
+    if(is.data.frame(data)) {
+        ee <- as.environment(as.list(data))
+    }
+    else {
+        if(is.list(data)) {
+            if(is.null(names(data))) names(data) <- rep("",length(data))
+            data <- mapply(function(x,nm){
+                if(is.null(dim(x))) {
+                    x <- list(x)
+                    names(x) <- nm
+                    x
+                } else {
+                    as.list(x)
+                    }
+            },data,names(data),SIMPLIFY=FALSE)
+            names(data) <- NULL
+            ee <- as.environment(do.call("c",data))
+        } else {
+            stop("Argument data must be a matrix, data.frame or a list")
+        }
+    }
+    ee
 }

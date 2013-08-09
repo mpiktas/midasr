@@ -2,8 +2,7 @@
 \alias{predict.midas_r}
 \title{Predict method for MIDAS regression fit}
 \usage{
-  \method{predict}{midas_r} (object, newldata, newhdata,
-    ...)
+  \method{predict}{midas_r} (object, newdata, ...)
 }
 \arguments{
   \item{object}{\code{\link{midas_r}} object}
