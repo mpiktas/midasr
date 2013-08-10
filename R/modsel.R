@@ -4,8 +4,8 @@
 ##' @param formula the formula for MIDAS regression, the lag selection is performed for the last MIDAS lag term in the formula
 ##' @param data a list containing data with mixed frequencies
 ##' @param start the starting values for optimisation
-##' @param kmin the minimum high frequency lag, defaults to zero.
-##' @param kmax the highest high frequency lag, defaults to square root of number of low fequency observations
+##' @param from a named list, or named vector with lag numbers which are the beginings of MIDAS lag structures. The names should correspond to the MIDAS lag terms in the formula for which to do the lag selection. Value NA indicates lag start at zero
+##' @param to a named list where each element is a vector with two elements. The first element is the lag number from which the lag selection starts, the second is the lag number at which the lag selection ends. NA indicates lowest (highest) lag numbers possible.
 ##' @param IC the information criterias which to compute
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
 ##' @param Ofunction see \link{midasr}
@@ -24,13 +24,17 @@
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
 ##' 
-##' mlr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),kmin=4,kmax=6)
+##' mlr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=c(x=0),to=list(x=c(4,8)))
 ##' mlr
 ##'
 ##' @details This function estimates models sequentialy increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-hf_lags_table<- function(formula,data,start,lagsinfo,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
+hf_lags_table<- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
+
+    if(!identical(names(from),names(to)))stop("The names of lag structure start and end should be identical")
+    from <- as.list(from)
+    varnames <- names(from)
     
     Zenv <- new.env(parent=environment(formula))
     cl <- match.call()
@@ -39,32 +43,35 @@ hf_lags_table<- function(formula,data,start,lagsinfo,IC=c("AIC","BIC"),test=c("h
 
     prep <- prepare_model_frame(data,Zenv,cl,mf,parent.frame())
 
-#    if(is.null(kmax))kmax <- round(10*log(length(prep$y),base=10))
+    kmax <- round(10*log(length(prep$y),base=10))
 
-    lti <- sapply(names(lagsinfo),function(nm)term_info(prep$mt,nm,prep$Zenv))
-
-    nop <-sapply(start[sapply(lti,with,varname)],length)
-    m <- sapply(lti,with,frequency)
+    lti <- lapply(varnames,function(nm)term_info(prep$mt,nm,prep$Zenv))
+    names(lti) <- varnames
+   
+    table <- mapply(function(ti,st,end) {
+        wstart <- start[ti$varname]
+        names(wstart) <- ti$weight
+        if(is.na(st))st <- 0
+        nop <- length(wstart[[1]])
+        if(is.na(end[1])) {
+            end[1] <- st+nop
+        }
+        else {
+            end[1] <- max(end[1],st+nop)
+        }
+        if(is.na(end[2])) {
+            end[2] <- kmax
+        }
+        else {
+            if(end[1]>end[2])stop("The lag number which ends the selection should be larger or equal to the lag number which starts the selction")
+        }        
+        expand_weights_lags(ti$weight,st,end,1,wstart)
+    },lti,from,to,SIMPLIFY=FALSE)
+    names(table) <- varnames
     
-    mkmin <- sapply(lapply(lti,with,lags),min)
-    ###Fix to the end
-    if(is.null(kmin)) {
-        kmin <- mkmin+nop
-    }
-    else {
-        kmin <- min(kmin,mkmin+nop)
-    }
-
-    if(kmax<kmin) {
-        stop("The maximum number of lags is not large enough, no degrees of freedom for the weight function")
-    }
-
-    wstart <- start[lti$varname]
-    names(wstart) <- lti$weight
-    start <- start[names(start)!=lti$varname]
-    
-    table <- expand_weights_lags(lti$weight,kmin,kmax,1,mkmin,start=wstart)
-    
+    start <- start[!(names(start)%in% varnames)]
+    if(length(start)==0)start <- NULL
+  
     midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,user.gradient=FALSE,...)
 }
 
@@ -74,8 +81,8 @@ hf_lags_table<- function(formula,data,start,lagsinfo,IC=c("AIC","BIC"),test=c("h
 ##' @param formula the formula for MIDAS regression, the lag selection is performed for the last MIDAS lag term in the formula
 ##' @param data a list containing data with mixed frequencies
 ##' @param start the starting values for optimisation
-##' @param kmin the minimum low frequency lag, defaults to 1.
-##' @param kmax the highest low frequency lag, defaults to square root of number of low fequency observations
+##' @param from a named list, or named vector with high frequency (NB!) lag numbers which are the beginings of MIDAS lag structures. The names should correspond to the MIDAS lag terms in the formula for which to do the lag selection. Value NA indicates lag start at zero
+##' @param to a named list where each element is a vector with two elements. The first element is the low frequency lag number from which the lag selection starts, the second is the low frequency lag number at which the lag selection ends. NA indicates lowest (highest) lag numbers possible.
 ##' @param IC the information criterias which to compute
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
 ##' @param Ofunction see \link{midasr}
@@ -94,13 +101,17 @@ hf_lags_table<- function(formula,data,start,lagsinfo,IC=c("AIC","BIC"),test=c("h
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
 ##' 
-##' mlr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),kmin=2,kmax=3)
+##' mlr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=c(x=0),to=list(x=c(3,4)))
 ##' mlr
 ##'
 ##' @details This function estimates models sequentialy increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-lf_lags_table <- function(formula,data,start,kmin=NULL,kmax=NULL,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
+lf_lags_table <- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
+
+    if(!identical(names(from),names(to)))stop("The names of lag structure start and end should be identical")
+    from <- as.list(from)
+    varnames <- names(from)
     
     Zenv <- new.env(parent=environment(formula))
     cl <- match.call()
@@ -108,32 +119,36 @@ lf_lags_table <- function(formula,data,start,kmin=NULL,kmax=NULL,IC=c("AIC","BIC
     if(missing(data))data <- NULL
 
     prep <- prepare_model_frame(data,Zenv,cl,mf,parent.frame())
-    lti <- last_term_info(formula,prep$Zenv)  
-    m <- lti$frequency
 
-    if(is.null(kmax))kmax <- round(10*log(length(prep$y),base=10))%/%m
-       
-    mkmin <- min(lti$lags)
-    nop <- length(start[[lti$varname]])
+    kmax <- round(10*log(length(prep$y),base=10))
 
-    ##Reuse high frequency code
-    if(is.null(kmin)) {
-        kmin <- mkmin+nop
-    }
-    else {
-        kmin <- min(kmin*m,mkmin+nop)
-    }
-    kmin <- min(kmin%/%m,1)
+    lti <- lapply(varnames,function(nm)term_info(prep$mt,nm,prep$Zenv))
+    names(lti) <- varnames
     
-    if(kmax<kmin) {
-        stop("Maximum number of lags must be larger than the sum of minimum lag and number of parameters")
-    }
-       
-    wstart <- start[lti$varname]
-    names(wstart) <- lti$weight
-    start <- start[names(start)!=lti$varname]
-    
-    table <- expand_weights_lags(lti$weight,kmin,kmax,m,mkmin,start=wstart)
+    table <- mapply(function(ti,st,end) {
+        wstart <- start[ti$varname]
+        names(wstart) <- ti$weight
+        m <- ti$frequency
+        if(is.na(st))st <- 0
+        nop <- length(wstart[[1]])
+        if(is.na(end[1])) {
+            end[1] <- max((st+nop)%/%m,1)
+        }
+        else {
+            end[1] <- max(end[1],max((st+nop)%/%m,1))
+        }
+        if(is.na(end[2])) {
+            end[2] <- kmax %/% m
+        }
+        else {
+            if(end[1]>end[2])stop("The lag number which ends the selection should be larger or equal to the lag number which starts the selction")
+        }        
+        expand_weights_lags(ti$weight,st,end,m,wstart)
+    },lti,from,to,SIMPLIFY=FALSE)
+    names(table) <- varnames
+
+    start <- start[!(names(start)%in% varnames)]
+    if(length(start)==0)start <- NULL
         
     midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,user.gradient=FALSE,...)
 }
@@ -160,7 +175,7 @@ last_term_info <- function(x,Zenv) {
 
 term_info <- function(mt,term.name,Zenv) {
     vars <- as.list(attr(mt,"variables"))[-1]
-    term.no <- find_mls_terms(varname,vars)
+    term.no <- find_mls_terms(term.name,vars)
     
     last.term <- vars[[term.no]]
     
@@ -261,7 +276,9 @@ weights_table <- function(formula,data,start=NULL,weights,wstart,IC=c("AIC","BIC
 
     prep <- prepare_model_frame(data,Zenv,cl,mf,parent.frame())
 
-    lti <- last_term_info(formula,prep$Zenv)
+    varnames <- names(weights)
+    
+    lti <- lapply(varnames,function(nm)term_info(formula,nm,prep$Zenv))
     lags <- lti$lags
 
     table <- expand_weights_lags(weights,1,1,1,0,start=wstart)
@@ -403,12 +420,6 @@ midas_r_ic_table.midas_r_ic_table <- function(formula,...) {
 }
 
 make_ic_table <- function(candlist,IC,test) {
-
-  #  if(is.null(weights)|is.null(lags)) {
-  #      wl <- get_wl_from_cl(candlist)
-  #      if(is.null(weights)) weights <- wl$weights
-  #      if(is.null(lags)) lags <- wl$lags
-  #  }
     
     ICfun <- lapply(IC,function(ic)eval(as.name(ic)))
     tfun <- lapply(test,function(ic)eval(as.name(ic)))
@@ -426,20 +437,14 @@ make_ic_table <- function(candlist,IC,test) {
     tab <- do.call("rbind",tab)
 
     colnames(tab) <- c(paste(IC,"restricted",sep="."),paste(IC,"unrestricted",sep="."),paste(test,"p.value",sep="."))
-    tab <- data.frame(model=sapply(candlist,with,deparse(terms)),
-                      tab)
+
+    tab <- data.frame(model=sapply(candlist,function(mod) {
+        capture.output(cat(deparse(formula(mod))))
+    }),tab)
     res <- list(table=tab,candlist=candlist,IC=IC,test=test,weights=tab[,1],lags=tab[,2])
     class(res) <- "midas_r_ic_table"
     res
 }
-
-get_wl_from_cl <- function(candlist) {
-    info <- lapply(candlist,function(l) {
-        last_term_info(formula(l),l$Zenv)
-    })   
-    list(weights=sapply(info,with,weight),lags=sapply(info,with,deparse(lags)))
-}
-
 
 ##' @export
 ##' @method print midas_r_ic_table
@@ -727,7 +732,7 @@ expand_ghysels <- function(weight,type=c("A","B","C"),kmin,kmax,m,start,mkmin=0)
 ##' @details This function estimates models sequentialy increasing the midas lag from \code{kmin} to \code{kmax} and varying the weights of the last term of the given formula 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-ghysels_table <- function(formula,data,weights,wstart,type,start=NULL,kmin=NULL,kmax=NULL,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
+ghysels_table <- function(formula,data,weights,wstart,type,start=NULL,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
     Zenv <- new.env(parent=environment(formula))
     cl <- match.call()
     mf <- match.call(expand.dots = FALSE)
@@ -906,7 +911,7 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
     nperm <- colnames(wperm)
     
     fhtab <- vector("list",length(from[[1]]))
-    for(h in 1:length(from)) {
+    for(h in 1:length(from[[1]])) {
         res <- vector("list",nrow(wperm))
         for(i in 1:nrow(wperm)) {
             res[[i]] <- lapply(nperm,function(nm){
