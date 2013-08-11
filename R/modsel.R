@@ -395,7 +395,7 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
     #maxlag <- which.max(sapply(wlinfo$lags,function(ll)max(sapply(ll,max))))
     maxlag <- which.min(sapply(modellist,with,nrow(X)))
     lrn <- rownames(modellist[[maxlag]]$X)
-    
+
     modellist <- lapply(modellist,function(mm) {
         rn <- rownames(mm$X)
         ind <- match(lrn,rn)
@@ -972,8 +972,11 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
         rep(1/n,n)
     }
     BICW <- function(hh) {
-        bic <- sapply(hh,BIC)
-        exp(-bic)/sum(exp(-bic))
+        if(length(hh)==1) return(1)
+        else {
+            bic <- sapply(hh,BIC)
+            return(exp(-bic)/sum(exp(-bic)))
+        }
     }
     MSFEd <- function(hh,delta) {
         mi <- sapply(hh,function(xx) {
