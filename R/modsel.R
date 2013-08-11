@@ -1018,7 +1018,7 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
     tabh[order(tabh$Horizon,tabh$Scheme),]
     
     
-    list(tabfh=tabfh,tabh=tabh,lws=fhtab,indata=indata,outdata=outdata,bestlist=bestm)
+    list(tabfh=tabfh,tabh=tabh,lws=fhtab,indata=indata,outdata=outdata,bestlist=bestm,outf=outf,inf=inf,outc=outc,inc=inc)
     
     
 }
@@ -1029,7 +1029,7 @@ lf_range_to_hf <- function(range,m) {
 }
 
 MSE <- function(o,p) {
-    mean(sum(o-p)^2)
+    mean((o-p)^2)
 }
 
 MAPE <- function(o,p) {
