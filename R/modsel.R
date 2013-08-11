@@ -349,7 +349,7 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
             function(lags,start){
                 ifelse(length(lags)>length(start),TRUE,FALSE)
             },
-            info$lags,
+            lapply(info$lags,function(x)x[[nm]]),
             lapply(info$starts,function(x)x[[nm]]),
             SIMPLIFY=TRUE)    
         lapply(info,function(x)x[cond])
@@ -366,16 +366,17 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
     
     if(length(table)>1) {
         for(i in 2:length(table)) {
-            res <- mapply(function(f,s) {
-                formula_table(terms(f),names(table)[i],Zenv,table[[i]],s)
-            },wlinfo$formulas,wlinfo$starts,SIMPLIFY=FALSE)
+            res <- mapply(function(f,s,lg) {
+                out <- formula_table(terms(f),names(table)[i],Zenv,table[[i]],s)
+                out$lags <- lapply(out$lags,function(ll)c(ll,lg))
+                out
+            },wlinfo$formulas,wlinfo$starts,wlinfo$lags,SIMPLIFY=FALSE)
+
             wlinfo <- combine(res)
             wlinfo <- remove_incomplete(wlinfo,names(table)[i])
         }        
     }
-    
-    
-    
+        
     modellist <- mapply(function(f,st) {    
         mff[[2L]] <- f
         if(!is.null(prep$itr$lagsTable)) {
@@ -390,10 +391,11 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
         list(mt=mmt,y=y,X=X,start=st,itr=itr)
     },wlinfo$formulas,wlinfo$starts,SIMPLIFY=FALSE)
   
-    maxlag <- which.max(sapply(wlinfo$lags,max))
-    
-    lrn <- rownames(modellist[[maxlag]]$X)
 
+    #maxlag <- which.max(sapply(wlinfo$lags,function(ll)max(sapply(ll,max))))
+    maxlag <- which.min(sapply(modellist,with,nrow(X)))
+    lrn <- rownames(modellist[[maxlag]]$X)
+    
     modellist <- lapply(modellist,function(mm) {
         rn <- rownames(mm$X)
         ind <- match(lrn,rn)
@@ -401,6 +403,7 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
         mm$X <- mm$X[ind,]
         mm
     })
+   
     
     mrm <- lapply(modellist,function(mm) {
         res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cl,args,mm$start,Ofunction,user.gradient,mm$itr$lagsTable)
@@ -495,8 +498,9 @@ formula_table <- function(mt,varname,Zenv,table,start) {
         names(wst) <- varname
         starts[[i]] <- c(start,wst)
     }
+    
     list(formulas=formulas,
-         lags=table$lags,
+         lags=lapply(table$lags,function(l){out <- list(l);names(out)<-varname;out}),
          weights=table$weights,
          starts=starts)
 }
