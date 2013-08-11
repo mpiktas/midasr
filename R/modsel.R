@@ -972,11 +972,10 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
         rep(1/n,n)
     }
     BICW <- function(hh) {
-        if(length(hh)==1) return(1)
-        else {
-            bic <- sapply(hh,BIC)
-            return(exp(-bic)/sum(exp(-bic)))
-        }
+        ebic <- exp(-sapply(hh,BIC))
+        sebic <- sum(ebic)
+        if(sebic==0)EW(hh)
+        else ebic/sebic        
     }
     MSFEd <- function(hh,delta) {
         mi <- sapply(hh,function(xx) {
@@ -1007,7 +1006,7 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
 
     tboutc <- calcmsr(outc)
     tbinc <- calcmsr(inc)
-    hhname <- lapply(tboutc,function(l)1:nrow(l))
+    hhname <- lapply(tboutc,function(l)ifelse(is.null(dim(l)),1,1:nrow(l)))
     hh1 <- do.call("rbind",mapply(function(w,h)data.frame(Scheme=w,Horizon=h),as.list(names(outc)),hhname,SIMPLIFY=FALSE))
     
     
