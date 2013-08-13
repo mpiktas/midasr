@@ -209,9 +209,9 @@ term_info <- function(mt,term.name,Zenv) {
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
 ##' 
-##' mhfr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),kmin=4,kmax=6)
+##' mhfr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=list(x=0),to=list(x=c(4,6)))
 ##' 
-##' mlfr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),kmin=1,kmax=2)
+##' mlfr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=list(x=0),to=list(x=c(4,6)))
 ##'
 ##' modsel(mhfr,"BIC","unrestricted")
 ##'
@@ -241,8 +241,6 @@ modsel <- function(x,IC=x$IC[1],test=x$test[1],type=c("restricted","unrestricted
 ##' @param formula the formula for MIDAS regression, the lag selection is performed for the last MIDAS lag term in the formula
 ##' @param data a list containing data with mixed frequencies
 ##' @param start the starting values for optimisation
-##' @param weights the names of weight functions. Weight functions must have only 3 default parameters.
-##' @param wstart the starting values for weight functions, a named list.
 ##' @param IC the information criterias which to compute
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
 ##' @param Ofunction see \link{midasr}
@@ -260,14 +258,14 @@ modsel <- function(x,IC=x$IC[1],test=x$test[1],type=c("restricted","unrestricted
 ##' y <- diff(log(USrealgdp))
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
-##' mwr <- weights_table(y~trend+fmls(x,12,12,nealmon),weights=c("nealmon","nbeta"),wstart=list(nealmon=rep(0,3),nbeta=c(1,1,1,0)))
+##' mwr <- weights_table(y~trend+fmls(x,12,12,nealmon),start=list(x=list(nealmon=rep(0,3),nbeta=c(1,1,1,0))))
 ##'
 ##' mwr
 ##'
 ##' @details This function estimates models sequentialy increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-weights_table <- function(formula,data,start=NULL,weights,wstart,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
+weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
     
     Zenv <- new.env(parent=environment(formula))
     cl <- match.call()
@@ -275,15 +273,18 @@ weights_table <- function(formula,data,start=NULL,weights,wstart,IC=c("AIC","BIC
     if(missing(data))data <- NULL
 
     prep <- prepare_model_frame(data,Zenv,cl,mf,parent.frame())
-
-    varnames <- names(weights)
     
-    lti <- lapply(varnames,function(nm)term_info(formula,nm,prep$Zenv))
-    lags <- lti$lags
-
-    table <- expand_weights_lags(weights,1,1,1,0,start=wstart)
-    table$lags <- rep(list(lags),length.out=length(table$weights))
+    varnames <- names(start)[sapply(start,is.list)]
     
+    table <- lapply(varnames,function(nm) {
+        ti <- term_info(terms(formula),nm,prep$Zenv)
+        out <- expand_weights_lags(names(start[[nm]]),from=1,to=c(1,1),0,start=start[[nm]])
+        out$lags <- rep(list(ti$lags),length.out=length(out$weights))
+        out
+    })
+    names(table) <- varnames
+    start <- start[!(names(start) %in% varnames)]
+    if(length(start)==0)start <- NULL
     midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,user.gradient=FALSE,...)
 }
 
@@ -314,7 +315,7 @@ weights_table <- function(formula,data,start=NULL,weights,wstart,IC=c("AIC","BIC
 ##' trend <- 1:length(y)
 ##' 
 ##'  
-##' mwlr <- midas_r_ic_table(y~trend+fmls(x,12,12,nealmon), table=list(weights=as.list(c("nealmon","nealmon","nbeta")), lags=list(0:4,0:5,0:6),starts=list(rep(0,3),rep(0,3,),c(1,1,1,0))))
+##' mwlr <- midas_r_ic_table(y~trend+fmls(x,12,12,nealmon), table=list(x=list(weights=as.list(c("nealmon","nealmon","nbeta")), lags=list(0:4,0:5,0:6),starts=list(rep(0,3),rep(0,3,),c(1,1,1,0)))))
 ##'
 ##' mwlr
 ##'
@@ -461,20 +462,7 @@ formula_table <- function(mt,varname,Zenv,table,start) {
     vars <- as.list(attr(mt,"variables"))[-1]
     term.no <- find_mls_terms(varname,vars)
     
-#    last.term <- x[[3]]
-#    if(length(last.term)==3) {
-#        last.term <- x[[c(3,3)]]
-#        ind <- c(3,3)
-#    }
-#    else {
-#        ind <- 3
-#    }
-    
-#    mtype <- as.character(last.term[[1]])
-#    if(!(mtype%in%c("fmls","dmls","mls")))stop("The last term in the formula must be a MIDAS lag term")
     vars[[term.no]][[1]] <- as.name("mls")
-#    last.term[[1]] <- as.name("mls")
-
     
     formulas <- vector("list",length(table$lags))
     starts <- formulas
@@ -488,12 +476,15 @@ formula_table <- function(mt,varname,Zenv,table,start) {
         else {
             if(!is.function(wght))stop("Supply either function name or a function")
             nmwght <- names(table$weights)[i]
-            assign(nmwght,wght,environment(res))
             lt[[5]] <- as.name(nmwght)
+            ##A bit of nasty hack. We rely on the fact that environments are special R objects, i.e. they are not replicated when passed to function.
+            if(nmwght %in% ls(envir=Zenv))warning("Name ", nmwght, " is reserved, overwriting with special weight function")
+            assign(nmwght,wght,Zenv)
         }
         lt[[3]] <- table$lags[[i]]
         res[[term.no]] <- lt
         formulas[[i]] <- variables_to_formula(res)
+        
         wst <- list(table$starts[[i]])
         names(wst) <- varname
         starts[[i]] <- c(start,wst)
@@ -625,19 +616,17 @@ print.lws_table <- function(x,...) {
 ##' @title Create table of weights, lags and starting values for Ghysels weight schema
 ##' @param weight the names of weight functions
 ##' @param type the type of Ghysels schema, \code{"A"}, \code{"B"} or \code{"C"}
-##' @param kmin the minimum low frequency lag
-##' @param kmax the maximum high frequency lag
+##' @param from the high frequency lags from which to start the fitting
+##' @param to to a vector of length two, containing minimum and maxmimum lags, high frequency if \code{m=1}, low frequency otherwise.
 ##' @param m the frequency ratio
 ##' @param start the starting values for the weights of the one low frequency lag
-##' @param mkmin the minimum low frequency lag from which to start the fitting
 ##' @return a \code{lws_table} object, a list with elements \code{weights}, \code{lags} and \code{starts}
 ##' @examples
-##' expand_ghysels("nealmon","A",1,2,12,c(0,0,0))
+##' expand_ghysels("nealmon","A",0,c(1,2),12,c(0,0,0))
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-expand_ghysels <- function(weight,type=c("A","B","C"),kmin,kmax,m,start,mkmin=0) {
-    mkmin <- mkmin%/%m
-    lags <- lapply(kmin:kmax,function(x)(mkmin*m):(x*m-1))
+expand_ghysels <- function(weight,type=c("A","B","C"),from=0,to,m,start) {
+    lags <- lapply(to[1]:to[2],function(x)from:(x*m-1))
     d <- sapply(lags,length)
     nm <- paste(weight,type,d,sep="_")
     type <- match.arg(type)
@@ -677,8 +666,8 @@ expand_ghysels <- function(weight,type=c("A","B","C"),kmin,kmax,m,start,mkmin=0)
 ##' @rdname lws_table-add
 ##' @method + lws_table
 ##' @examples
-##' nlmn <- expand_weights_lags("nealmon",4,8,1,0,start=list(nealmon=rep(0,3)))
-##' nbt <- expand_weights_lags("nbeta",4,8,1,0,start=list(nbeta=rep(0,4)))
+##' nlmn <- expand_weights_lags("nealmon",0,c(4,8),1,start=list(nealmon=rep(0,3)))
+##' nbt <- expand_weights_lags("nbeta",0,c(4,8),1,start=list(nbeta=rep(0,4)))
 ##'
 ##' nlmn+nbt
 ##' @export
@@ -707,11 +696,11 @@ expand_ghysels <- function(weight,type=c("A","B","C"),kmin,kmax,m,start,mkmin=0)
 ##' @param wstart the starting values for the weights of the firs low frequency lag
 ##' @param type the type of Ghysels schema see \link{ghyselslag}, can be a vector of types
 ##' @param start the starting values for optimisation excluding the starting values for the last term
-##' @param kmin the minimum low frequency lag, defaults to 1.
-##' @param kmax the highest low frequency lag, defaults to square root of number of low fequency observations
+##' @param from a named list, or named vector with high frequency (NB!) lag numbers which are the beginings of MIDAS lag structures. The names should correspond to the MIDAS lag terms in the formula for which to do the lag selection. Value NA indicates lag start at zero
+##' @param to to a named list where each element is a vector with two elements. The first element is the low frequency lag number from which the lag selection starts, the second is the low frequency lag number at which the lag selection ends. NA indicates lowest (highest) lag numbers possible.
 ##' @param IC the names of information criteria which should be calculated
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
-##' @param Ofunction  see \link{midasr}
+##' @param Ofunction see \link{midasr}
 ##' @param user.gradient see \link{midas_r}
 ##' @param ... additional parameters to optimisation function, see \link{midas_r}
 ##' @return a \code{midas_r_ic_table} object which is the list with the following elements:
@@ -730,7 +719,7 @@ expand_ghysels <- function(weight,type=c("A","B","C"),kmin,kmax,m,start,mkmin=0)
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
 ##' 
-##' tb <- ghysels_table(y~trend+fmls(x,12,12,nealmon),data=list(y=y,x=x,trend=trend),weights=c("nealmon"),wstart=list(nealmon=c(0,0,0)),start=list(trend=1),type=c("A"),kmax=4)
+##' tb <- ghysels_table(y~trend+fmls(x,12,12,nealmon),data=list(y=y,x=x,trend=trend),weights=c("nealmon"),wstart=list(nealmon=c(0,0,0)),start=list(trend=1),type=c("A"),from=0,to=c(1,3))
 ##'
 ##' 
 ##' @details This function estimates models sequentialy increasing the midas lag from \code{kmin} to \code{kmax} and varying the weights of the last term of the given formula 
@@ -748,23 +737,6 @@ ghysels_table <- function(formula,data,weights,wstart,type,start=NULL,from,to,IC
     lags <- lti$lags
  
     m <- lti$frequency
-
-    if(is.null(kmax))kmax <- round(10*log(length(prep$y),base=10))%/%m
-    
-    mkmin <- min(lti$lags)
-    nop <- length(start[[lti$varname]])
-    ##Reuse high frequency code
-    if(is.null(kmin)) {
-        kmin <- mkmin+nop
-    }
-    else {
-        kmin <- min(kmin*m,mkmin+nop)
-    }
-    kmin <- max(kmin%/%m,1)
-    
-    if(kmax<kmin) {
-        stop("Maximum number of lags must be larger than the sum of minimum lag and number of parameters")
-    }
     
     if(!is.list(weights)) {
         weights <- as.list(weights)
@@ -789,11 +761,12 @@ ghysels_table <- function(formula,data,weights,wstart,type,start=NULL,from,to,IC
     }
     
     tb <- mapply(function(w,t,s){
-        expand_ghysels(weight=w,type=t,kmin=kmin,kmax=kmax,m=m,start=s,mkmin=mkmin)
+        expand_ghysels(weight=w,type=t,from=from,to=to,m=m,start=s)
     },as.list(weights),as.list(type),as.list(wstart),SIMPLIFY=FALSE)
     names(tb) <- NULL
     
-    table <- do.call("+",tb)
+    table <- list(do.call("+",tb))
+    names(table) <- lti$varname
     midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,user.gradient=FALSE,...)
 }
     

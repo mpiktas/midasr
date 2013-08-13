@@ -3,9 +3,9 @@
 \title{Weight and lag selection table for MIDAS regression model with Ghysels schema}
 \usage{
   ghysels_table(formula, data, weights, wstart, type,
-    start = NULL, kmin = NULL, kmax = NULL,
-    IC = c("AIC", "BIC"), test = c("hAh.test"),
-    Ofunction = "optim", user.gradient = FALSE, ...)
+    start = NULL, from, to, IC = c("AIC", "BIC"),
+    test = c("hAh.test"), Ofunction = "optim",
+    user.gradient = FALSE, ...)
 }
 \arguments{
   \item{formula}{the formula for MIDAS regression, the lag
@@ -27,11 +27,18 @@
   \item{start}{the starting values for optimisation
   excluding the starting values for the last term}
 
-  \item{kmin}{the minimum low frequency lag, defaults to
-  1.}
+  \item{from}{a named list, or named vector with high
+  frequency (NB!) lag numbers which are the beginings of
+  MIDAS lag structures. The names should correspond to the
+  MIDAS lag terms in the formula for which to do the lag
+  selection. Value NA indicates lag start at zero}
 
-  \item{kmax}{the highest low frequency lag, defaults to
-  square root of number of low fequency observations}
+  \item{to}{to a named list where each element is a vector
+  with two elements. The first element is the low frequency
+  lag number from which the lag selection starts, the
+  second is the low frequency lag number at which the lag
+  selection ends. NA indicates lowest (highest) lag numbers
+  possible.}
 
   \item{IC}{the names of information criteria which should
   be calculated}
@@ -79,7 +86,7 @@ y <- diff(log(USrealgdp))
 x <- window(diff(USunempr),start=1949)
 trend <- 1:length(y)
 
-tb <- ghysels_table(y~trend+fmls(x,12,12,nealmon),data=list(y=y,x=x,trend=trend),weights=c("nealmon"),wstart=list(nealmon=c(0,0,0)),start=list(trend=1),type=c("A"),kmax=4)
+tb <- ghysels_table(y~trend+fmls(x,12,12,nealmon),data=list(y=y,x=x,trend=trend),weights=c("nealmon"),wstart=list(nealmon=c(0,0,0)),start=list(trend=1),type=c("A"),from=0,to=c(1,3))
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

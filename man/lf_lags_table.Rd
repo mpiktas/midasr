@@ -2,10 +2,9 @@
 \alias{lf_lags_table}
 \title{Create a low frequency lag selection table for MIDAS regression model}
 \usage{
-  lf_lags_table(formula, data, start, kmin = NULL,
-    kmax = NULL, IC = c("AIC", "BIC"),
-    test = c("hAh.test"), Ofunction = "optim",
-    user.gradient = FALSE, ...)
+  lf_lags_table(formula, data, start, from, to,
+    IC = c("AIC", "BIC"), test = c("hAh.test"),
+    Ofunction = "optim", user.gradient = FALSE, ...)
 }
 \arguments{
   \item{formula}{the formula for MIDAS regression, the lag
@@ -17,11 +16,18 @@
 
   \item{start}{the starting values for optimisation}
 
-  \item{kmin}{the minimum low frequency lag, defaults to
-  1.}
+  \item{from}{a named list, or named vector with high
+  frequency (NB!) lag numbers which are the beginings of
+  MIDAS lag structures. The names should correspond to the
+  MIDAS lag terms in the formula for which to do the lag
+  selection. Value NA indicates lag start at zero}
 
-  \item{kmax}{the highest low frequency lag, defaults to
-  square root of number of low fequency observations}
+  \item{to}{a named list where each element is a vector
+  with two elements. The first element is the low frequency
+  lag number from which the lag selection starts, the
+  second is the low frequency lag number at which the lag
+  selection ends. NA indicates lowest (highest) lag numbers
+  possible.}
 
   \item{IC}{the information criterias which to compute}
 
@@ -63,7 +69,7 @@ y <- diff(log(USrealgdp))
 x <- window(diff(USunempr),start=1949)
 trend <- 1:length(y)
 
-mlr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),kmin=2,kmax=3)
+mlr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=c(x=0),to=list(x=c(3,4)))
 mlr
 }
 \author{
