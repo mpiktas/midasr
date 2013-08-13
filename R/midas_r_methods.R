@@ -15,8 +15,7 @@ deviance.midas_r <- function(object,...) {
 ##'
 ##' Predicted values based on MIDAS regression object
 ##' @param object \code{\link{midas_r}} object
-##' @param newldata new low frequency data, must be \code{data.frame}
-##' @param newhdata new high frequency data, must be \code{data.frame}
+##' @param newdata a named list containing data for mixed frequencies
 ##' @param ... additional arguments, not used
 ##' @return a vector of predicted values
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
@@ -265,20 +264,29 @@ get_mls_info<- function(mt,Zenv) {
     res[!sapply(res,is.null)]
 }
 
+##' A generic function for forecasting R objects. 
+##'
+##' Added for compatibility with \code{forecast} package
+##' 
+##' @title Forecasti midas_r object
+##' @param object object to forecast
+##' @param ... additional arguments
+##' @return a forecast
 ##' @export
 forecast <- function(object,...) UseMethod("forecast") 
 
-##' Forecasts MIDAS regression. Differs from \code{predict}, that it respects history
+##' Forecasts MIDAS regression. Differs from \code{predict}, in that it respects history
 ##'
 ##' Add later
 ##' @title Forecast MIDAS regression
-##' @param x midas_r object
+##' @param object midas_r object
 ##' @param newdata newdata
+##' @param ... additional arguments, not used
 ##' @return a vector of forecasts
 ##' @author Vaidotas Zemlys
 ##' @export
 ##' @method forecast midas_r
-forecast.midas_r <- function(object,newdata) {
+forecast.midas_r <- function(object,newdata=NULL,...) {
 
     ee <- data_to_env(newdata)
     

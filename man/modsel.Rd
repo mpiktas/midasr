@@ -16,9 +16,12 @@
 
   \item{type}{the type of MIDAS model, either restricted or
   unrestricted}
+
+  \item{print}{logical, if TRUE, prints the summary of the
+  best model.}
 }
 \value{
-  the best model based on information criteria,
+  (invisibly) the best model based on information criteria,
   \link{midas_r} object
 }
 \description{

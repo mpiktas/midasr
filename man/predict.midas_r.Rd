@@ -7,11 +7,8 @@
 \arguments{
   \item{object}{\code{\link{midas_r}} object}
 
-  \item{newldata}{new low frequency data, must be
-  \code{data.frame}}
-
-  \item{newhdata}{new high frequency data, must be
-  \code{data.frame}}
+  \item{newdata}{a named list containing data for mixed
+  frequencies}
 
   \item{...}{additional arguments, not used}
 }

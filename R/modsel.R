@@ -198,7 +198,8 @@ term_info <- function(mt,term.name,Zenv) {
 ##' @param IC the name of information criteria to base the choosing of the model
 ##' @param test the name of the test for which to print out the p-value
 ##' @param type the type of MIDAS model, either restricted or unrestricted
-##' @return the best model based on information criteria, \link{midas_r} object
+##' @param print logical, if TRUE, prints the summary of the best model.
+##' @return (invisibly) the best model based on information criteria, \link{midas_r} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
 ##' @examples
