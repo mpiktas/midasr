@@ -388,9 +388,10 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
              eval(gmf,Zenv)
          }
          return(list(weight=rf,
-              name=as.character(fr[[2]]),
-              gradient=grf,
-              start=rep(0,mf[[3]])))
+                     name=as.character(fr[[2]]),
+                     gradient=grf,
+                     start=rep(0,mf[[3]]),
+                     wlabel=as.character(fr[[2]])))
     }
     
     uterm <- function(name,k=1) {
@@ -398,7 +399,8 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
         list(weight=function(p)p,
              name=name,
              gradient=function(p)diag(k),
-             start=rep(0,k))
+             start=rep(0,k),
+             wlabel="")
         
     }
 
@@ -416,7 +418,8 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
                               dmls = lags+1,
                               mls = length(lags)
                               )
-                uterm(term.labels[i],nol)
+                nm <- as.character(fr[[2]])
+                uterm(nm,nol)
             }            
         }
         else {
@@ -425,16 +428,17 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
     }
    
     if (attr(mt,"intercept")==1)  {
-        rfd <- c(list(list(weight=function(p)p,name="(Intercept)",gradient=function(p)return(matrix(1)),start=0)),rfd)
+        rfd <- c(list(list(weight=function(p)p,name="(Intercept)",gradient=function(p)return(matrix(1)),start=0,wlabel="")),rfd)
         term.labels <- c("(Intercept)",term.labels)
     }
-
+    
     rf <- lapply(rfd,with,weight)
     names(rf) <- sapply(rfd,with,name)
     
 
-    weight_names <- setdiff(names(rf), term.labels)
-
+    weight_names <- sapply(rfd,with,wlabel)
+    weight_names <- weight_names[weight_names!=""]
+    
     start_default <- lapply(rfd,with,start)
     names(start_default) <- names(rf)
 
@@ -456,10 +460,11 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
     starto <- unlist(start_default)
    
     if(!is.null(lagsTable)) {
-      nms <- names(pinds)
+        yname <- all.vars(mt[[2]])
+        nms <- names(pinds)
       all_coef <- function(p) {
         pp <- lapply(pinds, function(x) p[x])
-        cr <- c(1, -p[pinds[[grep("\"*\"", nms)]]])
+        cr <- c(1, -p[pinds[[yname]]])
         res <- mapply(function(fun, param) {
           if(!is.null(lagsTable[[param]])) {
             mltp <- rowSums(lagsTable[[param]] %*% diag(cr))
