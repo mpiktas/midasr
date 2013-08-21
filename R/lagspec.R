@@ -100,8 +100,8 @@ nbeta <- function(p,d,m) {
     xi[d] <- xi[d]-eps
     nb <- xi^(p[2] - 1) * (1 - xi)^(p[3] - 1)
     if(sum(nb)<eps) {
-        browser()
-        p[1]*rep(1/d,length(nb))
+        if(abs(p[4])<eps) rep(0,d)
+        else p[1]*rep(1/d,length(nb))
     } else {
         w <- (nb/sum(nb) + p[4])
         p[1]*w/sum(w)
@@ -133,7 +133,7 @@ nbeta.gradient <- function(p,d,m) {
     }
     else {
        gres <- matrix(0,nrow=d,ncol=4)
-       gres[,1] <- 1/d
+       if(abs(p[4])>eps)gres[,1] <- 1/d
        gres
     }    
 }
