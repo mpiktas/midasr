@@ -1,0 +1,22 @@
+\name{get_estimation_sample}
+\alias{get_estimation_sample}
+\title{Get the data which was used to etimate MIDAS regression}
+\usage{
+  get_estimation_sample(object)
+}
+\arguments{
+  \item{object}{\code{midas_r} object}
+}
+\value{
+  a named list with mixed frequency data
+}
+\description{
+  Gets the data which was used to etimate MIDAS regression
+}
+\details{
+  A helper function.
+}
+\author{
+  Vaidotas Zemlys
+}
+

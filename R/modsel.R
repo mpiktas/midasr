@@ -349,7 +349,7 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
     remove_incomplete <- function(info,nm) {
         cond <- mapply(
             function(lags,start){
-                ifelse(length(lags)>length(start),TRUE,FALSE)
+                ifelse(length(lags)>=length(start),TRUE,FALSE)
             },
             lapply(info$lags,function(x)x[[nm]]),
             lapply(info$starts,function(x)x[[nm]]),
@@ -381,6 +381,7 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
         
     modellist <- mapply(function(f,st) {    
         mff[[2L]] <- f
+        ###Add condition for catching the star in the table
         if(!is.null(prep$itr$lagsTable)) {
             itr <-  checkARstar(terms(eval(mff[[2]], Zenv)))
             mff[[2]] <- itr$x
@@ -393,7 +394,6 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
         list(mt=mmt,y=y,X=X,start=st,itr=itr)
     },wlinfo$formulas,wlinfo$starts,SIMPLIFY=FALSE)
   
-
     #maxlag <- which.max(sapply(wlinfo$lags,function(ll)max(sapply(ll,max))))
     maxlag <- which.min(sapply(modellist,with,nrow(X)))
     lrn <- rownames(modellist[[maxlag]]$X)
@@ -472,7 +472,11 @@ formula_table <- function(mt,varname,Zenv,table,start) {
         lt <- res[[term.no]]
         wght <- table$weights[[i]]
         if(is.character(wght)) {
-            lt[[5]] <- as.name(wght)
+            if(wght=="") lt <- lt[1:4]
+            else {
+                if(wght=="*")  lt[[5]] <- wght
+                else lt[[5]] <- as.name(wght)
+            }
         }
         else {
             if(!is.function(wght))stop("Supply either function name or a function")

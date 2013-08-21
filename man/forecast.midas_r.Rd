@@ -5,12 +5,20 @@
 \usage{
   forecast(object, ...)
 
-  \method{forecast}{midas_r} (object, newdata = NULL, ...)
+  \method{forecast}{midas_r} (object, newdata = NULL,
+    method = c("static", "dynamic"),
+    insample = get_estimation_sample(object), ...)
 }
 \arguments{
   \item{object}{midas_r object}
 
   \item{newdata}{newdata}
+
+  \item{method}{the forecasting method, either
+  \code{"static"} or \code{"dynamic"}}
+
+  \item{insample}{a list containing the historic mixed
+  frequency data}
 
   \item{...}{additional arguments, not used}
 }
@@ -18,11 +26,16 @@
   a vector of forecasts
 }
 \description{
-  Forecasts MIDAS regression. Differs from \code{predict},
-  in that it respects history
+  Forecasts MIDAS regression given the future values of
+  regressors. For dynamic models (with lagged response
+  variable) there is an option to calculate dynamic
+  forecast, when forecasted values of response variable are
+  substituted into the lags of response variable.
 }
 \details{
-  Add later
+  Given future values of regressors this function combines
+  the historical values used in the fitting the MIDAS
+  regression model and calculates the forecasts.
 }
 \author{
   Vaidotas Zemlys

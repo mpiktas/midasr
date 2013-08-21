@@ -2,13 +2,20 @@
 \alias{predict.midas_r}
 \title{Predict method for MIDAS regression fit}
 \usage{
-  \method{predict}{midas_r} (object, newdata, ...)
+  \method{predict}{midas_r} (object, newdata,
+    na.action = na.omit, ...)
 }
 \arguments{
   \item{object}{\code{\link{midas_r}} object}
 
   \item{newdata}{a named list containing data for mixed
   frequencies. If ommitted, the fitted values are used.}
+
+  \item{na.action}{function determining what should be done
+  with missing values in \code{newdata}. The most likely
+  cause of missing values is the insufficient data for the
+  lagged variables. The default is to ommit such missing
+  values.}
 
   \item{...}{additional arguments, not used}
 }

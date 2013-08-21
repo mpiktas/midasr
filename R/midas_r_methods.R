@@ -255,6 +255,7 @@ get_mls_info<- function(mt,Zenv) {
 ##' @param object midas_r object
 ##' @param newdata newdata
 ##' @param method the forecasting method, either \code{"static"} or \code{"dynamic"}
+##' @param insample a list containing the historic mixed frequency data 
 ##' @param ... additional arguments, not used
 ##' @return a vector of forecasts
 ##' @author Vaidotas Zemlys
