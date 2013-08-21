@@ -5,53 +5,36 @@
 ##' @param ... currently nothing
 ##' @return The sum of squared residuals
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
-##' @rdname deviance
+##' @rdname deviance.midas_r
 ##' @method deviance midas_r
+##' @export
 deviance.midas_r <- function(object,...) {
     sum(residuals(object)^2,na.rm=TRUE)
 }
 
-##' Predict method for MIDAS regression fit
+##' Predicted values based on \code{midas_r} object.
 ##'
-##' Predicted values based on MIDAS regression object
+##' \code{predict.midas_r} produces predicted values, obtained by evaluating regression function in the frame \code{newdata}. This means that the apropriate model matrix is constructed using only the data in \code{newdata}. This makes this function not very convenient for forecasting purposes. If you want to supply the new data for forecasting horizon only use the function \link{forecast.midas_r}. Also this function produces only static predictions, if you want dynamic forecasts use the \link{forecast.midas_r}.
+##' 
+##' @title Predict method for MIDAS regression fit
 ##' @param object \code{\link{midas_r}} object
-##' @param newdata a named list containing data for mixed frequencies
+##' @param newdata a named list containing data for mixed frequencies. If ommitted, the fitted values are used.
+##' @param na.action function determining what should be done with missing values in \code{newdata}. The most likely cause of missing values is the insufficient data for the lagged variables. The default is to ommit such missing values.
 ##' @param ... additional arguments, not used
 ##' @return a vector of predicted values
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @method predict midas_r
+##' @rdname predict.midas_r
 ##' @export
-predict.midas_r <- function(object, newdata, ... ) {
+predict.midas_r <- function(object, newdata, na.action = na.omit, ... ) {
     Zenv <- new.env(parent=parent.frame())
     
     if(missing(newdata))
       return(as.vector(fitted(object)))
-
-    if(is.matrix(newdata)) newdata <- data.frame(newdata)
-    if(is.data.frame(newdata)) {
-        ee <- as.environment(as.list(newdata))
-    }
     else {
-        if(is.list(newdata)) {
-            if(is.null(names(newdata))) names(newdata) <- rep("",length(newdata))
-            newdata <- mapply(function(x,nm){
-                if(is.null(dim(x))) {
-                    x <- list(x)
-                    names(x) <- nm
-                    x
-                } else {
-                    as.list(x)
-                    }
-            },newdata,names(newdata),SIMPLIFY=FALSE)
-            names(newdata) <- NULL
-            ee <- as.environment(do.call("c",newdata))
-        } else {
-            stop("Argument data must be a matrix, data.frame or a list")
-        }
+        ee <- data_to_env(newdata)
+        parent.env(ee) <- parent.frame()
     }
-        
-    
-    parent.env(ee) <- parent.frame()
     
     assign("ee",ee,Zenv)
     cll <- match.call()
@@ -62,13 +45,13 @@ predict.midas_r <- function(object, newdata, ... ) {
     Terms <- delete.response(terms(object))
     mf[[2L]] <- Terms    
     mf[[3L]] <- as.name("ee")   
-    mf[[4L]] <- as.name("na.omit")
+    mf[[4L]] <- na.action
     names(mf)[c(2,3,4)] <- c("formula","data","na.action")
     
     mf <- eval(mf,Zenv)
     mt <- attr(mf, "terms")
 
-    X <- model.matrix(mt, mf)
+    X <- model.matrix(mt, mf) 
     as.vector(X %*% midas_coef(object))
 }
 
@@ -264,62 +247,89 @@ get_mls_info<- function(mt,Zenv) {
     res[!sapply(res,is.null)]
 }
 
-##' A generic function for forecasting R objects. 
-##'
-##' Added for compatibility with \code{forecast} package
+##' Forecasts MIDAS regression given the future values of regressors. For dynamic models (with lagged response variable) there is an option to calculate dynamic forecast, when forecasted values of response variable are substituted into the lags of response variable.
 ##' 
-##' @title Forecasti midas_r object
-##' @param object object to forecast
-##' @param ... additional arguments
-##' @return a forecast
-##' @export
-forecast <- function(object,...) UseMethod("forecast") 
-
-##' Forecasts MIDAS regression. Differs from \code{predict}, in that it respects history
-##'
-##' Add later
+##' Given future values of regressors this function combines the historical values used in the fitting the MIDAS regression model and calculates the forecasts.
+##' 
 ##' @title Forecast MIDAS regression
 ##' @param object midas_r object
 ##' @param newdata newdata
+##' @param method the forecasting method, either \code{"static"} or \code{"dynamic"}
 ##' @param ... additional arguments, not used
 ##' @return a vector of forecasts
 ##' @author Vaidotas Zemlys
+##' @rdname forecast.midas_r
 ##' @export
+forecast <- function(object,...) UseMethod("forecast") 
+
+##' @rdname forecast.midas_r
 ##' @method forecast midas_r
-forecast.midas_r <- function(object,newdata=NULL,...) {
+##' @export
+forecast.midas_r <- function(object,newdata=NULL,method=c("static","dynamic"),insample=get_estimation_sample(object),...) {
 
-    ee <- data_to_env(newdata)
-    
-    nms <- all.vars(object$terms)
-    dataenv <- eval(as.name("ee"),object$Zenv)
-    if(is.null(dataenv))dataenv <- object$Zenv
-    
-    insample <- lapply(nms,function(nm)eval(as.name(nm),dataenv))
-    names(insample) <- nms
-    #The weights in the mls terms come up as variables, we do not need them
-    insample <- insample[!sapply(insample,is.function)]
+    method <- match.arg(method)
+    ##Fix data_to_env to return the list if needed.
+    outsample <- as.list(data_to_env(newdata))
+    ##Get the name of response variable
     yname <- all.vars(object$terms[[2]])
-    minfo <- get_mls_info(object$terms,object$Zenv)
    
-    minfo <- minfo[sapply(minfo,with,varname)!=yname]
+    ##Get the frequency information of each variable    
+    mlsinfo <- get_mls_info(object$terms,object$Zenv)
+    freqinfo <- lapply(mlsinfo,with,m)
+    names(freqinfo) <- sapply(mlsinfo,with,varname)
 
-    nmobject <- setdiff(names(insample),yname)
-    ##No support for AR for the moment
-    outsample <- lapply(nmobject,function(nm)eval(as.name(nm),ee))
-    names(outsample) <- nmobject
-    
-    h <- length(outsample[[minfo[[1]]$varname]])%/%minfo[[1]]$m
-    
-    data <- rbind_list(insample[nmobject],outsample)
-    res <- predict(object,newdata=data)
+    freqinfo <- freqinfo[names(freqinfo)!=yname]
+    lowfreqn <- setdiff(names(outsample),names(freqinfo))
+    lowfreq <- as.list(rep(1,length(lowfreqn)))
+    names(lowfreq) <- lowfreqn
 
-    n <- length(res)
-
-    res[n+1-h:1]
+    freqinfo <- c(freqinfo,lowfreq)
         
+   
+    if(!identical(sort(names(outsample)),sort(names(freqinfo)))) stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
+    freqinfo <- freqinfo[names(outsample)]
+ 
+    h <- length(outsample[[names(freqinfo)[1]]])%/%freqinfo[[1]]
+    
+    
+    if(method=="static") {
+        if(!(yname %in% names(outsample))) {
+            outsample <- c(list(rep(NA,h)),outsample)
+            names(outsample)[1] <- yname
+        }
+        data <- try(rbind_list(insample,outsample))
+        if(class(data)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
+        res <- predict(object,newdata=data,na.action=na.pass)        
+        n <- length(res)
+        res[n+1-h:1]
+    }
+    else {
+        outsample <- outsample[names(outsample)!=yname]
+        yna <- list(NA)
+        names(yna) <- yname
+        res <- rep(NA,h)
+        fdata <- insample
+        for(i in 1:h) {
+            ##Get the data for the current low frequency lag
+            hout <- mapply(function(var,m){
+                var[1:m+(i-1)*m]
+            },outsample,freqinfo,SIMPLIFY=FALSE)
+            hout <- c(yna,hout)
+            fdata <- rbind_list(fdata,hout)
+            if(class(fdata)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
+            rr <- predict(object,newdata=fdata,na.action=na.pass)
+            n <- length(rr)
+            res[i] <- rr[n]
+            fdata[[yname]][n] <- res[i]             
+        }
+        res
+    }
 }
 
 rbind_list <- function(el1,el2) {
+    if(is.null(el1)) return(el2)
+    if(is.null(el2)) return(el1)
+    
     if(!identical(names(el1),names(el2)))stop("You can rbind only lists with identical names")
 
     nms <- names(el1)
@@ -353,4 +363,23 @@ data_to_env <- function(data) {
         }
     }
     ee
+}
+
+##' Gets the data which was used to etimate MIDAS regression
+##'
+##' A helper function. 
+##' @title Get the data which was used to etimate MIDAS regression
+##' @param object \code{midas_r} object
+##' @return a named list with mixed frequency data
+##' @author Vaidotas Zemlys
+##' @export
+get_estimation_sample <- function(object) {    
+    nms <- all.vars(object$terms)
+    dataenv <- eval(as.name("ee"),object$Zenv)
+    if(is.null(dataenv))dataenv <- object$Zenv
+    
+    insample <- lapply(nms,function(nm)eval(as.name(nm),dataenv))
+    names(insample) <- nms
+    #The weights in the mls terms come up as variables, we do not need them
+    insample[!sapply(insample,is.function)]
 }

@@ -1,7 +1,10 @@
-\name{forecast.midas_r}
+\name{forecast}
+\alias{forecast}
 \alias{forecast.midas_r}
 \title{Forecast MIDAS regression}
 \usage{
+  forecast(object, ...)
+
   \method{forecast}{midas_r} (object, newdata = NULL, ...)
 }
 \arguments{
