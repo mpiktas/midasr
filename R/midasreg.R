@@ -432,14 +432,14 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
         term.labels <- c("(Intercept)",term.labels)
     }
     
-    rf <- lapply(rfd,with,weight)
-    names(rf) <- sapply(rfd,with,name)
+    rf <- lapply(rfd,"[[","weight")
+    names(rf) <- sapply(rfd,"[[","name")
     
 
-    weight_names <- sapply(rfd,with,wlabel)
+    weight_names <- sapply(rfd,"[[","wlabel")
     weight_names <- weight_names[weight_names!=""]
     
-    start_default <- lapply(rfd,with,start)
+    start_default <- lapply(rfd,"[[","start")
     names(start_default) <- names(rf)
 
     if(any(!weight_names%in% names(start)))stop("Starting values for weight hyperparameters must be supplied")
@@ -501,7 +501,7 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
         gr <- function(p)grad(fn0,p)
     }
     else {
-        grf <- sapply(rfd,with,gradient)
+        grf <- sapply(rfd,"[[","gradient")
         ##Calculate the initial value to get the idea about the dimensions
         pp0 <- lapply(pinds,function(xx)starto[xx])            
         grmat0 <- mapply(function(fun,param)fun(param),grf,pp0,SIMPLIFY=FALSE)

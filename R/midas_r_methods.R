@@ -228,24 +228,30 @@ AICc.midas_r <- function(mod) {
     -2 * LL + 2 * K * (n/(n - K - 1))
 }
 
-get_mls_info<- function(mt,Zenv) {
-    vars <- as.list(attr(mt,"variables"))[-2:-1]
+get_frequency_info<- function(mt,Zenv) {
+    vars <- as.list(attr(mt,"variables"))[-1]
     res <- lapply(vars, function(l) {
         if(length(l)>1) {
-            if(as.character(l[[1]])%in%c("mls","fmls","dmls")) {
-                lags <- eval(l[[3]],Zenv)
+            if(as.character(l[[1]])%in%c("mls","fmls","dmls")) {             
                 m <-eval(l[[4]],Zenv)              
-                varname <- as.character(l[[2]])
-                if(length(l)>=5)weight <- as.character(l[[5]])
-                else weight <- NULL
-                list(varname=varname,lags=lags,m=m,weight=weight)
+                varnames <- as.character(all.vars(l[[2]]))
+                list(varname=varnames,m=rep(m,length(varnames)))
             }
-            else NULL
+            else {
+                varnames <- as.character(all.vars(l))
+                list(varname=varnames,m=rep(1,length(varnames)))
+            }
         }
-        else NULL
-    })    
-    res[!sapply(res,is.null)]
+        else list(varname=as.character(l),m=1)
+    })
+    
+    varn <- Reduce("c",lapply(res,"[[","varname"))
+    freq <- Reduce("c",lapply(res,"[[","m"))
+    out <- freq
+    names(out) <- varn
+    out[unique(names(out))]
 }
+
 
 ##' Forecasts MIDAS regression given the future values of regressors. For dynamic models (with lagged response variable) there is an option to calculate dynamic forecast, when forecasted values of response variable are substituted into the lags of response variable.
 ##' 
@@ -275,22 +281,14 @@ forecast.midas_r <- function(object,newdata=NULL,method=c("static","dynamic"),in
     yname <- all.vars(object$terms[[2]])
    
     ##Get the frequency information of each variable    
-    mlsinfo <- get_mls_info(object$terms,object$Zenv)
-    freqinfo <- lapply(mlsinfo,with,m)
-    names(freqinfo) <- sapply(mlsinfo,with,varname)
+    freqinfo <- get_frequency_info(terms(object),object$Zenv)
 
-    freqinfo <- freqinfo[names(freqinfo)!=yname]
-    lowfreqn <- setdiff(names(outsample),names(freqinfo))
-    lowfreq <- as.list(rep(1,length(lowfreqn)))
-    names(lowfreq) <- lowfreqn
+    if(length(setdiff(names(freqinfo),c(yname,names(outsample))))>0) stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
 
-    freqinfo <- c(freqinfo,lowfreq)
-        
-   
-    if(!identical(sort(names(outsample)),sort(names(freqinfo)))) stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
-    freqinfo <- freqinfo[names(outsample)]
+    outsample <- outsample[intersect(names(outsample),names(freqinfo))]
+    firstno <- names(outsample)[1]
  
-    h <- length(outsample[[names(freqinfo)[1]]])%/%freqinfo[[1]]
+    h <- length(outsample[[firstno]])%/%freqinfo[firstno]
     
     
     if(method=="static") {
@@ -298,7 +296,7 @@ forecast.midas_r <- function(object,newdata=NULL,method=c("static","dynamic"),in
             outsample <- c(list(rep(NA,h)),outsample)
             names(outsample)[1] <- yname
         }
-        data <- try(rbind_list(insample,outsample[names(insample)]))
+        data <- try(rbind_list(insample[names(outsample)],outsample))
         if(class(data)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
         res <- predict(object,newdata=data,na.action=na.pass)        
         n <- length(res)
@@ -316,7 +314,7 @@ forecast.midas_r <- function(object,newdata=NULL,method=c("static","dynamic"),in
                 var[1:m+(i-1)*m]
             },outsample,freqinfo,SIMPLIFY=FALSE)
             hout <- c(yna,hout)
-            fdata <- rbind_list(fdata,hout[names(fdata)])
+            fdata <- rbind_list(fdata[names(hout)],hout)
             if(class(fdata)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
             rr <- predict(object,newdata=fdata,na.action=na.pass)
             n <- length(rr)

@@ -426,10 +426,19 @@ midas_r_ic_table.midas_r_ic_table <- function(formula,...) {
 }
 
 make_ic_table <- function(candlist,IC,test) {
+    makelist <- function(x) {
+        if(length(x)==1)list(x)
+        else as.list(x)
+    }
+    makefun <- function(l) {
+        lapply(l,function(ll) {
+            if(is.function(ll))ll
+            else eval(as.name(ll))
+        })
+    }
+    ICfun <- makefun(makelist(IC))
+    tfun <- makefun(makelist(test))
     
-    ICfun <- lapply(IC,function(ic)eval(as.name(ic)))
-    tfun <- lapply(test,function(ic)eval(as.name(ic)))
-
     tab <- lapply(candlist,function(mm) {
         c(sapply(ICfun,function(ic)ic(mm)),
           sapply(ICfun,function(ic)ifelse(is.null(mm$unrestricted),NA,ic(mm$unrestricted))),
@@ -874,6 +883,7 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
     if(missing(data)||is.null(data)) dataenv <- Zenv
     else dataenv <- data_to_env(data)
 
+    ##Change this, there is a cleaner way
     mt <- terms(formula)
     nms <- all.vars(mt)
     fullsample <- lapply(nms,function(nm)eval(as.name(nm),dataenv))
@@ -881,14 +891,8 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
 
     fullsample <- fullsample[!sapply(fullsample,is.function)]
     yname <- all.vars(mt[[2]])
-    minfo <- get_mls_info(mt,Zenv)
-    m <- lapply(minfo,with,m)
-    names(m) <- lapply(minfo,with,varname)
-
-    m1 <- lapply(setdiff(names(fullsample),names(m)),function(x)1)   
-    names(m1) <- setdiff(names(fullsample),names(m))
-    m <- c(m,m1)
- 
+    m <- get_frequency_info(mt,Zenv)
+   
     nmx <- names(fullsample)
     nmx <- nmx[nmx!=yname]
     
