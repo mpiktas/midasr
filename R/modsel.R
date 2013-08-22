@@ -884,15 +884,11 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
     else dataenv <- data_to_env(data)
 
     ##Change this, there is a cleaner way
-    mt <- terms(formula)
-    nms <- all.vars(mt)
+    m <- get_frequency_info(mt,Zenv)
+    nms <- names(m)
     fullsample <- lapply(nms,function(nm)eval(as.name(nm),dataenv))
     names(fullsample) <- nms
-
-    fullsample <- fullsample[!sapply(fullsample,is.function)]
-    yname <- all.vars(mt[[2]])
-    m <- get_frequency_info(mt,Zenv)
-   
+    yname <- all.vars(mt[[2]])       
     nmx <- names(fullsample)
     nmx <- nmx[nmx!=yname]
     
