@@ -298,7 +298,7 @@ forecast.midas_r <- function(object,newdata=NULL,method=c("static","dynamic"),in
             outsample <- c(list(rep(NA,h)),outsample)
             names(outsample)[1] <- yname
         }
-        data <- try(rbind_list(insample,outsample))
+        data <- try(rbind_list(insample,outsample[names(insample)]))
         if(class(data)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
         res <- predict(object,newdata=data,na.action=na.pass)        
         n <- length(res)
@@ -316,7 +316,7 @@ forecast.midas_r <- function(object,newdata=NULL,method=c("static","dynamic"),in
                 var[1:m+(i-1)*m]
             },outsample,freqinfo,SIMPLIFY=FALSE)
             hout <- c(yna,hout)
-            fdata <- rbind_list(fdata,hout)
+            fdata <- rbind_list(fdata,hout[names(fdata)])
             if(class(fdata)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
             rr <- predict(object,newdata=fdata,na.action=na.pass)
             n <- length(rr)
