@@ -344,7 +344,8 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
 
     Zenv <- prep$Zenv
     mff <- prep$mf
-
+    isstar <- any(sapply(table,with,any(names(weights)=="*")))
+    
     ##Remove those formulas for which the number of parameters is less or equal than number of lags.
     remove_incomplete <- function(info,nm) {
         cond <- mapply(
@@ -382,7 +383,7 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
     modellist <- mapply(function(f,st) {    
         mff[[2L]] <- f
         ###Add condition for catching the star in the table
-        if(!is.null(prep$itr$lagsTable)) {
+        if(isstar) {
             itr <-  checkARstar(terms(eval(mff[[2]], Zenv)))
             mff[[2]] <- itr$x
         } else itr <- NULL
@@ -580,12 +581,14 @@ prepare_model_frame <- function(data,Zenv,cl,mf,pf) {
 ##' @export
 ##' 
 expand_weights_lags <- function(weights,from=0,to,m=1,start) {
+    
     weights <- as.list(weights)
     kmin <- min(to)
     kmax <- max(to)
     mkmin <- from
     chnm <- sapply(weights,is.character)
     names(weights)[chnm] <- unlist(weights[chnm])
+    if(is.null(names(start)))names(start) <- rep("",length(start))
     if(!identical(names(weights),names(start)))stop("Mismatch between the  weight function names and the names of starting values")
     
     if(m>1) {
@@ -598,10 +601,20 @@ expand_weights_lags <- function(weights,from=0,to,m=1,start) {
     weights <- rep(weights,each=length(lags))
     starts <- rep(start,each=length(lags))
     lags <- rep(lags,length.out=length(weights))
-    out <- list(weights=weights,lags=lags,starts=starts)
+
+    normalize_starts <- function(x) {
+        inds <- which(names(x$weights) %in% c("*",""))
+        for (i in inds ) {
+            x$starts[[i]] <- rep(x$starts[[i]],length.out=length(x$lags[[i]]))
+        }
+        x
+    }
+
+    out <- normalize_starts(list(weights=weights,lags=lags,starts=starts))
     class(out) <- "lws_table"
     out
 }
+
 
 ## @export
 is.lws_table <- function(x) {
@@ -821,7 +834,6 @@ find_mls_terms <- function(term.name,vars) {
     which(res)
 }
 
-
 ##' Creates tables for different forecast horizons and table for combined forecasts
 ##'
 ##' Divide data into in-sample and out-of-sample. Fit different forecasting horizons for in-sample data. Calculate various statistics for out-of-sample.
@@ -1016,3 +1028,4 @@ MAPE <- function(o,p) {
 MASE <- function(o,p) {
     mean(abs(o-p)/mean(abs(diff(o))))
 }
+
