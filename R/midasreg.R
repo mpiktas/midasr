@@ -100,7 +100,9 @@ midas_u <- function(formula, data ,...) {
     mf[[1L]] <- as.name("lm")
     mf[[3L]] <- as.name("ee")   
    
-    eval(mf,Zenv)
+    out <- eval(mf,Zenv)
+    class(out) <- c("midas_u",class(out))
+    out
 }
 
 ##' Restricted MIDAS regression

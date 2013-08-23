@@ -54,6 +54,9 @@ predict.midas_r <- function(object, newdata, na.action = na.omit, ... ) {
     X <- model.matrix(mt, mf) 
     as.vector(X %*% midas_coef(object))
 }
+##' @export
+##' @method predict midas_u
+predict.midas_u <- predict.midas_r
 
 ##' @export
 ##' @method summary midas_r
@@ -149,7 +152,8 @@ logLik.midas_r <- function(object,...) {
 ##' @author Vaidotas Zemlys
 ##' @export
 midas_coef <- function(x) {
-    x$midas.coefficients
+    if(is.null(x$midas.coefficients))coef(x)
+    else x$midas.coefficients
 }
 
 ##' Return the estimated hyper parameters of the weight function(s)
@@ -298,7 +302,7 @@ forecast.midas_r <- function(object,newdata=NULL,method=c("static","dynamic"),in
         }
         data <- try(rbind_list(insample[names(outsample)],outsample))
         if(class(data)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
-        res <- predict(object,newdata=data,na.action=na.pass)        
+        res <- predict.midas_r(object,newdata=data,na.action=na.pass)        
         n <- length(res)
         res[n+1-h:1]
     }
@@ -316,7 +320,7 @@ forecast.midas_r <- function(object,newdata=NULL,method=c("static","dynamic"),in
             hout <- c(yna,hout)
             fdata <- rbind_list(fdata[names(hout)],hout)
             if(class(fdata)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
-            rr <- predict(object,newdata=fdata,na.action=na.pass)
+            rr <- predict.midas_r(object,newdata=fdata,na.action=na.pass)
             n <- length(rr)
             res[i] <- rr[n]
             fdata[[yname]][n] <- res[i]             
@@ -324,6 +328,10 @@ forecast.midas_r <- function(object,newdata=NULL,method=c("static","dynamic"),in
         res
     }
 }
+
+##' @export
+##' @method forecast midas_u
+forecast.midas_u <- forecast.midas_r
 
 rbind_list <- function(el1,el2) {
     if(is.null(el1)) return(el2)
