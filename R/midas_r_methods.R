@@ -14,17 +14,36 @@ deviance.midas_r <- function(object,...) {
 
 ##' Predicted values based on \code{midas_r} object.
 ##'
-##' \code{predict.midas_r} produces predicted values, obtained by evaluating regression function in the frame \code{newdata}. This means that the apropriate model matrix is constructed using only the data in \code{newdata}. This makes this function not very convenient for forecasting purposes. If you want to supply the new data for forecasting horizon only use the function \link{forecast.midas_r}. Also this function produces only static predictions, if you want dynamic forecasts use the \link{forecast.midas_r}.
+##' \code{predict.midas_r} produces predicted values, obtained by evaluating regression function in the frame \code{newdata}. This means that the appropriate model matrix is constructed using only the data in \code{newdata}. This makes this function not very convenient for forecasting purposes. If you want to supply the new data for forecasting horizon only use the function \link{forecast.midas_r}. Also this function produces only static predictions, if you want dynamic forecasts use the \link{forecast.midas_r}.
 ##' 
 ##' @title Predict method for MIDAS regression fit
 ##' @param object \code{\link{midas_r}} object
-##' @param newdata a named list containing data for mixed frequencies. If ommitted, the fitted values are used.
-##' @param na.action function determining what should be done with missing values in \code{newdata}. The most likely cause of missing values is the insufficient data for the lagged variables. The default is to ommit such missing values.
+##' @param newdata a named list containing data for mixed frequencies. If omitted, the fitted values are used.
+##' @param na.action function determining what should be done with missing values in \code{newdata}. The most likely cause of missing values is the insufficient data for the lagged variables. The default is to omit such missing values.
 ##' @param ... additional arguments, not used
 ##' @return a vector of predicted values
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @method predict midas_r
 ##' @rdname predict.midas_r
+##' @examples
+##' data("USrealgdp")
+##' data("USunempr")
+##' 
+##' y <- diff(log(USrealgdp))
+##' x <- window(diff(USunempr), start = 1949)
+##' 
+##' ##24 high frequency lags of x included
+##' mr <- midas_r(y ~ fmls(x, 23, 12, nealmon), start = list(x = rep(0, 3)))
+##' 
+##' ##Declining unemployment
+##' xn <- rnorm(2 * 12, -0.1, 0.1)
+##' 
+##' ##Only one predicted value, historical values discarded
+##' predict(mr, list(x = xn))
+##' 
+##' ##Historical values taken into account
+##' forecast(mr, list(x = xn))
+##'
 ##' @export
 predict.midas_r <- function(object, newdata, na.action = na.omit, ... ) {
     Zenv <- new.env(parent=parent.frame())
@@ -270,6 +289,32 @@ get_frequency_info<- function(mt,Zenv) {
 ##' @return a vector of forecasts
 ##' @author Vaidotas Zemlys
 ##' @rdname forecast.midas_r
+##' @examples
+##' data("USrealgdp")
+##' data("USunempr")
+##' 
+##' y <- diff(log(USrealgdp))
+##' x <- window(diff(USunempr), start = 1949)
+##' trend <- 1:length(y)
+##' 
+##' ##24 high frequency lags of x included
+##' mr <- midas_r(y ~ trend + fmls(x, 23, 12, nealmon), start = list(x = rep(0, 3)))
+##' 
+##' ##Forecast horizon
+##' h <- 3
+##' ##Declining unemployment
+##' xn <- rnorm(h * 12, -0.1, 0.1)
+##' ##New trend values
+##' trendn <- length(y) + 0:(h - 1)
+##' 
+##' ##Static forecasts combining historic and new high frequency data
+##' forecast(mr, list(trend = trendn, x = xn), method = "static")
+##' 
+##' ##Dynamic AR* model
+##' mr.dyn <- midas_r(y ~ trend + mls(y, 1:2, 1, "*") + fmls(x, 11, 12, nealmon), start = list(x = rep(0, 3)))
+##' 
+##' forecast(mr.dyn, list(trend = trendn, x = xn), method = "dynamic")
+##'
 ##' @export
 forecast <- function(object,...) UseMethod("forecast") 
 
@@ -372,7 +417,7 @@ data_to_env <- function(data) {
     ee
 }
 
-##' Gets the data which was used to etimate MIDAS regression
+##' Gets the data which was used to estimate MIDAS regression
 ##'
 ##' A helper function. 
 ##' @title Get the data which was used to etimate MIDAS regression
