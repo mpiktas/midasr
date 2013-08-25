@@ -137,6 +137,7 @@ midas_u <- function(formula, data ,...) {
 ##' \item{user.gradient}{the value of supplied argument user.gradient}
 ##' 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @references Clements, M. and Galvão, A., \emph{Macroeconomic Forecasting With Mixed-Frequency Data: Forecasting Output Growth in the United States}, Journal of Business and Economic Statistics, Vol.26 (No.4), (2008) 546-554
 ##' @rdname midas_r
 ##' @seealso midas_r.midas_r
 ##' @examples
@@ -191,6 +192,8 @@ midas_u <- function(formula, data ,...) {
 ##' where \eqn{h=0,...,(k+1)m}, together with coefficients \eqn{\beta} corresponding to additional low frequency regressors.
 ##'
 ##' MIDAS regression involves times series with different frequencies. 
+##'
+##' MIDAS-AR* (a model with a common factor, see (Clements and Galvão, 2008)) can be estimated by specifying additional argument, see an example.
 ##'
 ##' The restriction function must return the restricted coefficients of
 ##' the MIDAS regression.
@@ -615,12 +618,12 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
 ##' @param z additional low frequency variables
 ##' @param weight the weight function
 ##' @param grw the gradient of weight function
-##' @param startx the starting values for weigt function
+##' @param startx the starting values for weight function
 ##' @param startz the starting values for additional low frequency variables
 ##' @param method a method passed to \link{optim}
 ##' @param ... additional parameters to \link{optim}
 ##' @return a \code{midas_r} object
-##' @author Virmantas Kvedars, Vaidotas Zemlys
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @import numDeriv
 midas_r_fast <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method="BFGS",...) {
 
