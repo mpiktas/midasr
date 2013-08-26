@@ -33,7 +33,7 @@
   table for which the chosen information criteria achieves
   the smallest value. The function works with model tables
   produced by functions \link{lf_lags_table},
-  \link{hf_lags_table}, \link{ghysels_table} and
+  \link{hf_lags_table}, \link{multmidas_table} and
   \link{midas_r_ic_table}.
 }
 \examples{

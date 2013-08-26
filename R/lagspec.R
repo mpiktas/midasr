@@ -34,14 +34,14 @@ nealmon <- function(p,d,m) {
   as.vector(p[1] * exp(plc)/sum(exp(plc)))
 }
 
-##' Combines given weight function into special combination used by E. Ghysels. 
+##' Produces weights for multiplicative MIDAS regressions
 ##'
 ##' Given a weight function \eqn{w(\beta,\theta)} which has a property of being defined as \eqn{\beta g(\theta)} the following combinations are defined.
 ##' \deqn{(w(\beta_1,\theta_1),...,w(\beta_k,theta_k))}
 ##' \deqn{(w(\beta_1,\theta),...,w(\beta_k,\theta))}
 ##' \deqn{\beta(w(1,\theta_1),...,w(1,\theta_k))}
 ##' 
-##' @title Special combination of weights
+##' @title Weights for multiplicative MIDAS regressions
 ##' @param p parameters for weight functions, see details.
 ##' @param d number of lags
 ##' @param m the frequency
@@ -50,7 +50,7 @@ nealmon <- function(p,d,m) {
 ##' @return a vector of weights
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-ghyselslag <- function(p,d,m,weight=nealmon,type=c("A","B","C")) {
+mmweights <- function(p,d,m,weight=nealmon,type=c("A","B","C")) {
     type <- match.arg(type)
     hf <- d%/%m
     

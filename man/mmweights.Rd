@@ -1,8 +1,8 @@
-\name{ghyselslag}
-\alias{ghyselslag}
-\title{Special combination of weights}
+\name{mmweights}
+\alias{mmweights}
+\title{Weights for multiplicative MIDAS regressions}
 \usage{
-  ghyselslag(p, d, m, weight = nealmon,
+  mmweights(p, d, m, weight = nealmon,
     type = c("A", "B", "C"))
 }
 \arguments{
@@ -21,8 +21,7 @@
   a vector of weights
 }
 \description{
-  Combines given weight function into special combination
-  used by E. Ghysels.
+  Produces weights for multiplicative MIDAS regressions
 }
 \details{
   Given a weight function \eqn{w(\beta,\theta)} which has a

@@ -1,8 +1,8 @@
-\name{ghysels_table}
-\alias{ghysels_table}
+\name{multmidas_table}
+\alias{multmidas_table}
 \title{Weight and lag selection table for MIDAS regression model with Ghysels schema}
 \usage{
-  ghysels_table(formula, data, weights, wstart, type,
+  multmidas_table(formula, data, weights, wstart, type,
     start = NULL, from, to, IC = c("AIC", "BIC"),
     test = c("hAh.test"), Ofunction = "optim",
     user.gradient = FALSE, ...)
@@ -22,7 +22,7 @@
   firs low frequency lag}
 
   \item{type}{the type of Ghysels schema see
-  \link{ghyselslag}, can be a vector of types}
+  \link{mmweights}, can be a vector of types}
 
   \item{start}{the starting values for optimisation
   excluding the starting values for the last term}
@@ -67,8 +67,8 @@
   \item{lags}{the lags used in models}
 }
 \description{
-  Create weight and lag selection table for the MIDAS
-  regression model with Ghysels schema
+  Create weight and lag selection table for the
+  multiplicative MIDAS regression model
 }
 \details{
   This function estimates models sequentialy increasing the
@@ -86,7 +86,7 @@ y <- diff(log(USrealgdp))
 x <- window(diff(USunempr),start=1949)
 trend <- 1:length(y)
 
-tb <- ghysels_table(y~trend+fmls(x,12,12,nealmon),data=list(y=y,x=x,trend=trend),weights=c("nealmon"),wstart=list(nealmon=c(0,0,0)),start=list(trend=1),type=c("A"),from=0,to=c(1,3))
+tb <- multmidas_table(y~trend+fmls(x,12,12,nealmon),data=list(y=y,x=x,trend=trend),weights=c("nealmon"),wstart=list(nealmon=c(0,0,0)),start=list(trend=1),type=c("A"),from=0,to=c(1,3))
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

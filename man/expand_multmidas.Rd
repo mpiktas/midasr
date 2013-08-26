@@ -1,9 +1,9 @@
-\name{expand_ghysels}
-\alias{expand_ghysels}
+\name{expand_multmidas}
+\alias{expand_multmidas}
 \title{Create table of weights, lags and starting values for Ghysels weight schema}
 \usage{
-  expand_ghysels(weight, type = c("A", "B", "C"), from = 0,
-    to, m, start)
+  expand_multmidas(weight, type = c("A", "B", "C"),
+    from = 0, to, m, start)
 }
 \arguments{
   \item{weight}{the names of weight functions}
@@ -29,7 +29,7 @@
 }
 \description{
   Create table of weights, lags and starting values for
-  Ghysels weight schema, see \link{ghyselslag}
+  Ghysels weight schema, see \link{mmweights}
 }
 \details{
   Given weight function creates lags starting from
@@ -37,7 +37,7 @@
   for each low frequency lag.
 }
 \examples{
-expand_ghysels("nealmon","A",0,c(1,2),12,c(0,0,0))
+expand_multmidas("nealmon","A",0,c(1,2),12,c(0,0,0))
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys
