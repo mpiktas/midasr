@@ -17,7 +17,7 @@
   \item{start}{the starting values for optimisation}
 
   \item{from}{a named list, or named vector with high
-  frequency (NB!) lag numbers which are the beginings of
+  frequency (NB!) lag numbers which are the beginnings of
   MIDAS lag structures. The names should correspond to the
   MIDAS lag terms in the formula for which to do the lag
   selection. Value NA indicates lag start at zero}
@@ -29,7 +29,7 @@
   selection ends. NA indicates lowest (highest) lag numbers
   possible.}
 
-  \item{IC}{the information criterias which to compute}
+  \item{IC}{the information criteria which to compute}
 
   \item{test}{the names of statistical tests to perform on
   restricted model, p-values are reported in the columns of
@@ -58,8 +58,8 @@
   minimum and maximum lags.
 }
 \details{
-  This function estimates models sequentialy increasing the
-  midas lag from \code{kmin} to \code{kmax} of the last
+  This function estimates models sequentially increasing
+  the midas lag from \code{kmin} to \code{kmax} of the last
   term of the given formula
 }
 \examples{

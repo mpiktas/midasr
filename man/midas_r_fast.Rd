@@ -16,7 +16,7 @@
 
   \item{grw}{the gradient of weight function}
 
-  \item{startx}{the starting values for weigt function}
+  \item{startx}{the starting values for weight function}
 
   \item{startz}{the starting values for additional low
   frequency variables}
@@ -32,6 +32,6 @@
   Fast function for fitting MIDAS regression
 }
 \author{
-  Virmantas Kvedars, Vaidotas Zemlys
+  Virmantas Kvedaras, Vaidotas Zemlys
 }
 

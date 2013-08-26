@@ -28,7 +28,7 @@
   excluding the starting values for the last term}
 
   \item{from}{a named list, or named vector with high
-  frequency (NB!) lag numbers which are the beginings of
+  frequency (NB!) lag numbers which are the beginnings of
   MIDAS lag structures. The names should correspond to the
   MIDAS lag terms in the formula for which to do the lag
   selection. Value NA indicates lag start at zero}
@@ -64,7 +64,7 @@
   \item{candlist}{the list containing fitted models}
   \item{IC}{the argument IC} \item{test}{the argument test}
   \item{weights}{the names of weight functions}
-  \item{lags}{the lags used in models} ##'
+  \item{lags}{the lags used in models}
 }
 \description{
   Create weight and lag selection table for the MIDAS
@@ -75,9 +75,9 @@
   midas lag from \code{kmin} to \code{kmax} and varying the
   weights of the last term of the given formula
 
-  This function estimates models sequentialy increasing the
-  midas lag from \code{kmin} to \code{kmax} and varying the
-  weights of the last term of the given formula
+  This function estimates models sequentially increasing
+  the midas lag from \code{kmin} to \code{kmax} and varying
+  the weights of the last term of the given formula
 }
 \examples{
 data("USunempr")

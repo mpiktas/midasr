@@ -24,7 +24,7 @@
   \item{table}{an wls_table object, see
   \link{expand_weights_lags}}
 
-  \item{IC}{the names of information criterias which to
+  \item{IC}{the names of information criteria which to
   compute}
 
   \item{test}{the names of statistical tests to perform on
@@ -54,9 +54,9 @@
   minimum and maximum lags.
 }
 \details{
-  This function estimates models sequentialy increasing the
-  midas lag from \code{kmin} to \code{kmax} and varying the
-  weights of the last term of the given formula
+  This function estimates models sequentially increasing
+  the midas lag from \code{kmin} to \code{kmax} and varying
+  the weights of the last term of the given formula
 }
 \examples{
 data("USunempr")

@@ -16,7 +16,7 @@
 
   \item{start}{the starting values for optimisation}
 
-  \item{IC}{the information criterias which to compute}
+  \item{IC}{the information criteria which to compute}
 
   \item{test}{the names of statistical tests to perform on
   restricted model, p-values are reported in the columns of
@@ -45,8 +45,8 @@
   weight functions.
 }
 \details{
-  This function estimates models sequentialy increasing the
-  midas lag from \code{kmin} to \code{kmax} of the last
+  This function estimates models sequentially increasing
+  the midas lag from \code{kmin} to \code{kmax} of the last
   term of the given formula
 }
 \examples{

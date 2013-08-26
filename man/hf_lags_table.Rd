@@ -28,7 +28,7 @@
   lag number at which the lag selection ends. NA indicates
   lowest (highest) lag numbers possible.}
 
-  \item{IC}{the information criterias which to compute}
+  \item{IC}{the information criteria which to compute}
 
   \item{test}{the names of statistical tests to perform on
   restricted model, p-values are reported in the columns of
@@ -57,8 +57,8 @@
   minimum and maximum lags.
 }
 \details{
-  This function estimates models sequentialy increasing the
-  midas lag from \code{kmin} to \code{kmax} of the last
+  This function estimates models sequentially increasing
+  the midas lag from \code{kmin} to \code{kmax} of the last
   term of the given formula
 }
 \examples{

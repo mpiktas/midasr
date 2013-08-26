@@ -88,6 +88,10 @@
   MIDAS regression involves times series with different
   frequencies.
 
+  MIDAS-AR* (a model with a common factor, see (Clements
+  and Galvao, 2008)) can be estimated by specifying
+  additional argument, see an example.
+
   The restriction function must return the restricted
   coefficients of the MIDAS regression.
 }
@@ -135,6 +139,12 @@ mr.arstar <-  midas_r(y.ar ~ trend + mls(y.ar, 1, 1, "*") + fmls(xx, 11, 12, nea
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys
+}
+\references{
+  Clements, M. and Galvao, A., \emph{Macroeconomic
+  Forecasting With Mixed-Frequency Data: Forecasting Output
+  Growth in the United States}, Journal of Business and
+  Economic Statistics, Vol.26 (No.4), (2008) 546-554
 }
 \seealso{
   midas_r.midas_r

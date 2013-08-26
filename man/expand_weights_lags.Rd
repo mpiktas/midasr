@@ -12,8 +12,8 @@
   the fitting}
 
   \item{to}{a vector of length two, containing minimum and
-  maxmimum lags, high frequency if \code{m=1}, low
-  frequency otherwise.}
+  maximum lags, high frequency if \code{m=1}, low frequency
+  otherwise.}
 
   \item{m}{the frequency ratio}
 

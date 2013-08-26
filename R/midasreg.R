@@ -137,7 +137,7 @@ midas_u <- function(formula, data ,...) {
 ##' \item{user.gradient}{the value of supplied argument user.gradient}
 ##' 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
-##' @references Clements, M. and Galvão, A., \emph{Macroeconomic Forecasting With Mixed-Frequency Data: Forecasting Output Growth in the United States}, Journal of Business and Economic Statistics, Vol.26 (No.4), (2008) 546-554
+##' @references Clements, M. and Galvao, A., \emph{Macroeconomic Forecasting With Mixed-Frequency Data: Forecasting Output Growth in the United States}, Journal of Business and Economic Statistics, Vol.26 (No.4), (2008) 546-554
 ##' @rdname midas_r
 ##' @seealso midas_r.midas_r
 ##' @examples
@@ -193,7 +193,7 @@ midas_u <- function(formula, data ,...) {
 ##'
 ##' MIDAS regression involves times series with different frequencies. 
 ##'
-##' MIDAS-AR* (a model with a common factor, see (Clements and Galvão, 2008)) can be estimated by specifying additional argument, see an example.
+##' MIDAS-AR* (a model with a common factor, see (Clements and Galvao, 2008)) can be estimated by specifying additional argument, see an example.
 ##'
 ##' The restriction function must return the restricted coefficients of
 ##' the MIDAS regression.
