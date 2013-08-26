@@ -618,7 +618,7 @@ expand_weights_lags <- function(weights,from=0,to,m=1,start) {
         }
         x
     }
-
+    ##For "" and "*" weights replicate the starts according to lags
     out <- normalize_starts(list(weights=weights,lags=lags,starts=starts))
     class(out) <- "lws_table"
     out
@@ -861,22 +861,17 @@ find_mls_terms <- function(term.name,vars) {
 ##' @param test argument to modsel
 ##' @param measures the names of goodness of fit measures
 ##' @param fweights names of weighting schemes
-##' @return a list of tables, bestmodels, indata and outdata
+##' @param fmethod forecastin method, either static or dynamic
+##' @param ... additional arguments for optimisation method, see \link{midas_r}
+##' @return a list of tables, best models, in-sample data and out-of-sample data
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,wstart,start=NULL,IC="AIC",type="restricted",test="hAh.test",measures=c("MSE","MAPE","MASE"),fweights=c("EW","BICW","MSFE","DMSFE")) {
-
-    #High frequency only
+combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,wstart,start=NULL,IC="AIC",type="restricted",test="hAh.test",measures=c("MSE","MAPE","MASE"),fweights=c("EW","BICW","MSFE","DMSFE"),fmethod=c("static","dynamic"),...) {
     
-    #indata <- getsample(data,insample)
-    #outdata <- getsample(data,outsample)
-
-    ##One h
-    ##Get m
-    ##Construct tables
-
-    ##Perform model selection for each weight combination
-
+    if(length(setdiff(fweights,c("EW","BICW","MSFE","DMSFE")))>0) {
+        stop("Supported weight schemes are EW, BICW, MSFE, DMSFE")
+    }
+    method <- match.arg(method)
     Zenv <-  Zenv <- new.env(parent=environment(formula))
     formula <- as.formula(formula)
 
@@ -884,6 +879,7 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
     else dataenv <- data_to_env(data)
 
     ##Change this, there is a cleaner way
+    mt <- terms(formula)
     m <- get_frequency_info(mt,Zenv)
     nms <- names(m)
     fullsample <- lapply(nms,function(nm)eval(as.name(nm),dataenv))
@@ -917,14 +913,22 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
         fhtab[[h]] <- res
     }
 
-    
-    bestm <- lapply(fhtab,function(fh)lapply(fh,function(tb){
-        modsel(midas_r_ic_table(formula,data=indata,start=start,table=tb,IC=IC,test=test),IC=IC,type=type,print=FALSE)
-    }))
-
+    modno <- sapply(fhtab,length)
+    nmodno <- sum(modno)
+    cat("\nModel selection progress:\n")    
+    pb <- txtProgressBar(min=0,max=nmodno,initial=0,style=3)
+   
+    bestm <- mapply(function(fh,prog)
+                    mapply(function(tb,i){
+                        out <- modsel(midas_r_ic_table(formula,data=indata,start=start,table=tb,IC=IC,test=test),IC=IC,type=type,print=FALSE,...)
+                        setTxtProgressBar(pb, i)
+                        out
+                    },fh,as.list(prog+1:length(fh)),SIMPLIFY=FALSE),
+                    fhtab,as.list(c(0,cumsum(modno)[-length(modno)])),SIMPLIFY=FALSE)
+    close(pb)   
     outf <- lapply(bestm,function(fh)
                    lapply(fh,function(mod) {
-                       cbind(outdata[[yname]],forecast.midas_r(mod,newdata=outdata[nmx]))
+                       cbind(outdata[[yname]],forecast.midas_r(mod,newdata=outdata[nmx],method=fmethod))
                       }))
 
     inf <- lapply(bestm,function(fh)
@@ -962,7 +966,9 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
         rep(1/n,n)
     }
     BICW <- function(hh) {
-        ebic <- exp(-sapply(hh,BIC))
+        bicm <- sapply(hh,BIC)
+        bicm <- bicm-min(bicm)
+        ebic <- exp(-bicm)
         sebic <- sum(ebic)
         if(sebic==0)EW(hh)
         else ebic/sebic        
@@ -986,30 +992,32 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
         ff <- sapply(fh,function(ll)ll[,2])
         cbind(fh[[1]][,1],apply(ff,1,function(r)sum(r*ww)))
     }
-
-    outc <- lapply(list(w1,w2,w3,w4),function(ww)mapply(combine_ff,outf,ww,SIMPLIFY=FALSE))
     
+    allwlist <- list(w1,w2,w3,w4)
+    names(allwlist) <- c("EW","BICW","MSFE","DMSFE")
+    wlist <- allwlist[fweights]
+    outc <- lapply(wlist,function(ww)mapply(combine_ff,outf,ww,SIMPLIFY=FALSE))
+    inc <- lapply(wlist,function(ww)mapply(combine_ff,inf,ww,SIMPLIFY=FALSE))
 
-    inc <- lapply(list(w1,w2,w3,w4),function(ww)mapply(combine_ff,inf,ww,SIMPLIFY=FALSE))
-
-    names(outc) <- c("EW","BICW","MSFE","DMSFE") -> names(inc)
-
+    names(outc) <- fweights -> names(inc)
+    
     tboutc <- calcmsr(outc)
     tbinc <- calcmsr(inc)
-    hhname <- lapply(tboutc,function(l)ifelse(is.null(dim(l)),1,1:nrow(l)))
+    hhname <- lapply(tboutc,function(l) {
+        if(is.null(dim(l)))return(1)
+        else return(1:nrow(l))
+    })
+    
     hh1 <- do.call("rbind",mapply(function(w,h)data.frame(Scheme=w,Horizon=h),as.list(names(outc)),hhname,SIMPLIFY=FALSE))
-    
-    
+        
     tabh <- data.frame(hh1,
                        combine_table(tbinc,paste0(measures,".in-sample")),
                        combine_table(tboutc,paste0(measures,".out-of-sample"))
                        )
     tabh[order(tabh$Horizon,tabh$Scheme),]
-    
-    
+        
     list(tabfh=tabfh,tabh=tabh,lws=fhtab,indata=indata,outdata=outdata,bestlist=bestm,outf=outf,inf=inf,outc=outc,inc=inc)
-    
-    
+        
 }
 
     
@@ -1029,3 +1037,10 @@ MASE <- function(o,p) {
     mean(abs(o-p)/mean(abs(diff(o))))
 }
 
+
+##Write this function later
+#forecast_average <- function(modlist,newdata,weights=c("EW","BICW","MSFE","D#MSFE"),method=c("static","dynamic"),...) {
+#    method <- match.arg(method)
+#    outsample <- as.list(data_to_env(newdata))
+#    
+#}

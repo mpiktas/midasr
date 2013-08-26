@@ -37,6 +37,32 @@
   the historical values used in the fitting the MIDAS
   regression model and calculates the forecasts.
 }
+\examples{
+data("USrealgdp")
+data("USunempr")
+
+y <- diff(log(USrealgdp))
+x <- window(diff(USunempr), start = 1949)
+trend <- 1:length(y)
+
+##24 high frequency lags of x included
+mr <- midas_r(y ~ trend + fmls(x, 23, 12, nealmon), start = list(x = rep(0, 3)))
+
+##Forecast horizon
+h <- 3
+##Declining unemployment
+xn <- rnorm(h * 12, -0.1, 0.1)
+##New trend values
+trendn <- length(y) + 0:(h - 1)
+
+##Static forecasts combining historic and new high frequency data
+forecast(mr, list(trend = trendn, x = xn), method = "static")
+
+##Dynamic AR* model
+mr.dyn <- midas_r(y ~ trend + mls(y, 1:2, 1, "*") + fmls(x, 11, 12, nealmon), start = list(x = rep(0, 3)))
+
+forecast(mr.dyn, list(trend = trendn, x = xn), method = "dynamic")
+}
 \author{
   Vaidotas Zemlys
 }

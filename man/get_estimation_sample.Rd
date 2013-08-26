@@ -11,7 +11,7 @@
   a named list with mixed frequency data
 }
 \description{
-  Gets the data which was used to etimate MIDAS regression
+  Gets the data which was used to estimate MIDAS regression
 }
 \details{
   A helper function.

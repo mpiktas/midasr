@@ -361,7 +361,7 @@ forecast.midas_r <- function(object,newdata=NULL,method=c("static","dynamic"),in
             ##Get the data for the current low frequency lag
             hout <- mapply(function(var,m){
                 var[1:m+(i-1)*m]
-            },outsample,freqinfo,SIMPLIFY=FALSE)
+            },outsample,freqinfo[names(outsample)],SIMPLIFY=FALSE)
             hout <- c(yna,hout)
             fdata <- rbind_list(fdata[names(hout)],hout)
             if(class(fdata)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")

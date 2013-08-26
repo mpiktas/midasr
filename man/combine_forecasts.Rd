@@ -6,7 +6,8 @@
     outsample, weights, wstart, start = NULL, IC = "AIC",
     type = "restricted", test = "hAh.test",
     measures = c("MSE", "MAPE", "MASE"),
-    fweights = c("EW", "BICW", "MSFE", "DMSFE"))
+    fweights = c("EW", "BICW", "MSFE", "DMSFE"),
+    fmethod = c("static", "dynamic"), ...)
 }
 \arguments{
   \item{formula}{initial formula for the}
@@ -38,9 +39,16 @@
   \item{measures}{the names of goodness of fit measures}
 
   \item{fweights}{names of weighting schemes}
+
+  \item{fmethod}{forecastin method, either static or
+  dynamic}
+
+  \item{...}{additional arguments for optimisation method,
+  see \link{midas_r}}
 }
 \value{
-  a list of tables, bestmodels, indata and outdata
+  a list of tables, best models, in-sample data and
+  out-of-sample data
 }
 \description{
   Creates tables for different forecast horizons and table
