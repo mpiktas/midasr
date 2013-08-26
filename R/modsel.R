@@ -6,7 +6,7 @@
 ##' @param start the starting values for optimisation
 ##' @param from a named list, or named vector with lag numbers which are the beginings of MIDAS lag structures. The names should correspond to the MIDAS lag terms in the formula for which to do the lag selection. Value NA indicates lag start at zero
 ##' @param to a named list where each element is a vector with two elements. The first element is the lag number from which the lag selection starts, the second is the lag number at which the lag selection ends. NA indicates lowest (highest) lag numbers possible.
-##' @param IC the information criterias which to compute
+##' @param IC the information criteria which to compute
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
 ##' @param Ofunction see \link{midasr}
 ##' @param user.gradient see \link{midas_r}
@@ -27,7 +27,7 @@
 ##' mlr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=c(x=0),to=list(x=c(4,8)))
 ##' mlr
 ##'
-##' @details This function estimates models sequentialy increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
+##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
 hf_lags_table<- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
@@ -81,9 +81,9 @@ hf_lags_table<- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hA
 ##' @param formula the formula for MIDAS regression, the lag selection is performed for the last MIDAS lag term in the formula
 ##' @param data a list containing data with mixed frequencies
 ##' @param start the starting values for optimisation
-##' @param from a named list, or named vector with high frequency (NB!) lag numbers which are the beginings of MIDAS lag structures. The names should correspond to the MIDAS lag terms in the formula for which to do the lag selection. Value NA indicates lag start at zero
+##' @param from a named list, or named vector with high frequency (NB!) lag numbers which are the beginnings of MIDAS lag structures. The names should correspond to the MIDAS lag terms in the formula for which to do the lag selection. Value NA indicates lag start at zero
 ##' @param to a named list where each element is a vector with two elements. The first element is the low frequency lag number from which the lag selection starts, the second is the low frequency lag number at which the lag selection ends. NA indicates lowest (highest) lag numbers possible.
-##' @param IC the information criterias which to compute
+##' @param IC the information criteria which to compute
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
 ##' @param Ofunction see \link{midasr}
 ##' @param user.gradient see \link{midas_r}
@@ -104,7 +104,7 @@ hf_lags_table<- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hA
 ##' mlr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=c(x=0),to=list(x=c(3,4)))
 ##' mlr
 ##'
-##' @details This function estimates models sequentialy increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
+##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
 lf_lags_table <- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
@@ -242,7 +242,7 @@ modsel <- function(x,IC=x$IC[1],test=x$test[1],type=c("restricted","unrestricted
 ##' @param formula the formula for MIDAS regression, the lag selection is performed for the last MIDAS lag term in the formula
 ##' @param data a list containing data with mixed frequencies
 ##' @param start the starting values for optimisation
-##' @param IC the information criterias which to compute
+##' @param IC the information criteria which to compute
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
 ##' @param Ofunction see \link{midasr}
 ##' @param user.gradient see \link{midas_r}
@@ -263,7 +263,7 @@ modsel <- function(x,IC=x$IC[1],test=x$test[1],type=c("restricted","unrestricted
 ##'
 ##' mwr
 ##'
-##' @details This function estimates models sequentialy increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
+##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
 weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
@@ -297,7 +297,7 @@ weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh.
 ##' @param data a list containing data with mixed frequencies
 ##' @param start the starting values for optimisation excluding the starting values for the last term
 ##' @param table an wls_table object, see \link{expand_weights_lags}
-##' @param IC the names of information criterias which to compute
+##' @param IC the names of information criteria which to compute
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
 ##' @param Ofunction see \link{midasr}
 ##' @param user.gradient see \link{midas_r}
@@ -320,7 +320,7 @@ weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh.
 ##'
 ##' mwlr
 ##'
-##' @details This function estimates models sequentialy increasing the midas lag from \code{kmin} to \code{kmax} and varying the weights of the last term of the given formula 
+##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} and varying the weights of the last term of the given formula 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @rdname midas_r_ic_table
 ##' @export
@@ -575,7 +575,7 @@ prepare_model_frame <- function(data,Zenv,cl,mf,pf) {
 ##' @title Create table of weights, lags and starting values
 ##' @param weights either a vector with names of the weight functions or a named list of weight functions
 ##' @param from the high frequency lags from which to start the fitting
-##' @param to a vector of length two, containing minimum and maxmimum lags, high frequency if \code{m=1}, low frequency otherwise.
+##' @param to a vector of length two, containing minimum and maximum lags, high frequency if \code{m=1}, low frequency otherwise.
 ##' @param m the frequency ratio
 ##' @param start a named list with the starting values for weight functions
 ##' @return a \code{lws_table} object, a list with elements \code{weights}, \code{lags} and \code{starts}.
@@ -644,7 +644,7 @@ print.lws_table <- function(x,...) {
 ##' @param weight the names of weight functions
 ##' @param type the type of Ghysels schema, \code{"A"}, \code{"B"} or \code{"C"}
 ##' @param from the high frequency lags from which to start the fitting
-##' @param to to a vector of length two, containing minimum and maxmimum lags, high frequency if \code{m=1}, low frequency otherwise.
+##' @param to to a vector of length two, containing minimum and maximum lags, high frequency if \code{m=1}, low frequency otherwise.
 ##' @param m the frequency ratio
 ##' @param start the starting values for the weights of the one low frequency lag
 ##' @return a \code{lws_table} object, a list with elements \code{weights}, \code{lags} and \code{starts}
@@ -723,7 +723,7 @@ expand_ghysels <- function(weight,type=c("A","B","C"),from=0,to,m,start) {
 ##' @param wstart the starting values for the weights of the firs low frequency lag
 ##' @param type the type of Ghysels schema see \link{ghyselslag}, can be a vector of types
 ##' @param start the starting values for optimisation excluding the starting values for the last term
-##' @param from a named list, or named vector with high frequency (NB!) lag numbers which are the beginings of MIDAS lag structures. The names should correspond to the MIDAS lag terms in the formula for which to do the lag selection. Value NA indicates lag start at zero
+##' @param from a named list, or named vector with high frequency (NB!) lag numbers which are the beginnings of MIDAS lag structures. The names should correspond to the MIDAS lag terms in the formula for which to do the lag selection. Value NA indicates lag start at zero
 ##' @param to to a named list where each element is a vector with two elements. The first element is the low frequency lag number from which the lag selection starts, the second is the low frequency lag number at which the lag selection ends. NA indicates lowest (highest) lag numbers possible.
 ##' @param IC the names of information criteria which should be calculated
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
@@ -738,7 +738,7 @@ expand_ghysels <- function(weight,type=c("A","B","C"),from=0,to,m,start) {
 ##' \item{test}{the argument test}
 ##' \item{weights}{the names of weight functions}
 ##' \item{lags}{the lags used in models}
-##' ##' @examples
+##' @examples
 ##'
 ##' data("USunempr")
 ##' data("USrealgdp")
@@ -749,7 +749,7 @@ expand_ghysels <- function(weight,type=c("A","B","C"),from=0,to,m,start) {
 ##' tb <- ghysels_table(y~trend+fmls(x,12,12,nealmon),data=list(y=y,x=x,trend=trend),weights=c("nealmon"),wstart=list(nealmon=c(0,0,0)),start=list(trend=1),type=c("A"),from=0,to=c(1,3))
 ##'
 ##' 
-##' @details This function estimates models sequentialy increasing the midas lag from \code{kmin} to \code{kmax} and varying the weights of the last term of the given formula 
+##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} and varying the weights of the last term of the given formula 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
 ghysels_table <- function(formula,data,weights,wstart,type,start=NULL,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
