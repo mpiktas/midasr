@@ -871,7 +871,7 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
     if(length(setdiff(fweights,c("EW","BICW","MSFE","DMSFE")))>0) {
         stop("Supported weight schemes are EW, BICW, MSFE, DMSFE")
     }
-    method <- match.arg(method)
+    fmethod <- match.arg(fmethod)
     Zenv <-  Zenv <- new.env(parent=environment(formula))
     formula <- as.formula(formula)
 
