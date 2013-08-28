@@ -447,11 +447,14 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
     start_default <- lapply(rfd,"[[","start")
     names(start_default) <- names(rf)
 
-    if(any(!weight_names%in% names(start)))stop("Starting values for weight hyperparameters must be supplied")
+    if(length(weight_names)==0)warning("Fitting unrestricted Midas model")
+    else {
+        if(any(!weight_names%in% names(start)))stop("Starting values for weight hyperparameters must be supplied")
+    }
     
     start_default[names(start)] <- start
 
-    restr.no <- sum(sapply(start_default[weight_names], length))
+    #restr.no <- sum(sapply(start_default[weight_names], length))
     
     np <- cumsum(sapply(start_default,length))
     
