@@ -320,6 +320,12 @@ midas_r.fit <- function(x) {
         par <- opt$par
         names(par) <- names(coef(x))
     }
+    if(function.opt=="lm") {
+        if(is.null(x$unrestricted))stop("Not possible to estimate MIDAS model, more parameters than observations")
+        par <- coef(x$unrestricted)
+        names(par) <- names(coef(x))
+        opt <- NULL
+    }
     if(function.opt=="nls") {
         rhs <- x$rhs
         if(x$user.gradient) {
@@ -447,7 +453,7 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
     start_default <- lapply(rfd,"[[","start")
     names(start_default) <- names(rf)
 
-    if(length(weight_names)==0)warning("Fitting unrestricted Midas model")
+    if(length(weight_names)==0)Ofunction <- "lm"
     else {
         if(any(!weight_names%in% names(start)))stop("Starting values for weight hyperparameters must be supplied")
     }
