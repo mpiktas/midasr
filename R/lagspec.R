@@ -34,12 +34,18 @@ nealmon <- function(p,d,m) {
   as.vector(p[1] * exp(plc)/sum(exp(plc)))
 }
 
-##' Produces weights for multiplicative MIDAS regressions
+##' Produces weights for multiplicative MIDAS regression
 ##'
-##' Given a weight function \eqn{w(\beta,\theta)} which has a property of being defined as \eqn{\beta g(\theta)} the following combinations are defined.
+##' Given a weight function \eqn{w(\beta,\theta)} which has a property of being defined as \eqn{\beta g(\theta)} the following combinations are defined, corresponding to structure types \code{A}, \code{B} and \code{C} respectively:
 ##' \deqn{(w(\beta_1,\theta_1),...,w(\beta_k,\theta_k))}
 ##' \deqn{(w(\beta_1,\theta),...,w(\beta_k,\theta))}
 ##' \deqn{\beta(w(1,\theta_1),...,w(1,\theta_k))}
+##'
+##' The starting values \eqn{p} should be supplied then as follows:
+##' \deqn{(\beta_1,\theta_1,...,\beta_k,\theta_k)}
+##' \deqn{(\beta_1,...,\beta_k,\theta)}
+##' \deqn{(\beta,\theta_1,...,\theta_k)}
+##'
 ##' 
 ##' @title Weights for multiplicative MIDAS regressions
 ##' @param p parameters for weight functions, see details.

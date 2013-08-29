@@ -201,7 +201,6 @@ midas_u <- function(formula, data ,...) {
 ##' @export
 midas_r <- function(x,...)UseMethod("midas_r")
 
-is.midas_r <- function(x) inherits(x,"midas_r")
 
 #' @rdname midas_r
 #' @method midas_r default

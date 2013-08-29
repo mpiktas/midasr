@@ -326,8 +326,6 @@ weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh.
 ##' @export
 midas_r_ic_table <- function(formula,...) UseMethod("midas_r_ic_table")
 
-is.midas_r_ic_table <- function(x) inherits(x,"midas_r_ic_table")
-
 #' @rdname midas_r_ic_table
 #' @method midas_r_ic_table default
 #' @export
@@ -600,12 +598,6 @@ expand_weights_lags <- function(weights,from=0,to,m=1,start) {
     out <- normalize_starts(list(weights=weights,lags=lags,starts=starts))
     class(out) <- "lws_table"
     out
-}
-
-
-## @export
-is.lws_table <- function(x) {
-    length(unique(sapply(x,length)))==1
 }
 
 ##' @export

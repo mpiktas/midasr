@@ -62,11 +62,9 @@
 ##' @export
 imidas_r <- function(x,...)UseMethod("imidas_r")
 
-is.imidas_r <- function(x) inherits(x,"imidas_r")
-
-#' @rdname imidas_r
-#' @method imidas_r default
-#' @export
+##' @rdname imidas_r
+##' @method imidas_r default
+##' @export
 imidas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim", user.gradient=FALSE,...) {
 
     Zenv <- new.env(parent=environment(x))
