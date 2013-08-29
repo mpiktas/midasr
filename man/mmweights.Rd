@@ -27,7 +27,7 @@
   Given a weight function \eqn{w(\beta,\theta)} which has a
   property of being defined as \eqn{\beta g(\theta)} the
   following combinations are defined.
-  \deqn{(w(\beta_1,\theta_1),...,w(\beta_k,theta_k))}
+  \deqn{(w(\beta_1,\theta_1),...,w(\beta_k,\theta_k))}
   \deqn{(w(\beta_1,\theta),...,w(\beta_k,\theta))}
   \deqn{\beta(w(1,\theta_1),...,w(1,\theta_k))}
 }

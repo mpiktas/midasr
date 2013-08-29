@@ -319,19 +319,22 @@ midas_r.fit <- function(x) {
         opt <- do.call(function.opt,args)
         par <- opt$par
         names(par) <- names(coef(x))
+        x$convergence <- opt$convergence
     }
     if(function.opt=="lm") {
         if(is.null(x$unrestricted))stop("Not possible to estimate MIDAS model, more parameters than observations")
         par <- coef(x$unrestricted)
         names(par) <- names(coef(x))
         opt <- NULL
+        x$convergence <- 0
     }
     if(function.opt=="nls") {
         rhs <- x$rhs
         if(x$user.gradient) {
+            orhs <- rhs
             rhs <- function(p) {
-                res <- rhs(p)
-                attr(res,"gradient") <- x$gr(p)
+                res <- orhs(p)
+                attr(res,"gradient") <- x$model[,-1]%*%x$gradD(p)
                 res
             }
         }
@@ -341,6 +344,7 @@ midas_r.fit <- function(x) {
         opt <- do.call("nls",args)
         par <- coef(opt)
         names(par) <- names(coef(x))
+        x$convergence <- opt$convInfo$stopCode
     }
     x$opt <- opt
     x$coefficients <- par
@@ -364,8 +368,9 @@ midas_r.fit <- function(x) {
 ##' @param user.gradient see \link{midas_r} documentation
 ##' @param lagsTable the lagstable from \link{checkARstar}
 ##' @param unrestricted the unrestricted model
+##' @param guess_start if TRUE, get the initial values for non-MIDAS terms via OLS, if FALSE, initialize them with zero.
 ##' @author Vaidotas Zemlys
-prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTable,unrestricted=NULL) {
+prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTable,unrestricted=NULL,guess_start=TRUE) {
     
     ##High frequency variables can enter to formula
     ##only within fmls function
@@ -448,11 +453,14 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
     
 
     weight_names <- sapply(rfd,"[[","wlabel")
+    weight_inds <- which(weight_names!="")
     weight_names <- weight_names[weight_names!=""]
+    
     
     start_default <- lapply(rfd,"[[","start")
     names(start_default) <- names(rf)
 
+    ##If there are no weight functions, we have unrestricted MIDAS model.
     if(length(weight_names)==0)Ofunction <- "lm"
     else {
         if(any(!weight_names%in% names(start)))stop("Starting values for weight hyperparameters must be supplied")
@@ -460,16 +468,49 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
     
     start_default[names(start)] <- start
 
+    
     #restr.no <- sum(sapply(start_default[weight_names], length))
     
     np <- cumsum(sapply(start_default,length))
-    
-    pinds <- cbind(c(1,np[-length(np)]+1),np)
-    pinds <- apply(pinds,1,function(x)list(x[1]:x[2]))
-    pinds <- lapply(pinds,function(x)x[[1]])
-    names(pinds) <- names(start_default)
 
+    build_indices <- function(ci,nm) {
+        inds <- cbind(c(1,ci[-length(ci)]+1),ci)
+        inds <- apply(inds,1,function(x)list(x[1]:x[2]))
+        inds <- lapply(inds,function(x)x[[1]])
+        names(inds) <- nm
+        inds
+    }
+    
+    pinds <- build_indices(np,names(start_default))
+    
     for(i in 1:length(start_default))names(start_default[[i]]) <- NULL
+
+    if(length(weight_names)>0 && guess_start) {
+        npx <- cumsum(sapply(mapply(function(fun,st)fun(st),rf,start_default,SIMPLIFY=FALSE),length))
+        xinds <- build_indices(npx,names(start_default))
+        wi <- rep(FALSE,length(rf))
+        wi[weight_inds] <- TRUE
+        Xstart <- mapply(function(fun,st,inds,iswhgt) {        
+            if(iswhgt) {
+                X[,inds] %*% fun(st)
+            }
+            else X[,inds]
+        }, rf,start_default,xinds,wi,SIMPLIFY=FALSE)
+
+        npxx <- cumsum(sapply(Xstart,function(x) {
+            ifelse(is.null(dim(x)),1,ncol(x))
+            }))
+        xxinds <- build_indices(npxx,names(start_default))
+        
+        XX <- do.call("cbind",Xstart)
+        prec <- lsfit(XX,y,intercept=FALSE)
+        lmstart <- lapply(xxinds,function(x)coef(prec)[x])
+        names(lmstart) <- names(xxinds)
+        for(i in 1:length(lmstart))names(lmstart[[i]]) <- NULL
+
+        nms <- !(names(start_default) %in% names(start))
+        start_default[nms] <- lmstart[nms]
+    }
     
     starto <- unlist(start_default)
    
@@ -503,7 +544,7 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
         X%*%coefs
     }
   
-    aa <- try(mdsrhs(starto))
+    #aa <- try(mdsrhs(starto))
     
     fn0 <- function(p,...) {
         r <- y - mdsrhs(p)
@@ -545,7 +586,7 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
           }
         } else {
           gradD <- function(p) {
-            dind <- grep("\"*\"", names(pinds))
+              dind <- which(names(pinds)==yname)
             cr <- c(1, -p[pinds[[dind]]])
             pp <- lapply(pinds, function(x) p[x])
             grmat <- mapply(function(fun, param) fun(param), grf, pp, SIMPLIFY = FALSE)
@@ -600,7 +641,7 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
     list(coefficients=starto,
          midas.coefficients=all_coef(starto),
          model=cbind(y,X),
-         weights=rf[weight_names],
+         weights=rf[weight_inds],
          unrestricted=unrestricted,
          param.map=pinds,
          fn0=fn0,

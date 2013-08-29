@@ -405,8 +405,10 @@ data_to_env <- function(data) {
                     names(x) <- nm
                     x
                 } else {
+                    ##This is needed since if tseries library is not loaded as.list for mts does not work as expected
+                    if(inherits(x,"mts")) x <- data.frame(x)
                     as.list(x)
-                    }
+                }
             },data,names(data),SIMPLIFY=FALSE)
             names(data) <- NULL
             ee <- as.environment(do.call("c",data))

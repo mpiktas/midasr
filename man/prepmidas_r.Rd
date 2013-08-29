@@ -3,7 +3,8 @@
 \title{Prepare necessary objects for fitting of the MIDAS regression}
 \usage{
   prepmidas_r(y, X, mt, Zenv, cl, args, start, Ofunction,
-    user.gradient, lagsTable, unrestricted = NULL)
+    user.gradient, lagsTable, unrestricted = NULL,
+    guess_start = TRUE)
 }
 \arguments{
   \item{y}{the response}
@@ -27,6 +28,10 @@
   \item{lagsTable}{the lagstable from \link{checkARstar}}
 
   \item{unrestricted}{the unrestricted model}
+
+  \item{guess_start}{if TRUE, get the initial values for
+  non-MIDAS terms via OLS, if FALSE, initialize them with
+  zero.}
 }
 \description{
   Prepare necessary objects for fitting of the MIDAS
