@@ -411,10 +411,24 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
         class(res) <- "midas_r"
         res
     })
-        
-    candlist <- lapply(mrm,midas_r)
-
-    make_ic_table(candlist,IC,test)
+   
+    cat("\nModel selection progress:\n")
+    pb <- txtProgressBar(min=0,max=length(mrm),initial=0,style=3)
+    candlist <- mapply(function(l,i){
+        setTxtProgressBar(pb, i)
+        out <- try(midas_r(l))
+        out        
+    },mrm,1:length(mrm),SIMPLIFY=FALSE)
+    close(pb)   
+    success <- sapply(candlist,class)
+    candl <- candlist[success!="try-error"]
+    if("try-error" %in% success)
+    for(i in which(success=="try-error")) {
+        cat("The following models did not converge:\n")
+        cat(deparse(formula(mrm[[i]])))        
+        cat("\n")        
+    }
+    make_ic_table(candl,IC,test)
 }
 
 ##' @method midas_r_ic_table midas_r_ic_table
@@ -831,12 +845,11 @@ find_mls_terms <- function(term.name,vars) {
 ##' @param test argument to modsel
 ##' @param measures the names of goodness of fit measures
 ##' @param fweights names of weighting schemes
-##' @param fmethod forecastin method, either static or dynamic
 ##' @param ... additional arguments for optimisation method, see \link{midas_r}
 ##' @return a list of tables, best models, in-sample data and out-of-sample data
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,wstart,start=NULL,IC="AIC",type="restricted",test="hAh.test",measures=c("MSE","MAPE","MASE"),fweights=c("EW","BICW","MSFE","DMSFE"),fmethod=c("static","dynamic"),...) {
+combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,wstart,start=NULL,IC="AIC",type="restricted",test="hAh.test",measures=c("MSE","MAPE","MASE"),fweights=c("EW","BICW","MSFE","DMSFE"),...) {
     
     if(length(setdiff(fweights,c("EW","BICW","MSFE","DMSFE")))>0) {
         stop("Supported weight schemes are EW, BICW, MSFE, DMSFE")

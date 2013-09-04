@@ -73,6 +73,7 @@ mmweights <- function(p,d,m,weight=nealmon,type=c("A","B","C")) {
     }
 }
 
+
 ##' Gradient function for normalized exponential Almon lag weights
 ##'
 ##' Gradient function for normalized exponential Almon lag weights
@@ -100,6 +101,31 @@ nealmon.gradient <- function(p,d,m) {
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
 nbeta <- function(p,d,m) {
+    nbetaMT(c(p,0),d,m)
+}
+
+##' Gradient function for normalized beta probability density function MIDAS weights specification
+##' Calculate gradient function for normalized beta probability density function specification of MIDAS weights.
+##' @param p parameters for normalized beta probability density function
+##' @param d number of coefficients
+##' @param m the frequency ratio, currently ignored
+##' @return vector of coefficients
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @export
+nbeta.gradient <- function(p,d,m) {
+    nbetaMT.gradient(c(p,0),d,m)[,1:3]
+}
+
+
+##' Normalized beta probability density function MIDAS weights specification (MATLAB toolbox compatible)
+##' Calculate MIDAS weights according to normalized beta probability density function specification. Compatible with the specification in MATLAB toolbox.
+##' @param p parameters for normalized beta probability density function
+##' @param d number of coefficients
+##' @param m the frequency ratio, currently ignored
+##' @return vector of coefficients
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @export
+nbetaMT <- function(p,d,m) {
     eps <- .Machine$double.eps
     xi <- (1:d - 1)/(d - 1)
     xi[1] <- xi[1]+eps
@@ -114,7 +140,7 @@ nbeta <- function(p,d,m) {
     }
 }
 
-##' Gradient function for normalized beta probability density function MIDAS weights specification
+##' Gradient function for normalized beta probability density function MIDAS weights specification (MATLAB toolbox compatible)
 ##' Calculate gradient function for normalized beta probability density function specification of MIDAS weights.
 ##' @param p parameters for normalized beta probability density function
 ##' @param d number of coefficients
@@ -122,7 +148,7 @@ nbeta <- function(p,d,m) {
 ##' @return vector of coefficients
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-nbeta.gradient <- function(p,d,m) {
+nbetaMT.gradient <- function(p,d,m) {
     eps <- .Machine$double.eps
     xi <- (1:d-1)/(d-1)
     xi[1] <- xi[1]+eps

@@ -77,9 +77,10 @@ predict.midas_r <- function(object, newdata, na.action = na.omit, ... ) {
 ##' @method predict midas_u
 predict.midas_u <- predict.midas_r
 
+
 ##' @export
 ##' @method summary midas_r
-summary.midas_r <- function(object, ...) {
+summary.midas_r <- function(object, vcov.=vcovHAC, df=NULL,...) {
     r <- as.vector(residuals(object))
     param <- coef(object)
     pnames <- names(param)
@@ -91,9 +92,31 @@ summary.midas_r <- function(object, ...) {
     R <- qr.R(qr(XD))
     XDtXDinv <- chol2inv(R)
     dimnames(XDtXDinv) <- list(pnames,pnames)
-    se <- sqrt(diag(XDtXDinv)*resvar)
+       
+    if(is.null(vcov.)) {
+        se <- sqrt(diag(XDtXDinv)*resvar)
+    }
+    else {
+        se <- sqrt(diag(vcov.(object,...)))
+    }
     tval <- param/se
-    param <- cbind(param,se,tval,2*pt(abs(tval),rdf,lower.tail=FALSE))
+
+    #Code stolen from coeftest function
+    if(is.null(df)) {
+        df <- rdf
+    }
+    if (is.finite(df) && df > 0) {
+        pval <- 2 * pt(abs(tval), df = df, lower.tail = FALSE)
+        cnames <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+        mthd <- "t"
+    }
+    else {
+        pval <- 2 * pnorm(abs(tval), lower.tail = FALSE)
+        cnames <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+        mthd <- "z"
+    }
+    
+    param <- cbind(param,se,tval,pval)
     dimnames(param) <- list(pnames, c("Estimate", "Std. Error", 
         "t value", "Pr(>|t|)"))
     ans <- list(formula=formula(object$terms),residuals=r,sigma=sqrt(resvar),
@@ -136,11 +159,18 @@ estfun.midas_r <- function(x,...) {
     rval
 }
 
-##' @import sandwich
+##' @export
+##' @method vcov midas_r
+vcov.midas_r <- function(x,...) {
+    sm <- summary(object)
+    sm$cov.unscaled * sm$sigma^2
+}
+
 ##' @export
 ##' @method bread midas_r
 bread.midas_r <- function(x,...) {
-    sandwich:::bread.nls(x,...)
+    sx <- summary(x, vcov.=NULL)
+    return(sx$cov.unscaled * as.vector(sum(sx$df[1:2])))
 }
 
 ##' @export
@@ -320,7 +350,8 @@ forecast <- function(object,...) UseMethod("forecast")
 
 ##' @rdname forecast.midas_r
 ##' @method forecast midas_r
-##' @export
+##' @S3method forecast midas_r
+##' @export forecast.midas_r
 forecast.midas_r <- function(object,newdata=NULL,method=c("static","dynamic"),insample=get_estimation_sample(object),...) {
 
     method <- match.arg(method)
