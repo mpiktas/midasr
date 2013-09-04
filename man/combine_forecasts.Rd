@@ -6,8 +6,7 @@
     outsample, weights, wstart, start = NULL, IC = "AIC",
     type = "restricted", test = "hAh.test",
     measures = c("MSE", "MAPE", "MASE"),
-    fweights = c("EW", "BICW", "MSFE", "DMSFE"),
-    fmethod = c("static", "dynamic"), ...)
+    fweights = c("EW", "BICW", "MSFE", "DMSFE"), ...)
 }
 \arguments{
   \item{formula}{initial formula for the}
@@ -39,9 +38,6 @@
   \item{measures}{the names of goodness of fit measures}
 
   \item{fweights}{names of weighting schemes}
-
-  \item{fmethod}{forecastin method, either static or
-  dynamic}
 
   \item{...}{additional arguments for optimisation method,
   see \link{midas_r}}

@@ -1,0 +1,29 @@
+\name{nbetaMT}
+\alias{nbetaMT}
+\title{Normalized beta probability density function MIDAS weights specification (MATLAB toolbox compatible)
+Calculate MIDAS weights according to normalized beta probability density function specification. Compatible with the specification in MATLAB toolbox.}
+\usage{
+  nbetaMT(p, d, m)
+}
+\arguments{
+  \item{p}{parameters for normalized beta probability
+  density function}
+
+  \item{d}{number of coefficients}
+
+  \item{m}{the frequency ratio, currently ignored}
+}
+\value{
+  vector of coefficients
+}
+\description{
+  Normalized beta probability density function MIDAS
+  weights specification (MATLAB toolbox compatible)
+  Calculate MIDAS weights according to normalized beta
+  probability density function specification. Compatible
+  with the specification in MATLAB toolbox.
+}
+\author{
+  Virmantas Kvedaras, Vaidotas Zemlys
+}
+
