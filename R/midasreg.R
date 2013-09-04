@@ -347,6 +347,7 @@ midas_r.fit <- function(x) {
     }
     x$opt <- opt
     x$coefficients <- par
+    names(par) <- NULL
     x$midas.coefficients <- x$allcoef(par)
     x$fitted.values <- as.vector(x$model[,-1]%*%x$midas.coefficients)
     x$residuals <- as.vector(x$model[,1]-x$fitted.values)
