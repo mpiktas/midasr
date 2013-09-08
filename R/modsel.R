@@ -458,16 +458,21 @@ make_ic_table <- function(candlist,IC,test) {
               tst <- try(tt(mm))
               ifelse(class(tst)=="try-error",NA,
               tst$p.value)
-          })
+          }),
+          unlist(deriv_tests(mm)[c("first","second")]),
+          mm$convergence
           )        
     })
     tab <- do.call("rbind",tab)
 
-    colnames(tab) <- c(paste(IC,"restricted",sep="."),paste(IC,"unrestricted",sep="."),paste(test,"p.value",sep="."))
+    colnames(tab) <- c(paste(IC,"restricted",sep="."),paste(IC,"unrestricted",sep="."),paste(test,"p.value",sep="."),"First","Second","Convergence")
 
     tab <- data.frame(model=sapply(candlist,function(mod) {
-        capture.output(cat(deparse(formula(mod))))
+        gsub("[ ]+"," ",capture.output(cat(deparse(formula(mod)))))
     }),tab)
+    tab$First <- as.logical(tab$First)
+    tab$Second <- as.logical(tab$Second)
+
     res <- list(table=tab,candlist=candlist,IC=IC,test=test,weights=tab[,1],lags=tab[,2])
     class(res) <- "midas_r_ic_table"
     res
@@ -854,7 +859,7 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
     if(length(setdiff(fweights,c("EW","BICW","MSFE","DMSFE")))>0) {
         stop("Supported weight schemes are EW, BICW, MSFE, DMSFE")
     }
-    fmethod <- match.arg(fmethod)
+    
     Zenv <-  Zenv <- new.env(parent=environment(formula))
     formula <- as.formula(formula)
 
@@ -911,7 +916,7 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
     close(pb)   
     outf <- lapply(bestm,function(fh)
                    lapply(fh,function(mod) {
-                       cbind(outdata[[yname]],forecast.midas_r(mod,newdata=outdata[nmx],method=fmethod))
+                       cbind(outdata[[yname]],forecast.midas_r(mod,newdata=outdata[nmx],method="static"))
                       }))
 
     inf <- lapply(bestm,function(fh)
@@ -1022,7 +1027,8 @@ MASE <- function(o,p) {
 
 
 ##Write this function later
-#forecast_average <- function(modlist,newdata,weights=c("EW","BICW","MSFE","D#MSFE"),method=c("static","dynamic"),...) {
+
+#forecast_average <- function(modlist,newdata,weights=c("EW","BICW","MSFE","DMSFE"),...) {
 #    method <- match.arg(method)
 #    outsample <- as.list(data_to_env(newdata))
 #    

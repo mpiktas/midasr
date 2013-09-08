@@ -80,7 +80,7 @@ predict.midas_u <- predict.midas_r
 
 ##' @export
 ##' @method summary midas_r
-summary.midas_r <- function(object, vcov.=vcovHAC, df=NULL,...) {
+summary.midas_r <- function(object, vcov.=vcovHAC, df=NULL, prewhite=TRUE, ...) {
     r <- as.vector(residuals(object))
     param <- coef(object)
     pnames <- names(param)
@@ -97,7 +97,7 @@ summary.midas_r <- function(object, vcov.=vcovHAC, df=NULL,...) {
         se <- sqrt(diag(XDtXDinv)*resvar)
     }
     else {
-        se <- sqrt(diag(vcov.(object,...)))
+        se <- sqrt(diag(vcov.(object,prewhite=prewhite,...)))
     }
     tval <- param/se
 
