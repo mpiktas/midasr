@@ -1063,9 +1063,11 @@ average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recu
         })
     }
 
-    inf <- lapply(modlist,function(mod) cbind(mod$model[,1],fitted(mod)))
-    
     bestm <- reeval(modlist,indata)
+    
+    inf <- lapply(bestm,function(mod) cbind(mod$model[,1],fitted(mod)))
+    
+   
 
     if(type=="fixed") {
         outf <- lapply(bestm,function(mod)                  
