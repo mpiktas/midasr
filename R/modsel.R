@@ -418,18 +418,24 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
     }
     candlist <- mapply(function(l,i){
        if(showprogress) setTxtProgressBar(pb, i)
-        out <- try(midas_r(l))
+        out <- try(midas_r(l),silent=TRUE)
         out        
     },mrm,1:length(mrm),SIMPLIFY=FALSE)
     if(showprogress)close(pb)   
     success <- sapply(candlist,class)
-    candl <- candlist[success!="try-error"]
+
     if("try-error" %in% success)
     for(i in which(success=="try-error")) {
-        cat("The following models did not converge:\n")
-        cat(deparse(formula(mrm[[i]])))        
-        cat("\n")        
+        cat("\n====================================\n")
+        cat("The following model did not converge:\n")
+        cat(gsub("[ ]+"," ",capture.output(cat(deparse(formula(mrm[[i]]))))))
+        cat("\nWith the following error message:\n")
+        cat(candlist[[i]])
+        
+        cat("--------------------------------------\n")        
     }
+    candl <- candlist[success!="try-error"]
+    
     make_ic_table(candl,IC,test)
 }
 
@@ -454,7 +460,8 @@ make_ic_table <- function(candlist,IC,test) {
     tfun <- makefun(makelist(test))
 
     dtest <- function(mm) {
-        out <- try(deriv_tests(mm))
+        ##The error might be given if there are NaN values in the hessian, give NA instead of the error.
+        out <- try(deriv_tests(mm),silent=TRUE)
         if(class(out)=="try-error")c(NA,NA)
         else unlist(out[c("first","second")])
     }
@@ -470,8 +477,7 @@ make_ic_table <- function(candlist,IC,test) {
           mm$convergence
           )        
     })
-    
-    
+       
     tab <- do.call("rbind",tab)
 
     colnames(tab) <- c(paste(IC,"restricted",sep="."),paste(IC,"unrestricted",sep="."),paste(test,"p.value",sep="."),"First","Second","Convergence")
@@ -978,7 +984,25 @@ MAPE <- function(o,p) {
 MASE <- function(o,p) {
     mean(abs(o-p)/mean(abs(diff(o))))
 }
-
+##' Splits mixed frequency data into in-sample and out-of-sample datasets given the indexes of the low frequency data
+##'
+##' It is assumed that data is a list containing mixed frequency data. Then given the indexes of the low frequency data the function splits the data into two subsets. 
+##' @title Split mixed frequency data into in-sample and out-of-sample
+##' @param data a list containing mixed frequency data 
+##' @param insample the low frequency indexes for in-sample data
+##' @param outsample the low frequency indexes for out-of-sample data
+##' @return a list with elements \code{indata} and \code{outdata} containing respectively in-sample and out-of-sample data sets
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @export
+##' @examples
+##'
+##' #Monthly data
+##' x <- 1:24
+##' #Quartely data
+##' z <- 1:8
+##' #Yearly data
+##' y <- 1:2
+##' split_data(list(y=y,x=x,z=z),insample=1,outsample=2)
 split_data <- function(data,insample,outsample) {
     fullsample <- data_to_list(data)
     nr <- sapply(fullsample,length)
@@ -1009,6 +1033,7 @@ split_data <- function(data,insample,outsample) {
 ##' @param measures names of accuracy measures
 ##' @return a list containing forecasts and tables of accuracy measures
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @export
 average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recursive","rolling"),fweights=c("EW","BICW","MSFE","DMSFE"),measures=c("MSE","MAPE","MASE")) {
 
     #if(length(modlist)==1)stop("Need more than 1 model to produce average forecasts")
@@ -1081,7 +1106,9 @@ average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recu
     }
     outstat <- calcmsr(outf)
     instat <- calcmsr(inf)
-
+    if(is.null(dim(outstat)))outstat <- matrix(outstat,nrow=1)
+    if(is.null(dim(instat)))instat <- matrix(instat,nrow=1)
+    
     colnames(outstat) <- paste0(measures,".out-of-sample")
     colnames(instat) <- paste0(measures,".in-sample")
     modi <- sapply(bestm,function(mod)gsub("[ ]+"," ",capture.output(cat(deparse(formula(mod))))))
