@@ -51,9 +51,9 @@ mr <- midas_r(y ~ trend + fmls(x, 23, 12, nealmon), start = list(x = rep(0, 3)))
 ##Forecast horizon
 h <- 3
 ##Declining unemployment
-xn <- rnorm(h * 12, -0.1, 0.1)
+xn <- rep(-0.1, 12*3)
 ##New trend values
-trendn <- length(y) + 0:(h - 1)
+trendn <- length(y) + 1:h
 
 ##Static forecasts combining historic and new high frequency data
 forecast(mr, list(trend = trendn, x = xn), method = "static")

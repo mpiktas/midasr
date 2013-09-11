@@ -333,9 +333,9 @@ get_frequency_info<- function(mt,Zenv) {
 ##' ##Forecast horizon
 ##' h <- 3
 ##' ##Declining unemployment
-##' xn <- rnorm(h * 12, -0.1, 0.1)
+##' xn <- rep(-0.1, 12*3)
 ##' ##New trend values
-##' trendn <- length(y) + 0:(h - 1)
+##' trendn <- length(y) + 1:h
 ##' 
 ##' ##Static forecasts combining historic and new high frequency data
 ##' forecast(mr, list(trend = trendn, x = xn), method = "static")
@@ -423,9 +423,13 @@ rbind_list <- function(el1,el2) {
 }
 
 data_to_env <- function(data) {
+    as.environment(data_to_list(data))
+}
+
+data_to_list <- function(data) {
     if(is.matrix(data)) data <- data.frame(data)
     if(is.data.frame(data)) {
-        ee <- as.environment(as.list(data))
+        ee <- as.list(data)
     }
     else {
         if(is.list(data)) {
@@ -438,11 +442,18 @@ data_to_env <- function(data) {
                 } else {
                     ##This is needed since if tseries library is not loaded as.list for mts does not work as expected
                     if(inherits(x,"mts")) x <- data.frame(x)
-                    as.list(x)
+                    if(ncol(x)==1) {
+                        x <- list(as.numeric(x))
+                        names(x) <- nm
+                        x
+                    }
+                    else {
+                        as.list(data.frame(x))
+                    }
                 }
             },data,names(data),SIMPLIFY=FALSE)
             names(data) <- NULL
-            ee <- as.environment(do.call("c",data))
+            ee <- do.call("c",data)
         } else {
             stop("Argument data must be a matrix, data.frame or a list")
         }

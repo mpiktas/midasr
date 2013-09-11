@@ -8,7 +8,7 @@
   \method{midas_r_ic_table}{default} (formula, data = NULL,
     start = NULL, table, IC = c("AIC", "BIC"),
     test = c("hAh.test"), Ofunction = "optim",
-    user.gradient = FALSE, ...)
+    user.gradient = FALSE, showprogress = TRUE, ...)
 }
 \arguments{
   \item{formula}{the formula for MIDAS regression, the lag
@@ -34,6 +34,9 @@
   \item{Ofunction}{see \link{midasr}}
 
   \item{user.gradient}{see \link{midas_r}}
+
+  \item{showprogress}{logical, TRUE to show progress bar,
+  FALSE for silent evaluation}
 
   \item{...}{additional parameters to optimisation
   function, see \link{midas_r}}

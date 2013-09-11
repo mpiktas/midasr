@@ -503,7 +503,9 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
         xxinds <- build_indices(npxx,names(start_default))
         
         XX <- do.call("cbind",Xstart)
-        prec <- lsfit(XX,y,intercept=FALSE)
+        ###If the starting values for the weight restriction are all zeros, then the weighted explanatory variable is zero.
+        ###In this case lsfit gives a warning about colinear matrix, which we can ignore.
+        prec <- suppressWarnings(lsfit(XX,y,intercept=FALSE))
         lmstart <- lapply(xxinds,function(x)coef(prec)[x])
         names(lmstart) <- names(xxinds)
         for(i in 1:length(lmstart))names(lmstart[[i]]) <- NULL
@@ -650,6 +652,7 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
          opt=NULL,
          argmap.opt=control,
          start.opt=starto,
+         start.list=start,
          call=cl,
          terms=mt,
          gradient=gr,

@@ -301,6 +301,7 @@ weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh.
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
 ##' @param Ofunction see \link{midasr}
 ##' @param user.gradient see \link{midas_r}
+##' @param showprogress logical, TRUE to show progress bar, FALSE for silent evaluation
 ##' @param ... additional parameters to optimisation function, see \link{midas_r}
 ##' @return a \code{midas_r_ic_table} object which is the list with the following elements:
 ##'
@@ -329,7 +330,7 @@ midas_r_ic_table <- function(formula,...) UseMethod("midas_r_ic_table")
 #' @rdname midas_r_ic_table
 #' @method midas_r_ic_table default
 #' @export
-midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
+midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,showprogress=TRUE,...) {
     
     Zenv <- new.env(parent=environment(formula))
     formula <- as.formula(formula)
@@ -404,22 +405,23 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
         mm$X <- mm$X[ind,]
         mm
     })
-   
-    
+       
     mrm <- lapply(modellist,function(mm) {
         res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cl,args,mm$start,Ofunction,user.gradient,mm$itr$lagsTable)
         class(res) <- "midas_r"
         res
     })
    
-    cat("\nModel selection progress:\n")
-    pb <- txtProgressBar(min=0,max=length(mrm),initial=0,style=3)
+    if(showprogress) {
+        cat("\nModel selection progress:\n")
+        pb <- txtProgressBar(min=0,max=length(mrm),initial=0,style=3)
+    }
     candlist <- mapply(function(l,i){
-        setTxtProgressBar(pb, i)
+       if(showprogress) setTxtProgressBar(pb, i)
         out <- try(midas_r(l))
         out        
     },mrm,1:length(mrm),SIMPLIFY=FALSE)
-    close(pb)   
+    if(showprogress)close(pb)   
     success <- sapply(candlist,class)
     candl <- candlist[success!="try-error"]
     if("try-error" %in% success)
@@ -450,7 +452,12 @@ make_ic_table <- function(candlist,IC,test) {
     }
     ICfun <- makefun(makelist(IC))
     tfun <- makefun(makelist(test))
-    
+
+    dtest <- function(mm) {
+        out <- try(deriv_tests(mm))
+        if(class(out)=="try-error")c(NA,NA)
+        else unlist(out[c("first","second")])
+    }
     tab <- lapply(candlist,function(mm) {
         c(sapply(ICfun,function(ic)ic(mm)),
           sapply(ICfun,function(ic)ifelse(is.null(mm$unrestricted),NA,ic(mm$unrestricted))),
@@ -459,10 +466,12 @@ make_ic_table <- function(candlist,IC,test) {
               ifelse(class(tst)=="try-error",NA,
               tst$p.value)
           }),
-          unlist(deriv_tests(mm)[c("first","second")]),
+          dtest(mm),
           mm$convergence
           )        
     })
+    
+    
     tab <- do.call("rbind",tab)
 
     colnames(tab) <- c(paste(IC,"restricted",sep="."),paste(IC,"unrestricted",sep="."),paste(test,"p.value",sep="."),"First","Second","Convergence")
@@ -834,28 +843,56 @@ find_mls_terms <- function(term.name,vars) {
 
 ##' Creates tables for different forecast horizons and table for combined forecasts
 ##'
-##' Divide data into in-sample and out-of-sample. Fit different forecasting horizons for in-sample data. Calculate various statistics for out-of-sample.
+##' Divide data into in-sample and out-of-sample. Fit different forecasting horizons for in-sample data. Calculate accuracy measures for individual and average forecasts.
+##' 
 ##' @title Create table for different forecast horizons
 ##' @param formula initial formula for the 
 ##' @param data list of data
 ##' @param from a named list of starts of lags from where to fit. Denotes the horizon
 ##' @param to a named list for lag selections
-##' @param insample low-frequency in-sample indexes
-##' @param outsample low-frequency out-of-sample indexes
+##' @param insample the low frequency indexes for in-sample data
+##' @param outsample the low frequency indexes for out-of-sample data
 ##' @param weights names of weight function candidates
 ##' @param wstart starting values for weight functions
 ##' @param start other starting values
 ##' @param IC name of information criteria to choose model from
-##' @param type argument to modsel
+##' @param seltype argument to modsel, \code{"restricted"} for model selection based on information criteria of restricted MIDAS model, \code{"unrestricted"} for model selection based on unrestricted (U-MIDAS) model.
+##' @param ftype which type of forecast to use. 
 ##' @param test argument to modsel
 ##' @param measures the names of goodness of fit measures
 ##' @param fweights names of weighting schemes
 ##' @param ... additional arguments for optimisation method, see \link{midas_r}
-##' @return a list of tables, best models, in-sample data and out-of-sample data
+##' @return  a list containing forecasts, tables of accuracy measures and the list with selected models
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,wstart,start=NULL,IC="AIC",type="restricted",test="hAh.test",measures=c("MSE","MAPE","MASE"),fweights=c("EW","BICW","MSFE","DMSFE"),...) {
-    
+##' @examples
+##' ### Sets a seed for RNG ###
+##' set.seed(1001)  
+##' ## Number of low-frequency observations
+##' n<-250
+##' ## Linear trend and higher-frequency explanatory variables (e.g. quarterly and monthly)
+##' trend<-c(1:n)
+##' x<-rnorm(4*n)
+##' z<-rnorm(12*n)
+##' ## Exponential Almon polynomial constraint-consistent coefficients
+##' fn.x <- nealmon(p=c(1,-0.5),d=8)
+##' fn.z <- nealmon(p=c(2,0.5,-0.1),d=17)
+##' ## Simulated low-frequency series (e.g. yearly)
+##' y<-2+0.1*trend+mls(x,0:7,4)%*%fn.x+mls(z,0:16,12)%*%fn.z+rnorm(n)
+##' ##Do not run
+##' 
+select_and_forecast<- function(formula,data,from,to,
+                               insample,outsample,
+                               weights,wstart,start=NULL,
+                               IC="AIC",
+                               seltype=c("restricted","unrestricted"),
+                               test="hAh.test",
+                               ftype=c("fixed","recursive","rolling"),
+                               measures=c("MSE","MAPE","MASE"),
+                               fweights=c("EW","BICW","MSFE","DMSFE"),
+                               ...) {
+    seltype <- match.arg(seltype)
+    ftype <- match.arg(ftype)
     if(length(setdiff(fweights,c("EW","BICW","MSFE","DMSFE")))>0) {
         stop("Supported weight schemes are EW, BICW, MSFE, DMSFE")
     }
@@ -868,22 +905,18 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
 
     ##Change this, there is a cleaner way
     mt <- terms(formula)
+    yname <- all.vars(mt[[2]])       
     m <- get_frequency_info(mt,Zenv)
     nms <- names(m)
     fullsample <- lapply(nms,function(nm)eval(as.name(nm),dataenv))
     names(fullsample) <- nms
-    yname <- all.vars(mt[[2]])       
+    
     nmx <- names(fullsample)
     nmx <- nmx[nmx!=yname]
     
-    indata <- mapply(function(var,freq){
-        var[lf_range_to_hf(insample,freq)]
-    },fullsample,m[names(fullsample)],SIMPLIFY=FALSE)
-
-    outdata <- mapply(function(var,freq){
-        var[lf_range_to_hf(outsample,freq)]
-    },fullsample,m[names(fullsample)],SIMPLIFY=FALSE)
-    
+    datasplit <- split_data(fullsample,insample,outsample)
+    indata <- datasplit$indata
+    outdata <- datasplit$outdata
     
     wperm <- do.call("expand.grid",weights)
     nperm <- colnames(wperm)
@@ -908,104 +941,25 @@ combine_forecasts <- function(formula,data,from,to,insample,outsample,weights,ws
    
     bestm <- mapply(function(fh,prog)
                     mapply(function(tb,i){
-                        out <- modsel(midas_r_ic_table(formula,data=indata,start=start,table=tb,IC=IC,test=test),IC=IC,type=type,print=FALSE,...)
+                        out <- modsel(midas_r_ic_table(formula,data=indata,start=start,table=tb,IC=IC,test=test,showprogress=FALSE),IC=IC,type=seltype,print=FALSE,...)
                         setTxtProgressBar(pb, i)
                         out
                     },fh,as.list(prog+1:length(fh)),SIMPLIFY=FALSE),
                     fhtab,as.list(c(0,cumsum(modno)[-length(modno)])),SIMPLIFY=FALSE)
     close(pb)   
-    outf <- lapply(bestm,function(fh)
-                   lapply(fh,function(mod) {
-                       cbind(outdata[[yname]],forecast.midas_r(mod,newdata=outdata[nmx],method="static"))
-                      }))
-
-    inf <- lapply(bestm,function(fh)
-                  lapply(fh,function(mod){
-                      cbind(mod$model[,1],fitted(mod))
-                  }))
-
-    msrfun <- lapply(measures,function(msr)eval(as.name(msr)))
-
-    calcmsr <- function(ll) {
-        lapply(ll,function(fh){
-        sapply(msrfun,function(msr) {
-            sapply(fh,function(a)msr(a[,1],a[,2]))
-        })
-    })
-    }
-    outstat <- calcmsr(outf)
-    instat <- calcmsr(inf)
-
-    combine_table <- function(tb,nm) {
-        res <- do.call("rbind",tb)
-        colnames(res) <- nm
-        res
-    }
     
-    modi <- lapply(bestm,function(fh)sapply(fh,with,deparse(terms)))
+    avgforc <- lapply(bestm,function(l)average_forecast(l,data=fullsample,insample=insample,outsample=outsample,type=ftype,fweights=fweights,measures=measures))
+    tabfh <- do.call("rbind",lapply(avgforc,function(l)l$accuracy$individual))
 
-    tabfh <- data.frame(Model=do.call("c",modi),
-                   combine_table(instat,paste0(measures,".in-sample")),
-                   combine_table(outstat,paste0(measures,".out-of-sample"))
-                                 )
+    tboutc <- lapply(avgforc,function(l)l$accuracy$average)
     
-    EW <- function(hh) {
-        n <- length(hh)
-        rep(1/n,n)
-    }
-    BICW <- function(hh) {
-        bicm <- sapply(hh,BIC)
-        bicm <- bicm-min(bicm)
-        ebic <- exp(-bicm)
-        sebic <- sum(ebic)
-        if(sebic==0)EW(hh)
-        else ebic/sebic        
-    }
-    MSFEd <- function(hh,delta) {
-        mi <- sapply(hh,function(xx) {
-            sum((xx[,1]-xx[,2])^2*delta^(max(outsample)-outsample))
-        })
-        imi <- 1/mi
-        imi/sum(imi)
-    }
-    MSFE <-  function(hh) MSFEd(hh,1)
-    DMSFE <- function(hh) MSFEd(hh,0.9)
-
-    w1 <- lapply(bestm,EW)
-    w2 <- lapply(bestm,BICW)
-    w3 <- lapply(outf,MSFE)
-    w4 <- lapply(outf,DMSFE)
-
-    combine_ff <- function(fh,ww) {
-        ff <- sapply(fh,function(ll)ll[,2])
-        cbind(fh[[1]][,1],apply(ff,1,function(r)sum(r*ww)))
-    }
+    tabh <- do.call("rbind",mapply(function(tb,h){
+        data.frame(Horizon=h,tb)
+    },tboutc,1:length(tboutc),SIMPLIFY=FALSE))
     
-    allwlist <- list(w1,w2,w3,w4)
-    names(allwlist) <- c("EW","BICW","MSFE","DMSFE")
-    wlist <- allwlist[fweights]
-    outc <- lapply(wlist,function(ww)mapply(combine_ff,outf,ww,SIMPLIFY=FALSE))
-    inc <- lapply(wlist,function(ww)mapply(combine_ff,inf,ww,SIMPLIFY=FALSE))
-
-    names(outc) <- fweights -> names(inc)
-    
-    tboutc <- calcmsr(outc)
-    tbinc <- calcmsr(inc)
-    hhname <- lapply(tboutc,function(l) {
-        if(is.null(dim(l)))return(1)
-        else return(1:nrow(l))
-    })
-    
-    hh1 <- do.call("rbind",mapply(function(w,h)data.frame(Scheme=w,Horizon=h),as.list(names(outc)),hhname,SIMPLIFY=FALSE))
-        
-    tabh <- data.frame(hh1,
-                       combine_table(tbinc,paste0(measures,".in-sample")),
-                       combine_table(tboutc,paste0(measures,".out-of-sample"))
-                       )
     tabh[order(tabh$Horizon,tabh$Scheme),]
         
-    list(tabfh=tabfh,tabh=tabh,lws=fhtab,indata=indata,outdata=outdata,bestlist=bestm,outf=outf,inf=inf,outc=outc,inc=inc)
-        
+    list(accuracy=list(individual=tabfh,average=tabh),bestlist=bestm,forecasts=avgforc)
 }
 
     
@@ -1025,11 +979,161 @@ MASE <- function(o,p) {
     mean(abs(o-p)/mean(abs(diff(o))))
 }
 
+split_data <- function(data,insample,outsample) {
+    fullsample <- data_to_list(data)
+    nr <- sapply(fullsample,length)
+    m <- nr %/% min(nr)
+    indata <- mapply(function(var,freq){
+        var[lf_range_to_hf(insample,freq)]
+    },fullsample,as.list(m),SIMPLIFY=FALSE)
+    
+    outdata <- mapply(function(var,freq){
+        var[lf_range_to_hf(outsample,freq)]
+    },fullsample,as.list(m),SIMPLIFY=FALSE)        
 
-##Write this function later
+    list(indata=indata,outdata=outdata)
+}
+##' Average MIDAS model forecasts using specified weighting scheme. Produce in-sample and out-of-sample accuracy measures. 
+##'
+##' Given the data, split it to in-sample and out-of-sample data. Then given the list of models, reestimate each model with in-sample data and produce out-of-sample forecast. Given the forecasts average them with the specified weighting scheme. Then calculate the accuracy measures for individual and average forecasts.
+##'
+##' The forecasts can be produced in 3 ways. The \code{"fixed"} forecast uses model estimated with in-sample data. The \code{"rolling"} forecast reestimates model each time by increasing the in-sample by one low frequency observation and dropping the first low frequency observation. These reestimated models then are used to produce out-of-sample forecasts. The \code{"recursive"} forecast differs from \code{"rolling"} that it does not drop observations from the beginning of data.
+##' 
+##' @title Average forecasts of MIDAS models
+##' @param modlist a list of \code{midas_r} objects
+##' @param data a list with mixed frequency data
+##' @param insample the low frequency indexes for in-sample data
+##' @param outsample the low frequency indexes for out-of-sample data
+##' @param type a string indicating which type of forecast to use. 
+##' @param fweights names of weighting schemes
+##' @param measures names of accuracy measures
+##' @return a list containing forecasts and tables of accuracy measures
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recursive","rolling"),fweights=c("EW","BICW","MSFE","DMSFE"),measures=c("MSE","MAPE","MASE")) {
 
-#forecast_average <- function(modlist,newdata,weights=c("EW","BICW","MSFE","DMSFE"),...) {
-#    method <- match.arg(method)
-#    outsample <- as.list(data_to_env(newdata))
-#    
-#}
+    #if(length(modlist)==1)stop("Need more than 1 model to produce average forecasts")
+    if(missing(data))stop("Data need to be supplied for forecasting")
+    
+    type <- match.arg(type)
+  
+    datasplit <- split_data(data,insample,outsample)
+
+    indata <- datasplit$indata
+    outdata <- datasplit$outdata
+    
+    ##Check that the response variables of the modlist are the same
+    ynames <- sapply(modlist,function(mod)all.vars(terms(mod)[[2]]))
+    yname <- unique(unlist(ynames))
+    if(length(yname)>1)stop("The response variable must be the same for all the models")
+
+    outy <- outdata[[yname]]
+    
+    reeval <- function(candlist,redata) {
+        lapply(candlist,function(mod) {
+            ##Setup all the necessary info
+            out <- midas_r(formula(mod),data=redata,start=mod$start.list,Ofunction="optim",method="BFGS",control=list(maxit=0))
+            ##Run optimisation with the original model settings
+            out$argmap.opt <- mod$argmap.opt
+            midas_r(out,start=coef(mod))        
+        })
+    }
+
+    inf <- lapply(modlist,function(mod) cbind(mod$model[,1],fitted(mod)))
+    
+    bestm <- reeval(modlist,indata)
+
+    if(type=="fixed") {
+        outf <- lapply(bestm,function(mod)                  
+                       cbind(outdata[[yname]],forecast.midas_r(mod,newdata=outdata,method="static"))
+                       )       
+    }
+    else {
+        outm <- matrix(NA,nrow=length(outsample),ncol=length(modlist))
+        cat("\nDoing", type, "forecast :\n")    
+        pb <- txtProgressBar(min=0,max=length(outsample),initial=0,style=3)
+   
+        for(i in 1:length(outsample)) {
+            newout <- outsample[i]
+            if(i>1) {
+                if(type=="recursive") newin <- c(insample,outsample[1:(i-1)])
+                else newin <- c(insample[-(i-1):-1],outsample[1:(i-1)])
+            }
+            else newin <- insample
+            splitnew <- split_data(data,newin,newout)
+            emod <- reeval(modlist,splitnew$indata)
+            outm[i,] <- sapply(emod,forecast.midas_r,newdata=splitnew$outdata,method="static")
+            setTxtProgressBar(pb, i)
+        }
+        if(length(modlist)>1) {
+            outf <- lapply(data.frame(outm),function(x)cbind(outdata[[yname]],x))}
+        else {
+            outf <- list(cbind(outdata[[yname]],outm[,1]))
+        }
+        close(pb)
+    }
+    
+    msrfun <- lapply(measures,function(msr)eval(as.name(msr)))
+
+    calcmsr <- function(ll) {
+        sapply(msrfun,function(msr) {
+            sapply(ll,function(a)msr(a[,1],a[,2]))
+        })
+    }
+    outstat <- calcmsr(outf)
+    instat <- calcmsr(inf)
+
+    colnames(outstat) <- paste0(measures,".out-of-sample")
+    colnames(instat) <- paste0(measures,".in-sample")
+    modi <- sapply(bestm,function(mod)gsub("[ ]+"," ",capture.output(cat(deparse(formula(mod))))))
+
+    tabfh <- data.frame(Model=modi,outstat,instat)
+    rownames(tabfh) <- NULL
+    EW <- function(hh) {
+        n <- length(hh)
+        rep(1/n,n)
+    }
+    BICW <- function(hh) {
+        bicm <- sapply(hh,BIC)
+        bicm <- bicm-min(bicm)
+        ebic <- exp(-bicm)
+        sebic <- sum(ebic)
+        if(sebic==0)EW(hh)
+        else ebic/sebic        
+    }
+    MSFEd <- function(hh,delta) {
+        mi <- sapply(hh,function(xx) {
+            sum((xx[,1]-xx[,2])^2*delta^(length(outy):1-1))
+        })
+        imi <- 1/mi
+        imi/sum(imi)
+    }
+    MSFE <-  function(hh) MSFEd(hh,1)
+    DMSFE <- function(hh) MSFEd(hh,0.9)
+
+
+    w1 <- EW(bestm)
+    w2 <- BICW(modlist)
+    w3 <- MSFE(outf)
+    w4 <- DMSFE(outf)
+
+    fc <- sapply(outf,function(m)m[,2])
+       
+    allwlist <- list(w1,w2,w3,w4)
+    names(allwlist) <- c("EW","BICW","MSFE","DMSFE")
+    wlist <- allwlist[fweights]
+    outc <- lapply(wlist,function(ww)cbind(outf[[1]][,1],apply(fc,1,function(r)sum(r*ww))))
+    names(outc) <- fweights 
+    
+    tboutc <- calcmsr(outc)
+    colnames(tboutc) <- measures
+        
+    tabh <- data.frame(Scheme=fweights,tboutc)
+    rownames(tabh) <- NULL
+
+    list(forecast=fc,
+         avgforecast=sapply(outc,function(m)m[,2]),
+         accuracy=list(
+             individual=tabfh,
+             average=tabh))
+}
+
