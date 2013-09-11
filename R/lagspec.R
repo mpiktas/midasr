@@ -34,7 +34,7 @@ nealmon <- function(p,d,m) {
   as.vector(p[1] * exp(plc)/sum(exp(plc)))
 }
 
-##' Produces weights for multiplicative MIDAS regression
+##' Produces weights for aggregates based MIDAS regression
 ##'
 ##' Given a weight function \eqn{w(\beta,\theta)} which has a property of being defined as \eqn{\beta g(\theta)} the following combinations are defined, corresponding to structure types \code{A}, \code{B} and \code{C} respectively:
 ##' \deqn{(w(\beta_1,\theta_1),...,w(\beta_k,\theta_k))}
@@ -47,7 +47,7 @@ nealmon <- function(p,d,m) {
 ##' \deqn{(\beta,\theta_1,...,\theta_k)}
 ##'
 ##' 
-##' @title Weights for multiplicative MIDAS regressions
+##' @title Weights for aggregates based MIDAS regressions
 ##' @param p parameters for weight functions, see details.
 ##' @param d number of lags
 ##' @param m the frequency
@@ -56,7 +56,7 @@ nealmon <- function(p,d,m) {
 ##' @return a vector of weights
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-mmweights <- function(p,d,m,weight=nealmon,type=c("A","B","C")) {
+amweights <- function(p,d,m,weight=nealmon,type=c("A","B","C")) {
     type <- match.arg(type)
     hf <- d%/%m
     

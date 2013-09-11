@@ -1,8 +1,8 @@
-\name{mmweights}
-\alias{mmweights}
-\title{Weights for multiplicative MIDAS regressions}
+\name{amweights}
+\alias{amweights}
+\title{Weights for aggregates based MIDAS regressions}
 \usage{
-  mmweights(p, d, m, weight = nealmon,
+  amweights(p, d, m, weight = nealmon,
     type = c("A", "B", "C"))
 }
 \arguments{
@@ -21,7 +21,7 @@
   a vector of weights
 }
 \description{
-  Produces weights for multiplicative MIDAS regression
+  Produces weights for aggregates based MIDAS regression
 }
 \details{
   Given a weight function \eqn{w(\beta,\theta)} which has a

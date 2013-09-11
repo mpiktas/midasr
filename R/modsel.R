@@ -218,7 +218,7 @@ term_info <- function(mt,term.name,Zenv) {
 ##'
 ##' modsel(mlfr,"BIC","unrestricted")
 ##' 
-##' @details This function selects the model from the model selection table for which the chosen information criteria achieves the smallest value. The function works with model tables produced by functions \link{lf_lags_table}, \link{hf_lags_table}, \link{multmidas_table} and \link{midas_r_ic_table}.
+##' @details This function selects the model from the model selection table for which the chosen information criteria achieves the smallest value. The function works with model tables produced by functions \link{lf_lags_table}, \link{hf_lags_table}, \link{amidas_table} and \link{midas_r_ic_table}.
 modsel <- function(x,IC=x$IC[1],test=x$test[1],type=c("restricted","unrestricted"),print=TRUE) {
     if(!(IC%in%x$IC))stop("The supplied information criteria was not used in creating lag selection table")
     type <- match.arg(type)
@@ -641,7 +641,7 @@ print.lws_table <- function(x,...) {
     print(data.frame(weights=names(x$weights),lags=sapply(x$lags,deparse),starts=sapply(x$starts,deparse)))
 }
 
-##' Create table of weights, lags and starting values for Ghysels weight schema, see \link{mmweights}
+##' Create table of weights, lags and starting values for Ghysels weight schema, see \link{amweights}
 ##'
 ##' Given weight function creates lags starting from \code{kmin} to \code{kmax} and replicates starting values for each low frequency lag.
 ##' @title Create table of weights, lags and starting values for Ghysels weight schema
@@ -653,10 +653,10 @@ print.lws_table <- function(x,...) {
 ##' @param start the starting values for the weights of the one low frequency lag
 ##' @return a \code{lws_table} object, a list with elements \code{weights}, \code{lags} and \code{starts}
 ##' @examples
-##' expand_multmidas("nealmon","A",0,c(1,2),12,c(0,0,0))
+##' expand_amidas("nealmon","A",0,c(1,2),12,c(0,0,0))
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-expand_multmidas <- function(weight,type=c("A","B","C"),from=0,to,m,start) {
+expand_amidas <- function(weight,type=c("A","B","C"),from=0,to,m,start) {
     lags <- lapply(to[1]:to[2],function(x)from:(x*m-1))
     d <- sapply(lags,length)
     nm <- paste(weight,type,d,sep="_")
@@ -671,7 +671,7 @@ expand_multmidas <- function(weight,type=c("A","B","C"),from=0,to,m,start) {
         starts <- lapply(d%/%m,function(lf)c(start[1],rep(start[-1],times=lf)))
     }    
     names(starts) <- nm
-    ff <- expression(mmweights(p,d,m,weight,type))
+    ff <- expression(amweights(p,d,m,weight,type))
     ff[[c(1,4)]] <- m
     ff[[c(1,5)]] <- as.name(weight)
     ff[[c(1,6)]] <- as.character(type)
@@ -717,15 +717,15 @@ expand_multmidas <- function(weight,type=c("A","B","C"),from=0,to,m,start) {
     class(out) <- "lws_table"
     out
 }
-##' Create weight and lag selection table for the multiplicative MIDAS regression model
+##' Create weight and lag selection table for the aggregates based MIDAS regression model
 ##'
 ##' This function estimates models sequentialy increasing the midas lag from \code{kmin} to \code{kmax} and varying the weights of the last term of the given formula 
-##' @title Weight and lag selection table for MIDAS regression model with Ghysels schema
+##' @title Weight and lag selection table for aggregates based MIDAS regression model 
 ##' @param formula the formula for MIDAS regression, the lag selection is performed for the last MIDAS lag term in the formula
 ##' @param data a list containing data with mixed frequencies
 ##' @param weights the names of weights used in Ghysels schema
 ##' @param wstart the starting values for the weights of the firs low frequency lag
-##' @param type the type of Ghysels schema see \link{mmweights}, can be a vector of types
+##' @param type the type of Ghysels schema see \link{amweights}, can be a vector of types
 ##' @param start the starting values for optimisation excluding the starting values for the last term
 ##' @param from a named list, or named vector with high frequency (NB!) lag numbers which are the beginnings of MIDAS lag structures. The names should correspond to the MIDAS lag terms in the formula for which to do the lag selection. Value NA indicates lag start at zero
 ##' @param to to a named list where each element is a vector with two elements. The first element is the low frequency lag number from which the lag selection starts, the second is the low frequency lag number at which the lag selection ends. NA indicates lowest (highest) lag numbers possible.
@@ -750,13 +750,13 @@ expand_multmidas <- function(weight,type=c("A","B","C"),from=0,to,m,start) {
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
 ##' 
-##' tb <- multmidas_table(y~trend+fmls(x,12,12,nealmon),data=list(y=y,x=x,trend=trend),weights=c("nealmon"),wstart=list(nealmon=c(0,0,0)),start=list(trend=1),type=c("A"),from=0,to=c(1,3))
+##' tb <- amidas_table(y~trend+fmls(x,12,12,nealmon),data=list(y=y,x=x,trend=trend),weights=c("nealmon"),wstart=list(nealmon=c(0,0,0)),start=list(trend=1),type=c("A"),from=0,to=c(1,3))
 ##'
 ##' 
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} and varying the weights of the last term of the given formula 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-multmidas_table <- function(formula,data,weights,wstart,type,start=NULL,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
+amidas_table <- function(formula,data,weights,wstart,type,start=NULL,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
     Zenv <- new.env(parent=environment(formula))
     cl <- match.call()
     mf <- match.call(expand.dots = FALSE)
@@ -792,7 +792,7 @@ multmidas_table <- function(formula,data,weights,wstart,type,start=NULL,from,to,
     }
     
     tb <- mapply(function(w,t,s){
-        expand_multmidas(weight=w,type=t,from=from,to=to,m=m,start=s)
+        expand_amidas(weight=w,type=t,from=from,to=to,m=m,start=s)
     },as.list(weights),as.list(type),as.list(wstart),SIMPLIFY=FALSE)
     names(tb) <- NULL
     
