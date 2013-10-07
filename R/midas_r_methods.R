@@ -355,8 +355,10 @@ forecast <- function(object,...) UseMethod("forecast")
 forecast.midas_r <- function(object,newdata=NULL,method=c("static","dynamic"),insample=get_estimation_sample(object),...) {
 
     method <- match.arg(method)
-    ##Fix data_to_env to return the list if needed.
-    outsample <- as.list(data_to_env(newdata))
+
+    outsample <- data_to_list(newdata)
+    ##Fix this, as for default it is not necessary
+    insample <- data_to_list(insample)
     ##Get the name of response variable
     yname <- all.vars(object$terms[[2]])
    
@@ -365,6 +367,8 @@ forecast.midas_r <- function(object,newdata=NULL,method=c("static","dynamic"),in
 
     if(length(setdiff(names(freqinfo),c(yname,names(outsample))))>0) stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
 
+    if(length(setdiff(names(freqinfo),c(yname,names(insample))))>0) stop("Missing variables in in-sample. Please supply the data for all the variables in regression")
+    
     outsample <- outsample[intersect(names(outsample),names(freqinfo))]
     firstno <- names(outsample)[1]
  
@@ -383,11 +387,11 @@ forecast.midas_r <- function(object,newdata=NULL,method=c("static","dynamic"),in
         res[n+1-h:1]
     }
     else {
+        fdata <- insample[names(freqinfo)]
         outsample <- outsample[names(outsample)!=yname]
         yna <- list(NA)
         names(yna) <- yname
-        res <- rep(NA,h)
-        fdata <- insample
+        res <- rep(NA,h)        
         for(i in 1:h) {
             ##Get the data for the current low frequency lag
             hout <- mapply(function(var,m){
