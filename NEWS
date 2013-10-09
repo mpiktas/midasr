@@ -1,3 +1,22 @@
+midasr 0.1
+============
+Release to CRAN.
+
+
+midasr 0.0.8
+============
+
+* Milestone release. 
+
+* Support for the lagged dependent variable. 
+
+* Support for the forecasting and forecast combinations. 
+
+* Support for the model selection based on the information criteria
+
+* First version of the user guide
+
+
 midasr 0.0.6
 ============
 

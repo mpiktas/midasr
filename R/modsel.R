@@ -24,7 +24,7 @@
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
 ##' 
-##' mlr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=c(x=0),to=list(x=c(4,8)))
+##' mlr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=c(x=0),to=list(x=c(4,4)))
 ##' mlr
 ##'
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
@@ -212,7 +212,7 @@ term_info <- function(mt,term.name,Zenv) {
 ##' 
 ##' mhfr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=list(x=0),to=list(x=c(4,6)))
 ##' 
-##' mlfr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=list(x=0),to=list(x=c(4,6)))
+##' mlfr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=list(x=0),to=list(x=c(2,3)))
 ##'
 ##' modsel(mhfr,"BIC","unrestricted")
 ##'
@@ -750,7 +750,7 @@ expand_amidas <- function(weight,type=c("A","B","C"),from=0,to,m,start) {
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
 ##' 
-##' tb <- amidas_table(y~trend+fmls(x,12,12,nealmon),data=list(y=y,x=x,trend=trend),weights=c("nealmon"),wstart=list(nealmon=c(0,0,0)),start=list(trend=1),type=c("A"),from=0,to=c(1,3))
+##' tb <- amidas_table(y~trend+fmls(x,12,12,nealmon),data=list(y=y,x=x,trend=trend),weights=c("nealmon"),wstart=list(nealmon=c(0,0,0)),start=list(trend=1),type=c("A"),from=0,to=c(1,2))
 ##'
 ##' 
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} and varying the weights of the last term of the given formula 
