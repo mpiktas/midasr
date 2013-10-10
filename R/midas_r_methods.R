@@ -176,7 +176,9 @@ bread.midas_r <- function(x,...) {
 ##' @export
 ##' @method vcov midas_r
 vcov.midas_r <- function(object,...) {
-    stats:::vcov.nls(object,...)
+    ##Code stolen from stats:::vcov.nls
+    sm <- summary(object)
+    sm$cov.unscaled * sm$sigma^2
 }
 
 
@@ -341,7 +343,9 @@ get_frequency_info<- function(mt,Zenv) {
 ##' forecast(mr, list(trend = trendn, x = xn), method = "static")
 ##' 
 ##' ##Dynamic AR* model
-##' mr.dyn <- midas_r(y ~ trend + mls(y, 1:2, 1, "*") + fmls(x, 11, 12, nealmon), start = list(x = rep(0, 3)))
+##' mr.dyn <- midas_r(y ~ trend + mls(y, 1:2, 1, "*")
+##'                    + fmls(x, 11, 12, nealmon),
+##'                   start = list(x = rep(0, 3)))
 ##' 
 ##' forecast(mr.dyn, list(trend = trendn, x = xn), method = "dynamic")
 ##'

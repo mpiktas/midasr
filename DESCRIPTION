@@ -1,8 +1,6 @@
 Package: midasr
-Title: tools for estimating mixed data sampling regression and testing its
-    specification
-Description: midasr is package which lets estimate and test MIDAS (mixed data
-    sampling) regressions.
+Title: Mixed Data Sampling Regression
+Description: Econometric methods for mixed frequency time series data analysis
 URL: https://github.com/mpiktas/midasr
 Version: 0.1
 Maintainer: Vaidotas Zemlys <zemlys@gmail.com>
@@ -14,7 +12,7 @@ Depends:
 Imports:
     MASS,
     numDeriv
-License: MIT
+License: MIT + file LICENCE
 BugReports: https://github.com/mpiktas/midasr/issues
 Collate:
     'simulate.R'

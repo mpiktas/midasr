@@ -1,3 +1,5 @@
+if(getRversion() >= "2.15.1")  utils::globalVariables("X")
+
 ##' Create a high frequency lag selection table for MIDAS regression model
 ##'
 ##' Creates a high frequency lag selection table for MIDAS regression model with given information criteria and minimum and maximum lags.
@@ -24,7 +26,9 @@
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
 ##' 
-##' mlr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=c(x=0),to=list(x=c(4,4)))
+##' mlr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),
+##'                      start=list(x=rep(0,3)),
+##'                      from=c(x=0),to=list(x=c(4,4)))
 ##' mlr
 ##'
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
@@ -101,7 +105,9 @@ hf_lags_table<- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hA
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
 ##' 
-##' mlr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=c(x=0),to=list(x=c(3,4)))
+##' mlr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),
+##'                      start=list(x=rep(0,3)),
+##'                      from=c(x=0),to=list(x=c(3,4)))
 ##' mlr
 ##'
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
@@ -210,9 +216,13 @@ term_info <- function(mt,term.name,Zenv) {
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
 ##' 
-##' mhfr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=list(x=0),to=list(x=c(4,6)))
+##' mhfr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),
+##'                       start=list(x=rep(0,3)),
+##'                       from=list(x=0),to=list(x=c(4,6)))
 ##' 
-##' mlfr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),start=list(x=rep(0,3)),from=list(x=0),to=list(x=c(2,3)))
+##' mlfr <- lf_lags_table(y~trend+fmls(x,12,12,nealmon),
+##'                       start=list(x=rep(0,3)),
+##'                       from=list(x=0),to=list(x=c(2,3)))
 ##'
 ##' modsel(mhfr,"BIC","unrestricted")
 ##'
@@ -259,7 +269,9 @@ modsel <- function(x,IC=x$IC[1],test=x$test[1],type=c("restricted","unrestricted
 ##' y <- diff(log(USrealgdp))
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
-##' mwr <- weights_table(y~trend+fmls(x,12,12,nealmon),start=list(x=list(nealmon=rep(0,3),nbeta=c(1,1,1,0))))
+##' mwr <- weights_table(y~trend+fmls(x,12,12,nealmon),
+##'                      start=list(x=list(nealmon=rep(0,3),
+##'                      nbeta=c(1,1,1,0))))
 ##'
 ##' mwr
 ##'
@@ -317,7 +329,11 @@ weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh.
 ##' trend <- 1:length(y)
 ##' 
 ##'  
-##' mwlr <- midas_r_ic_table(y~trend+fmls(x,12,12,nealmon), table=list(x=list(weights=as.list(c("nealmon","nealmon","nbeta")), lags=list(0:4,0:5,0:6),starts=list(rep(0,3),rep(0,3,),c(1,1,1,0)))))
+##' mwlr <- midas_r_ic_table(y~trend+fmls(x,12,12,nealmon),
+##'                    table=list(x=list(weights=
+##'                    as.list(c("nealmon","nealmon","nbeta")),
+##'                    lags=list(0:4,0:5,0:6),
+##'                    starts=list(rep(0,3),rep(0,3,),c(1,1,1,0)))))
 ##'
 ##' mwlr
 ##'
@@ -750,7 +766,11 @@ expand_amidas <- function(weight,type=c("A","B","C"),from=0,to,m,start) {
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
 ##' 
-##' tb <- amidas_table(y~trend+fmls(x,12,12,nealmon),data=list(y=y,x=x,trend=trend),weights=c("nealmon"),wstart=list(nealmon=c(0,0,0)),start=list(trend=1),type=c("A"),from=0,to=c(1,2))
+##' tb <- amidas_table(y~trend+fmls(x,12,12,nealmon),
+##'                    data=list(y=y,x=x,trend=trend),
+##'                    weights=c("nealmon"),wstart=list(nealmon=c(0,0,0)),
+##'                    start=list(trend=1),type=c("A"),
+##'                    from=0,to=c(1,2))
 ##'
 ##' 
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} and varying the weights of the last term of the given formula 
@@ -1059,8 +1079,10 @@ split_data <- function(data,insample,outsample) {
 ##' fn.z <- nealmon(p=c(2,0.5,-0.1),d=17)
 ##' ## Simulated low-frequency series (e.g. yearly)
 ##' y<-2+0.1*trend+mls(x,0:7,4)%*%fn.x+mls(z,0:16,12)%*%fn.z+rnorm(n)
-##' mod1 <- midas_r(y ~ trend + mls(x, 4:14, 4, nealmon) + mls(z, 12:22, 12, nealmon),start=list(x=c(10,1,-0.1),z=c(2,-0.1)))
-##' mod2 <- midas_r(y ~ trend + mls(x, 4:20, 4, nealmon) + mls(z, 12:25, 12, nealmon),start=list(x=c(10,1,-0.1),z=c(2,-0.1)))
+##' mod1 <- midas_r(y ~ trend + mls(x, 4:14, 4, nealmon) + mls(z, 12:22, 12, nealmon),
+##'                 start=list(x=c(10,1,-0.1),z=c(2,-0.1)))
+##' mod2 <- midas_r(y ~ trend + mls(x, 4:20, 4, nealmon) + mls(z, 12:25, 12, nealmon),
+##'                 start=list(x=c(10,1,-0.1),z=c(2,-0.1)))
 ##' 
 ##' ##Calculate average forecasts
 ##' avgf <- average_forecast(list(mod1,mod2),

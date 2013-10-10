@@ -59,7 +59,9 @@ trendn <- length(y) + 1:h
 forecast(mr, list(trend = trendn, x = xn), method = "static")
 
 ##Dynamic AR* model
-mr.dyn <- midas_r(y ~ trend + mls(y, 1:2, 1, "*") + fmls(x, 11, 12, nealmon), start = list(x = rep(0, 3)))
+mr.dyn <- midas_r(y ~ trend + mls(y, 1:2, 1, "*")
+                   + fmls(x, 11, 12, nealmon),
+                  start = list(x = rep(0, 3)))
 
 forecast(mr.dyn, list(trend = trendn, x = xn), method = "dynamic")
 }

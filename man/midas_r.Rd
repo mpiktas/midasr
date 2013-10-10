@@ -119,10 +119,14 @@ y <- midas.sim(500,theta0,x,1)
 x <- window(x,start=start(y))
 
 ##Fit restricted model
-mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,list(y=y,x=x),start=list(x=c(-0.1,10,-10,-10)))
+mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,
+              list(y=y,x=x),
+              start=list(x=c(-0.1,10,-10,-10)))
 
 ##Include intercept and trend in regression
-mr.it <- midas_r(y~fmls(x,4*12-1,12,theta.h0)+trend,list(data.frame(y=y,trend=1:500),x=x),start=list(x=c(-0.1,10,-10,-10)))
+mr.it <- midas_r(y~fmls(x,4*12-1,12,theta.h0)+trend,
+                 list(data.frame(y=y,trend=1:500),x=x),
+                 start=list(x=c(-0.1,10,-10,-10)))
 
 data("USrealgdp")
 data("USunempr")
@@ -132,10 +136,14 @@ xx <- window(diff(USunempr), start = 1949)
 trend <- 1:length(y.ar)
 
 ##Fit AR(1) model
-mr.ar <- midas_r(y.ar ~ trend + mls(y.ar, 1, 1) + fmls(xx, 11, 12, nealmon), start = list(xx = rep(0, 3)))
+mr.ar <- midas_r(y.ar ~ trend + mls(y.ar, 1, 1) +
+                 fmls(xx, 11, 12, nealmon),
+                 start = list(xx = rep(0, 3)))
 
 ##First order MIDAS-AR* restricted model
-mr.arstar <-  midas_r(y.ar ~ trend + mls(y.ar, 1, 1, "*") + fmls(xx, 11, 12, nealmon), start = list(xx = rep(0, 3)))
+mr.arstar <-  midas_r(y.ar ~ trend + mls(y.ar, 1, 1, "*")
+                     + fmls(xx, 11, 12, nealmon),
+                     start = list(xx = rep(0, 3)))
 }
 \author{
   Virmantas Kvedaras, Vaidotas Zemlys

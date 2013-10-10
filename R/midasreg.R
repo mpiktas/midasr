@@ -164,10 +164,14 @@ midas_u <- function(formula, data ,...) {
 ##' x <- window(x,start=start(y))
 ##' 
 ##' ##Fit restricted model
-##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,list(y=y,x=x),start=list(x=c(-0.1,10,-10,-10)))
+##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,
+##'               list(y=y,x=x),
+##'               start=list(x=c(-0.1,10,-10,-10)))
 ##'
 ##' ##Include intercept and trend in regression
-##' mr.it <- midas_r(y~fmls(x,4*12-1,12,theta.h0)+trend,list(data.frame(y=y,trend=1:500),x=x),start=list(x=c(-0.1,10,-10,-10)))
+##' mr.it <- midas_r(y~fmls(x,4*12-1,12,theta.h0)+trend,
+##'                  list(data.frame(y=y,trend=1:500),x=x),
+##'                  start=list(x=c(-0.1,10,-10,-10)))
 ##' 
 ##' data("USrealgdp")
 ##' data("USunempr")
@@ -177,10 +181,14 @@ midas_u <- function(formula, data ,...) {
 ##' trend <- 1:length(y.ar)
 ##' 
 ##' ##Fit AR(1) model
-##' mr.ar <- midas_r(y.ar ~ trend + mls(y.ar, 1, 1) + fmls(xx, 11, 12, nealmon), start = list(xx = rep(0, 3)))
+##' mr.ar <- midas_r(y.ar ~ trend + mls(y.ar, 1, 1) +
+##'                  fmls(xx, 11, 12, nealmon),
+##'                  start = list(xx = rep(0, 3)))
 ##' 
 ##' ##First order MIDAS-AR* restricted model 
-##' mr.arstar <-  midas_r(y.ar ~ trend + mls(y.ar, 1, 1, "*") + fmls(xx, 11, 12, nealmon), start = list(xx = rep(0, 3)))
+##' mr.arstar <-  midas_r(y.ar ~ trend + mls(y.ar, 1, 1, "*")
+##'                      + fmls(xx, 11, 12, nealmon),
+##'                      start = list(xx = rep(0, 3)))
 ##'
 ##' @details Given MIDAS regression:
 ##'
@@ -628,7 +636,7 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
         ##Seems to work
     }
     
-    hess <- function(x)numDeriv:::hessian(fn0,x)
+    hess <- function(x)numDeriv::hessian(fn0,x)
       
     if(is.null(unrestricted)) {
         if(ncol(X)<nrow(X)) unrestricted <- lm(y~.-1,data=data.frame(cbind(y,X),check.names=FALSE))
@@ -737,7 +745,7 @@ midas_r_fast <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method="B
          opt=opt,
          call=call,
          gradient=gr,
-         hessian=function(x)numDeriv:::hessian(fn0,x),
+         hessian=function(x)numDeriv::hessian(fn0,x),
          gradD=gradD,
          fitted.values=fitted.values,
          residuals=as.vector(model[,1]-fitted.values))
