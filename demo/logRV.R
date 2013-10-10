@@ -7,9 +7,15 @@ data(rvsp500)
 
 y <- log(as.numeric(rvsp500[,2]))
 
+nlmn <- function(p,d,m) {
+  i <- 1:d/100
+  plc <- poly(i,degree=length(p)-1,raw=TRUE) %*% p[-1]
+  as.vector(p[1] * exp(plc)/sum(exp(plc)))
+}
+
 ##Convergence is harder to achieve, so try to pick better starting values
 prestart <- function(start,cfur,k) {    
-    fn0 <- function(p) {sum((cfur-nealmon(p,k))^2)}
+    fn0 <- function(p) {sum((cfur-nlmn(p,k))^2)}
     optim(start,fn0,method="BFGS",control=list(maxit=1000))$par
 }
 
@@ -19,7 +25,7 @@ rvhk <- function(h,k){
     y <- y[1:length(rvh)]
     mu <- midas_u(rvh~fmls(y,k,1))
     cfur <- coef(mu)[grep("fmls",names(coef(mu)))]
-    midas_r(midas_r(rvh~fmls(y,k,1,nealmon),start=list(y=prestart(c(0.2,-1,1),cfur,k+1))),Ofunction="nls")   
+    midas_r(midas_r(rvh~fmls(y,k,1,nlmn),start=list(y=prestart(c(0.2,-1,1),cfur,k+1))),Ofunction="nls")   
 }
 
 allh <- lapply(c(5,10,20,40),rvhk,k=69)
