@@ -31,18 +31,20 @@
         
         
 
-<p>The best way to install package, currently is by using the following code in R:</p>
+<p>The package is available on <a href="http://cran.r-project.org/web/packages/midasr/index.html">CRAN</a>.  
+So it can be installed in the usual way:</p>
 
-<pre><code>library(devtools)
-install_github("midasr","mpiktas")
+<pre><code>
+install.packages("midasr")
 </code></pre>
 
-<p>This will install the development version of the package. The latest stable
-version is 0.1 and you can install it using the following code:</p>
+<p>This will install the latest stable version, which currently is 0.1<p>. 
 
-<pre><code>library(devtools)
-install_github("midasr","mpiktas","v0.1")
-</code></pre>
+<p>The detailed description of the package features can be found in the <a href="https://github.com/mpiktas/midasr-user-guide/raw/master/midasr-user-guide.pdf">User guide</a>. Eventually 
+this user guide will become a package vignette. All of the code examples in the user guide and some additional 
+examples are contained in this <a href="https://github.com/mpiktas/midasr-user-guide/raw/master/midasr-examples.R">file.</a> The user guide source as .Rnw file and the accompanying files 
+can be found in the <a href="https://github.com/mpiktas/midasr-user-guide/">midasr-user-guide github repository</a>. 
+</p>
 
 <p> The package has three demos: <code>okun</code>, <code>RV</code> and
 <code>logRV</code>. Please run them with the following code:
@@ -56,8 +58,21 @@ demo("logRV","midasr",ask=FALSE)
 
 <p>The last 2 demos take some time to complete (about 5 minutes), so be patient. </p>
 
-<p>Eventually the package will be available from <a
-    href="http://cran.r-project.org">CRAN</a>. </p>
+<p>To install the latest development version of the package use the following code:</p>
+
+<pre><code>library(devtools)
+install_github("midasr","mpiktas")
+</code></pre>
+
+<p> The package versioning follows the following <a href="http://yihui.name/en/2013/06/r-package-versioning/">
+convention.</a> The stable version is x.y. This version is available on CRAN, but it would be updated
+once a month. The development version is x.y.z and it can be installed from github. To install the specific version 
+of the package use the following code:
+</p>
+<pre><code>library(devtools)
+install_github("midasr","mpiktas","v0.1")
+</code></pre>
+
 
 <p>If you find bugs or have suggestions please file an <a
     href="https://github.com/mpiktas/midasr/issues">issue</a>. Add the offending
