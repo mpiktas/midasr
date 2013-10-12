@@ -19,6 +19,8 @@ The package development was influenced by features of the [MIDAS Matlab toolbox]
 
 The package has the project [webpage][1] and you can follow its developmenton  [github][2]. 
 
+The detailed description of the package features can be found in the [User guide][4].  All of the code examples in the user guide and some additional examples together with the user guide .Rnw file can be found in the midasr-user-guide github [repository][5]. 
+
 # Development
 To install the development version of midasr, it's easiest to use the `devtools` package:
 
@@ -29,3 +31,5 @@ To install the development version of midasr, it's easiest to use the `devtools`
 [1]: http://mpiktas.github.com/midasr
 [2]: http://github.com/mpiktas/midasr
 [3]: http://www.unc.edu/~eghysels/
+[4]: https://github.com/mpiktas/midasr-user-guide/raw/master/midasr-user-guide.pdf
+[5]: https://github.com/mpiktas/midasr-user-guide/
