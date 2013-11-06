@@ -3,8 +3,7 @@
 ##' Estimate restricted MIDAS regression using non-linear least squares, when the regressor is I(1)
 ##'
 ##' @param x either formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function
-##' @param ldata low frequency data, a \code{data.frame} object
-##' @param hdata high frequency data, a \code{data.frame} object
+##' @param data a named list containing data with mixed frequencies
 ##' @param start the starting values for optimisation. Must be a list with named elements.
 ##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are the arguments passed to this function. The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
 ##' @param user.gradient the default value is \code{FALSE}, which means that the numeric approximation of weight function gradient is calculated. If \code{TRUE} it is assumed that the R function for weight function gradient has the name of the weight function appended with \code{.gradient}. This function must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly.
@@ -65,10 +64,10 @@ imidas_r <- function(x,...)UseMethod("imidas_r")
 ##' @rdname imidas_r
 ##' @method imidas_r default
 ##' @export
-imidas_r.default <- function(x, ldata=NULL, hdata=NULL, start, Ofunction="optim", user.gradient=FALSE,...) {
+imidas_r.default <- function(x, data, start, Ofunction="optim", user.gradient=FALSE,...) {
 
     Zenv <- new.env(parent=environment(x))
-        
+    
     mt <- terms(formula(x),specials="fmls")
     vl <- as.list(attr(mt,"variables"))
     vl <- vl[-1]
