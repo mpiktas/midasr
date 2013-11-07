@@ -5,20 +5,16 @@
 \usage{
   imidas_r(x, ...)
 
-  \method{imidas_r}{default} (x, ldata = NULL,
-    hdata = NULL, start, Ofunction = "optim",
-    user.gradient = FALSE, ...)
+  \method{imidas_r}{default} (x, data, start,
+    Ofunction = "optim", user.gradient = FALSE, ...)
 }
 \arguments{
   \item{x}{either formula for restricted MIDAS regression
   or \code{midas_r} object. Formula must include
   \code{\link{fmls}} function}
 
-  \item{ldata}{low frequency data, a \code{data.frame}
-  object}
-
-  \item{hdata}{high frequency data, a \code{data.frame}
-  object}
+  \item{data}{a named list containing data with mixed
+  frequencies}
 
   \item{start}{the starting values for optimisation. Must
   be a list with named elements.}

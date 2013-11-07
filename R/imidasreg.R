@@ -69,12 +69,32 @@ imidas_r.default <- function(x, data, start, Ofunction="optim", user.gradient=FA
     Zenv <- new.env(parent=environment(x))
     
     mt <- terms(formula(x),specials="fmls")
+
+
+    if(missing(data)) {
+        nms <- all.vars(mt)        
+        insample <- lapply(nms,function(nm)eval(as.name(nm),Zenv))
+        names(insample) <- nms
+        insample <- insample[!sapply(insample,is.function)]
+    }
+    else {
+        insample <- data_to_list(data)
+    }
+    
     vl <- as.list(attr(mt,"variables"))
     vl <- vl[-1]
     
     pl <- attr(mt,"specials")$fmls
     if(length(pl)>1) stop("Only one high frequency term is supported currently")
     fr <- vl[[pl]]
+
+    ##Do an ugly hack
+    xname <- as.character(fr[[2]])
+    insample <- c(list(insample[[xname]]),insample)
+    names(insample)[1] <- ".Level"
+   
+    assign(".IMIDASdata",insample,envir=Zenv)
+    
     wf <- fr[ -4:-5]
     wf[[1]] <- fr[[5]]
     for(j in 3:length(wf)) {
@@ -103,6 +123,7 @@ imidas_r.default <- function(x, data, start, Ofunction="optim", user.gradient=FA
     environment(formula) <- Zenv
     cl[[2]] <- formula    
     cl[[1]] <- as.name("midas_r")
+    cl$data <- as.name(".IMIDASdata")
     res <- eval(cl,Zenv)
     class(res) <- c(class(res),"imidas_r")
     return(res)
@@ -153,6 +174,7 @@ modifyfmls <- function(expr,wfun,Zenv,diff) {
      expr[[3]] <- nol+diff
      m <- eval(expr[[4]],Zenv)
      expr[[1]] <- as.name("dmls")
+     t2[[2]] <- as.name(".Level")
      t2[[3]] <- nol+1+diff
      t2[[4]] <- m
      expr[[5]] <- as.name(wfun)
