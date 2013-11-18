@@ -823,23 +823,28 @@ amidas_table <- function(formula,data,weights,wstart,type,start=NULL,from,to,IC=
     
 
 add_expressions <- function(l) {
-    if(length(l)<2) stop("You need 2 elements for addition")
-    base <- expression(a+b)
-    base[[c(1,2)]] <- l[[1]]
-    base[[c(1,3)]] <- l[[2]]
-    if(length(l)>2) {
-        l <- l[-2:-1]
-        for(i in 1:length(l)) {
-            tmp <- expression(a+b)
-            tmp[[c(1,2)]] <- base[[1]]
-            tmp[[c(1,3)]] <- l[[i]]
-            base[[1]] <- tmp[[1]]
-        }
+    if(!is.list(l))stop("The summands must be in a list")
+    if(length(l)==1) {
+        return(l[[1]])
     }
-    base[[1]]    
+    else {
+        base <- expression(a+b)
+        base[[c(1,2)]] <- l[[1]]
+        base[[c(1,3)]] <- l[[2]]
+        if(length(l)>2) {
+            l <- l[-2:-1]
+            for(i in 1:length(l)) {
+                tmp <- expression(a+b)
+                tmp[[c(1,2)]] <- base[[1]]
+                tmp[[c(1,3)]] <- l[[i]]
+                base[[1]] <- tmp[[1]]
+            }
+        }
+        return(base[[1]])
+    }
 }
 
-variables_to_formula <- function(vars,intercept=0) {
+variables_to_formula <- function(vars,intercept=0) {   
     rhs <- add_expressions(vars[-1])
     if(intercept==1) {
         res <- formula(a~b-1)
