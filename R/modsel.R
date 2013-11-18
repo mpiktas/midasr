@@ -461,7 +461,7 @@ midas_r_ic_table.midas_r_ic_table <- function(formula,...) {
     do.call("make_ic_table",formula[-1])
 }
 
-make_ic_table <- function(candlist,IC,test) {
+make_ic_table <- function(candlist,IC,test,...) {
     makelist <- function(x) {
         if(length(x)==1)list(x)
         else as.list(x)

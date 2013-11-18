@@ -323,7 +323,10 @@ midas_r.fit <- function(x) {
         if(x$user.gradient) {
             args$gr <- x$gradient
         }
-        opt <- do.call(function.opt,args)
+        opt <- try(do.call(function.opt,args),silent=TRUE)
+        if(class(opt)=="try-error") {
+            stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
+        }
         par <- opt$par
         names(par) <- names(coef(x))
         x$convergence <- opt$convergence
@@ -348,7 +351,10 @@ midas_r.fit <- function(x) {
         y <- x$model[,1]
         args$formula <- formula(y~rhs(p))
         args$start <- list(p=x$start.opt)
-        opt <- do.call("nls",args)
+        opt <- try(do.call("nls",args),silent=TRUE)
+        if(class(opt)=="try-error") {
+            stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
+        }
         par <- coef(opt)
         names(par) <- names(coef(x))
         x$convergence <- opt$convInfo$stopCode
