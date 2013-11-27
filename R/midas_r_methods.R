@@ -92,12 +92,14 @@ summary.midas_r <- function(object, vcov.=vcovHAC, df=NULL, prewhite=TRUE, ...) 
     R <- qr.R(qr(XD))
     XDtXDinv <- chol2inv(R)
     dimnames(XDtXDinv) <- list(pnames,pnames)
-       
-    if(is.null(vcov.)) {
-        se <- sqrt(diag(XDtXDinv)*resvar)
-    }
-    else {
-        se <- sqrt(diag(vcov.(object,prewhite=prewhite,...)))
+
+    se <- sqrt(diag(XDtXDinv)*resvar)
+    
+    if(!is.null(vcov.)) {
+        set <- try(sqrt(diag(vcov.(object,prewhite=prewhite,...))))
+        if(class(set)=="try-error") {
+            warning("Unable to compute robust standard errors, using non-robust ones. This is an indication of problems with optimisation, please try other starting values or change optimisation method")
+        } else se <- set
     }
     tval <- param/se
 
