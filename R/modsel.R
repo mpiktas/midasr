@@ -1068,6 +1068,7 @@ split_data <- function(data,insample,outsample) {
 ##' @param type a string indicating which type of forecast to use. 
 ##' @param fweights names of weighting schemes
 ##' @param measures names of accuracy measures
+##' @param showprogress logical, TRUE to show progress bar, FALSE for silent evaluation
 ##' @return a list containing forecasts and tables of accuracy measures
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
@@ -1096,7 +1097,7 @@ split_data <- function(data,insample,outsample) {
 ##'                         type="fixed",                            
 ##'                         measures=c("MSE","MAPE","MASE"),
 ##'                         fweights=c("EW","BICW","MSFE","DMSFE"))
-average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recursive","rolling"),fweights=c("EW","BICW","MSFE","DMSFE"),measures=c("MSE","MAPE","MASE")) {
+average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recursive","rolling"),fweights=c("EW","BICW","MSFE","DMSFE"),measures=c("MSE","MAPE","MASE"),showprogress=TRUE) {
 
     #if(length(modlist)==1)stop("Need more than 1 model to produce average forecasts")
     if(missing(data))stop("Data need to be supplied for forecasting")
@@ -1138,8 +1139,10 @@ average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recu
     }
     else {
         outm <- matrix(NA,nrow=length(outsample),ncol=length(modlist))
-        cat("\nDoing", type, "forecast :\n")    
-        pb <- txtProgressBar(min=0,max=length(outsample),initial=0,style=3)
+        if(showprogress) {
+            cat("\nDoing", type, "forecast :\n")    
+            pb <- txtProgressBar(min=0,max=length(outsample),initial=0,style=3)
+        }
    
         for(i in 1:length(outsample)) {
             newout <- outsample[i]
@@ -1151,14 +1154,14 @@ average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recu
             splitnew <- split_data(data,newin,newout)
             emod <- reeval(modlist,splitnew$indata)
             outm[i,] <- sapply(emod,forecast.midas_r,newdata=splitnew$outdata,method="static")
-            setTxtProgressBar(pb, i)
+            if(showprogress) setTxtProgressBar(pb, i)
         }
         if(length(modlist)>1) {
             outf <- lapply(data.frame(outm),function(x)cbind(outdata[[yname]],x))}
         else {
             outf <- list(cbind(outdata[[yname]],outm[,1]))
         }
-        close(pb)
+        if(showprogress)close(pb)
     }
     
     msrfun <- lapply(measures,function(msr)eval(as.name(msr)))

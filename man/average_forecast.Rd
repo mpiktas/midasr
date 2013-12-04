@@ -5,7 +5,8 @@
   average_forecast(modlist, data, insample, outsample,
     type = c("fixed", "recursive", "rolling"),
     fweights = c("EW", "BICW", "MSFE", "DMSFE"),
-    measures = c("MSE", "MAPE", "MASE"))
+    measures = c("MSE", "MAPE", "MASE"),
+    showprogress = TRUE)
 }
 \arguments{
   \item{modlist}{a list of \code{midas_r} objects}
@@ -24,6 +25,9 @@
   \item{fweights}{names of weighting schemes}
 
   \item{measures}{names of accuracy measures}
+
+  \item{showprogress}{logical, TRUE to show progress bar,
+  FALSE for silent evaluation}
 }
 \value{
   a list containing forecasts and tables of accuracy
