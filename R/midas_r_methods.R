@@ -450,13 +450,18 @@ data_to_list <- function(data) {
                     names(x) <- nm
                     x
                 } else {
-                    ##This is needed since if tseries library is not loaded as.list for mts does not work as expected
-                    if(inherits(x,"mts")) x <- data.frame(x)
+                    ##This is needed since if tseries library is not loaded as.list for mts does not work as expected                   
+                    if(inherits(x,"mts")) 
+                        x <- data.frame(x)
                     if(ncol(x)==1) {
-                        x <- list(as.numeric(x))
+                        if(!is.null(colnames(x))) {
+                            if(nm=="") nm <- colnames(x)
+                            else warning("Duplicate names in data. Using the one from the list")                                                                              }
+                        browser()
+                        x <- list(as.numeric(x[,1]))
                         names(x) <- nm
                         x
-                    }
+                    }                      
                     else {
                         as.list(data.frame(x))
                     }

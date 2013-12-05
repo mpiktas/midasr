@@ -69,28 +69,7 @@ midas_u <- function(formula, data ,...) {
         ee <- NULL
     }
     else {
-        if(is.matrix(data)) data <- data.frame(data)
-        if(is.data.frame(data)) {
-            ee <- as.environment(as.list(data))
-        }
-        else {
-            if(is.list(data)) {
-                if(is.null(names(data))) names(data) <- rep("",length(data))
-                data <- mapply(function(x,nm){
-                    if(is.null(dim(x))) {
-                        x <- list(x)
-                        names(x) <- nm
-                        x
-                    } else {
-                        as.list(x)
-                    }
-                },data,names(data),SIMPLIFY=FALSE)
-                names(data) <- NULL
-                ee <- as.environment(do.call("c",data))
-            } else {
-                stop("Argument data must be a matrix, data.frame or a list")
-            }
-        }
+        ee <- data_to_env(data)
         parent.env(ee) <- parent.frame()
     }
     
