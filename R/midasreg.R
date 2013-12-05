@@ -80,6 +80,7 @@ midas_u <- function(formula, data ,...) {
     mf[[3L]] <- as.name("ee")   
    
     out <- eval(mf,Zenv)
+    out$Zenv <- Zenv
     class(out) <- c("midas_u",class(out))
     out
 }
