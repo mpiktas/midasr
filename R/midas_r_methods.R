@@ -456,8 +456,7 @@ data_to_list <- function(data) {
                     if(ncol(x)==1) {
                         if(!is.null(colnames(x))) {
                             if(nm=="") nm <- colnames(x)
-                            else warning("Duplicate names in data. Using the one from the list")                                                                              }
-                        browser()
+                            else warning("Duplicate names in data. Using the one from the list")                                                                              }                        
                         x <- list(as.numeric(x[,1]))
                         names(x) <- nm
                         x
