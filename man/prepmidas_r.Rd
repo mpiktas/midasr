@@ -2,9 +2,8 @@
 \alias{prepmidas_r}
 \title{Prepare necessary objects for fitting of the MIDAS regression}
 \usage{
-  prepmidas_r(y, X, mt, Zenv, cl, args, start, Ofunction,
-    user.gradient, lagsTable, unrestricted = NULL,
-    guess_start = TRUE)
+prepmidas_r(y, X, mt, Zenv, cl, args, start, Ofunction, user.gradient,
+  lagsTable, unrestricted = NULL, guess_start = TRUE)
 }
 \arguments{
   \item{y}{the response}
@@ -34,10 +33,10 @@
   zero.}
 }
 \description{
-  Prepare necessary objects for fitting of the MIDAS
-  regression
+Prepare necessary objects for fitting of the MIDAS
+regression
 }
 \author{
-  Vaidotas Zemlys
+Vaidotas Zemlys
 }
 

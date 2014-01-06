@@ -2,7 +2,7 @@
 \alias{+.lws_table}
 \title{Combine \code{lws_table} objects}
 \usage{
-  \method{+}{lws_table} (..., check = TRUE)
+\method{+}{lws_table}(..., check = TRUE)
 }
 \arguments{
   \item{...}{\code{lws_table} object}
@@ -12,17 +12,17 @@
   \code{c("weights","lags","starts")}}
 }
 \value{
-  \code{lws_table} object
+\code{lws_table} object
 }
 \description{
-  Combines \code{lws_table} objects
+Combines \code{lws_table} objects
 }
 \details{
-  The \code{lws_table} objects have similar structure to
-  table, i.e. it is a list with 3 elements which are the
-  lists with the same number of elements. The base function
-  \code{c} would \code{cbind} such tables. This function
-  \code{rbind}s them.
+The \code{lws_table} objects have similar structure to
+table, i.e. it is a list with 3 elements which are the
+lists with the same number of elements. The base function
+\code{c} would \code{cbind} such tables. This function
+\code{rbind}s them.
 }
 \examples{
 nlmn <- expand_weights_lags("nealmon",0,c(4,8),1,start=list(nealmon=rep(0,3)))
@@ -31,6 +31,6 @@ nbt <- expand_weights_lags("nbeta",0,c(4,8),1,start=list(nbeta=rep(0,4)))
 nlmn+nbt
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 

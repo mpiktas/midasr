@@ -2,7 +2,7 @@
 \alias{midas.sim}
 \title{Simulate MIDAS regression response variable}
 \usage{
-  midas.sim(n, theta, x, eps.sd)
+midas.sim(n, theta, x, eps.sd)
 }
 \arguments{
   \item{n}{The sample size}
@@ -17,30 +17,30 @@
   zero mean random variables}
 }
 \value{
-  a \code{ts} object
+a \code{ts} object
 }
 \description{
-  Given the predictor variable and the coefficients
-  calculate MIDAS regression response variable.
+Given the predictor variable and the coefficients calculate
+MIDAS regression response variable.
 }
 \details{
-  MIDAS regression has the following form:
+MIDAS regression has the following form:
 
-  \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i}
-  x_{(t-j)m-i}+u_t}
+\deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i}
+x_{(t-j)m-i}+u_t}
 
-  or alternatively
+or alternatively
 
-  \deqn{y_t=\sum_{h=0}^{(k+1)m}\theta_hx_{tm-h}+u_t,} where
-  \eqn{m} is the frequency ratio and \eqn{k} is the number
-  of lags included in the regression.
+\deqn{y_t=\sum_{h=0}^{(k+1)m}\theta_hx_{tm-h}+u_t,} where
+\eqn{m} is the frequency ratio and \eqn{k} is the number of
+lags included in the regression.
 
-  MIDAS regression involves times series with different
-  frequencies. In R the frequency property is set when
-  creating time series objects \code{\link{ts}}. Hence the
-  frequency ratio \eqn{m} which figures in MIDAS regression
-  is calculated from frequency property of time series
-  objects supplied.
+MIDAS regression involves times series with different
+frequencies. In R the frequency property is set when
+creating time series objects \code{\link{ts}}. Hence the
+frequency ratio \eqn{m} which figures in MIDAS regression
+is calculated from frequency property of time series
+objects supplied.
 }
 \examples{
 ##The parameter function
@@ -63,6 +63,6 @@ x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
 y <- midas.sim(500,theta0,x,1)
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 

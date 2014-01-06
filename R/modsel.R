@@ -1138,17 +1138,26 @@ average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recu
                        )       
     }
     else {
+        if(type=="rolling") {
+            last_in<- length(insample)
+            if(insample[last_in]>outsample[1])stop("The in-sample and out-of-sample indexes should not overlap") 
+            if(outsample[1]-insample[last_in]!=1)stop("There should be no gaps between in-sample and out-of-sample indexes")
+            fulls <- c(insample,outsample)
+            
+        }
         outm <- matrix(NA,nrow=length(outsample),ncol=length(modlist))
         if(showprogress) {
             cat("\nDoing", type, "forecast :\n")    
             pb <- txtProgressBar(min=0,max=length(outsample),initial=0,style=3)
         }
-   
+        
         for(i in 1:length(outsample)) {
             newout <- outsample[i]
             if(i>1) {
                 if(type=="recursive") newin <- c(insample,outsample[1:(i-1)])
-                else newin <- c(insample[-(i-1):-1],outsample[1:(i-1)])
+                else {                    
+                    newin <- fulls[1:last_in+i-1]
+                }
             }
             else newin <- insample
             splitnew <- split_data(data,newin,newout)

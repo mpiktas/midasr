@@ -4,12 +4,12 @@
 \title{US annual gross domestic product in billions of chained 2005 dollars}
 \format{A \code{\link{ts}} object.}
 \source{
-  \href{http://www.bea.gov/national/xls/gdplev.xls}{U.S.
-  Department of Commerce, Bureau of Economic Analysis}
+\href{http://www.bea.gov/national/xls/gdplev.xls}{U.S.
+Department of Commerce, Bureau of Economic Analysis}
 }
 \description{
-  The annual gross domestic product in billions of chained
-  2005 dollars for US from 1948 to 2011.
+The annual gross domestic product in billions of chained
+2005 dollars for US from 1948 to 2011.
 }
 \keyword{datasets}
 

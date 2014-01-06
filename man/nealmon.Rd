@@ -2,7 +2,7 @@
 \alias{nealmon}
 \title{Normalized Exponential Almon lag MIDAS coefficients}
 \usage{
-  nealmon(p, d, m)
+nealmon(p, d, m)
 }
 \arguments{
   \item{p}{parameters for Almon lag}
@@ -12,25 +12,25 @@
   \item{m}{the frequency, currently ignored.}
 }
 \value{
-  vector of coefficients
+vector of coefficients
 }
 \description{
-  Calculate normalized exponential Almon lag coefficients
-  given the parameters and required number of coefficients.
+Calculate normalized exponential Almon lag coefficients
+given the parameters and required number of coefficients.
 }
 \details{
-  Given unrestricted MIDAS regression
+Given unrestricted MIDAS regression
 
-  \deqn{y_t=\sum_{h=0}^d\theta_{h}x_{tm-h}+\mathbf{z_t}\beta+u_t}
+\deqn{y_t=\sum_{h=0}^d\theta_{h}x_{tm-h}+\mathbf{z_t}\beta+u_t}
 
-  normalized exponential Almon lag restricts the
-  coefficients \eqn{theta_h} in the following way:
+normalized exponential Almon lag restricts the coefficients
+\eqn{theta_h} in the following way:
 
-  \deqn{\theta_{h}=\delta\frac{\exp(\lambda_1(h+1)+\dots+\lambda_r(h+1)^r)}{\sum_{s=0}^d\exp(\lambda_1(s+1)+\dots+\lambda_r(h+1)^r)}}
+\deqn{\theta_{h}=\delta\frac{\exp(\lambda_1(h+1)+\dots+\lambda_r(h+1)^r)}{\sum_{s=0}^d\exp(\lambda_1(s+1)+\dots+\lambda_r(h+1)^r)}}
 
-  The parameter \eqn{\delta} should be the first element in
-  vector \code{p}. The degree of the polynomial is then
-  decided by the number of the remaining parameters.
+The parameter \eqn{\delta} should be the first element in
+vector \code{p}. The degree of the polynomial is then
+decided by the number of the remaining parameters.
 }
 \examples{
 ##Load data
@@ -44,6 +44,6 @@ t <- 1:length(y)
 midas_r(y~t+fmls(x,11,12,nealmon),start=list(x=c(0,0,0)))
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 

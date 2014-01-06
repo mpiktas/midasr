@@ -2,7 +2,7 @@
 \alias{dmls}
 \title{MIDAS lag structure for unit root processes}
 \usage{
-  dmls(x, k, m, ...)
+dmls(x, k, m, ...)
 }
 \arguments{
   \item{x}{a vector}
@@ -15,13 +15,12 @@
   regression}
 }
 \value{
-  a matrix containing the first differences and the lag
-  k+1.
+a matrix containing the first differences and the lag k+1.
 }
 \description{
-  Prepares MIDAS lag structure for unit root processes
+Prepares MIDAS lag structure for unit root processes
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 

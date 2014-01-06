@@ -2,7 +2,7 @@
 \alias{almonp}
 \title{Almon polynomial MIDAS weights specification}
 \usage{
-  almonp(p, d, m)
+almonp(p, d, m)
 }
 \arguments{
   \item{p}{parameters for Almon polynomial weights}
@@ -12,12 +12,12 @@
   \item{m}{the frequency ratio, currently ignored}
 }
 \value{
-  vector of coefficients
+vector of coefficients
 }
 \description{
-  Calculate Almon polynomial MIDAS weights
+Calculate Almon polynomial MIDAS weights
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 

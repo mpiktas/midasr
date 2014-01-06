@@ -2,8 +2,7 @@
 \alias{predict.midas_r}
 \title{Predict method for MIDAS regression fit}
 \usage{
-  \method{predict}{midas_r} (object, newdata,
-    na.action = na.omit, ...)
+\method{predict}{midas_r}(object, newdata, na.action = na.omit, ...)
 }
 \arguments{
   \item{object}{\code{\link{midas_r}} object}
@@ -20,22 +19,22 @@
   \item{...}{additional arguments, not used}
 }
 \value{
-  a vector of predicted values
+a vector of predicted values
 }
 \description{
-  Predicted values based on \code{midas_r} object.
+Predicted values based on \code{midas_r} object.
 }
 \details{
-  \code{predict.midas_r} produces predicted values,
-  obtained by evaluating regression function in the frame
-  \code{newdata}. This means that the appropriate model
-  matrix is constructed using only the data in
-  \code{newdata}. This makes this function not very
-  convenient for forecasting purposes. If you want to
-  supply the new data for forecasting horizon only use the
-  function \link{forecast.midas_r}. Also this function
-  produces only static predictions, if you want dynamic
-  forecasts use the \link{forecast.midas_r}.
+\code{predict.midas_r} produces predicted values, obtained
+by evaluating regression function in the frame
+\code{newdata}. This means that the appropriate model
+matrix is constructed using only the data in
+\code{newdata}. This makes this function not very
+convenient for forecasting purposes. If you want to supply
+the new data for forecasting horizon only use the function
+\link{forecast.midas_r}. Also this function produces only
+static predictions, if you want dynamic forecasts use the
+\link{forecast.midas_r}.
 }
 \examples{
 data("USrealgdp")
@@ -57,6 +56,6 @@ predict(mr, list(x = xn))
 forecast(mr, list(x = xn))
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 

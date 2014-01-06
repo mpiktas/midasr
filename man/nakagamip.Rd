@@ -3,7 +3,7 @@
 \title{Normalized Nakagami probability density function MIDAS weights specification
 Calculate MIDAS weights according to normalized Nakagami probability density function specification}
 \usage{
-  nakagamip(p, d, m)
+nakagamip(p, d, m)
 }
 \arguments{
   \item{p}{parameters for normalized Nakagami probability
@@ -14,15 +14,15 @@ Calculate MIDAS weights according to normalized Nakagami probability density fun
   \item{m}{the frequency ratio, currently ignored}
 }
 \value{
-  vector of coefficients
+vector of coefficients
 }
 \description{
-  Normalized Nakagami probability density function MIDAS
-  weights specification Calculate MIDAS weights according
-  to normalized Nakagami probability density function
-  specification
+Normalized Nakagami probability density function MIDAS
+weights specification Calculate MIDAS weights according to
+normalized Nakagami probability density function
+specification
 }
 \author{
-  Julius Vainora
+Julius Vainora
 }
 

@@ -3,7 +3,7 @@
 \title{Gradient function for normalized Nakagami probability density function MIDAS weights specification
 Calculate gradient function for normalized Nakagami probability density function specification of MIDAS weights.}
 \usage{
-  nakagamip.gradient(p, d, m)
+nakagamip.gradient(p, d, m)
 }
 \arguments{
   \item{p}{parameters for normalized Nakagami probability
@@ -14,15 +14,15 @@ Calculate gradient function for normalized Nakagami probability density function
   \item{m}{the frequency ratio, currently ignored}
 }
 \value{
-  vector of coefficients
+vector of coefficients
 }
 \description{
-  Gradient function for normalized Nakagami probability
-  density function MIDAS weights specification Calculate
-  gradient function for normalized Nakagami probability
-  density function specification of MIDAS weights.
+Gradient function for normalized Nakagami probability
+density function MIDAS weights specification Calculate
+gradient function for normalized Nakagami probability
+density function specification of MIDAS weights.
 }
 \author{
-  Julius Vainora
+Julius Vainora
 }
 

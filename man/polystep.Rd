@@ -2,7 +2,7 @@
 \alias{polystep}
 \title{Step function specification for MIDAS weights}
 \usage{
-  polystep(p, d, m, a)
+polystep(p, d, m, a)
 }
 \arguments{
   \item{p}{vector of parameters}
@@ -15,12 +15,12 @@
   indicating the steps}
 }
 \value{
-  vector of coefficients
+vector of coefficients
 }
 \description{
-  Step function specification for MIDAS weights
+Step function specification for MIDAS weights
 }
 \author{
-  Vaidotas Zemlys
+Vaidotas Zemlys
 }
 

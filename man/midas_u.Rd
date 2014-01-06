@@ -2,7 +2,7 @@
 \alias{midas_u}
 \title{Estimate unrestricted MIDAS regression}
 \usage{
-  midas_u(formula, data, ...)
+midas_u(formula, data, ...)
 }
 \arguments{
   \item{formula}{MIDAS regression model formula}
@@ -14,30 +14,30 @@
   \code{\link{lm}} function.}
 }
 \value{
-  \code{\link{lm}} object.
+\code{\link{lm}} object.
 }
 \description{
-  Estimate unrestricted MIDAS regression using OLS. This
-  function is a wrapper for \code{lm}.
+Estimate unrestricted MIDAS regression using OLS. This
+function is a wrapper for \code{lm}.
 }
 \details{
-  MIDAS regression has the following form:
+MIDAS regression has the following form:
 
-  \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i}
-  x_{(t-j)m-i}+\mathbf{z_t}\mathbf{\beta}+u_t}
+\deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i}
+x_{(t-j)m-i}+\mathbf{z_t}\mathbf{\beta}+u_t}
 
-  or alternatively
+or alternatively
 
-  \deqn{y_t=\sum_{h=0}^{(k+1)m}\theta_hx_{tm-h}+\mathbf{z_t}\mathbf{\beta}+u_t,}
-  where \eqn{m} is the frequency ratio and \eqn{k} is the
-  number of lags included in the regression.
+\deqn{y_t=\sum_{h=0}^{(k+1)m}\theta_hx_{tm-h}+\mathbf{z_t}\mathbf{\beta}+u_t,}
+where \eqn{m} is the frequency ratio and \eqn{k} is the
+number of lags included in the regression.
 
-  Given certain assumptions the coefficients can be
-  estimated using usual OLS and they have the familiar
-  properties associated with simple linear regression.
+Given certain assumptions the coefficients can be estimated
+using usual OLS and they have the familiar properties
+associated with simple linear regression.
 
-  MIDAS regression involves times series with different
-  frequencies.
+MIDAS regression involves times series with different
+frequencies.
 }
 \examples{
 ##The parameter function
@@ -79,12 +79,11 @@ mu.it <- midas_u(y~fmls(x,2,12)+trend, list(ldt, hdt))
 mu.it <- midas_u(y~fmls(x,2,12)+trend, list(ldt, x=hdt$x))
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 \references{
-  Kvedaras V., Zemlys, V. \emph{Testing the functional
-  constraints on parameters in regressions with variables
-  of different frequency} Economics Letters 116 (2012)
-  250-254
+Kvedaras V., Zemlys, V. \emph{Testing the functional
+constraints on parameters in regressions with variables of
+different frequency} Economics Letters 116 (2012) 250-254
 }
 

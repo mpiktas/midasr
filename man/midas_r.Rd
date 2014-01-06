@@ -3,10 +3,10 @@
 \alias{midas_r.default}
 \title{Restricted MIDAS regression}
 \usage{
-  midas_r(x, ...)
+midas_r(x, ...)
 
-  \method{midas_r}{default} (x, data, start,
-    Ofunction = "optim", user.gradient = FALSE, ...)
+\method{midas_r}{default}(x, data, start, Ofunction = "optim",
+  user.gradient = FALSE, ...)
 }
 \arguments{
   \item{x}{either formula for restricted MIDAS regression
@@ -42,58 +42,57 @@
   function}
 }
 \value{
-  a \code{midas_r} object which is the list with the
-  following elements:
+a \code{midas_r} object which is the list with the
+following elements:
 
-  \item{coefficients}{the estimates of parameters of
-  restrictions} \item{midas.coefficientas}{the estimates of
-  restricted coefficients of MIDAS regression}
-  \item{model}{model data} \item{weights}{the MIDAS weights
-  used in estimation.} \item{unrestricted}{unrestricted
-  regression estimated using \code{\link{midas_u}}}
-  \item{param.map}{parameter map for optimisation function}
-  \item{fn0}{optimisation function for non-linear least
-  squares problem solved in restricted MIDAS regression}
-  \item{rhs}{the function which evaluates the right-hand
-  side of the MIDAS regression} \item{allcoef}{the function
-  which evaluates the restricted coefficients of MIDAS
-  regression} \item{opt}{the output of optimisation
-  procedure} \item{argmap.opt}{the list containing the name
-  of optimisation function together with arguments for
-  optimisation function} \item{start.opt}{the starting
-  values used in optimisation} \item{call}{the call to the
-  function} \item{terms}{terms object}
-  \item{gradient}{gradient of NLS objective function}
-  \item{hessian}{hessian of NLS objective function}
-  \item{Zenv}{the environment in which data is placed}
-  \item{user.gradient}{the value of supplied argument
-  user.gradient}
+\item{coefficients}{the estimates of parameters of
+restrictions} \item{midas.coefficientas}{the estimates of
+restricted coefficients of MIDAS regression}
+\item{model}{model data} \item{weights}{the MIDAS weights
+used in estimation.} \item{unrestricted}{unrestricted
+regression estimated using \code{\link{midas_u}}}
+\item{param.map}{parameter map for optimisation function}
+\item{fn0}{optimisation function for non-linear least
+squares problem solved in restricted MIDAS regression}
+\item{rhs}{the function which evaluates the right-hand side
+of the MIDAS regression} \item{allcoef}{the function which
+evaluates the restricted coefficients of MIDAS regression}
+\item{opt}{the output of optimisation procedure}
+\item{argmap.opt}{the list containing the name of
+optimisation function together with arguments for
+optimisation function} \item{start.opt}{the starting values
+used in optimisation} \item{call}{the call to the function}
+\item{terms}{terms object} \item{gradient}{gradient of NLS
+objective function} \item{hessian}{hessian of NLS objective
+function} \item{Zenv}{the environment in which data is
+placed} \item{user.gradient}{the value of supplied argument
+user.gradient}
 }
 \description{
-  Estimate restricted MIDAS regression using non-linear
-  least squares.
+Estimate restricted MIDAS regression using non-linear least
+squares.
 }
 \details{
-  Given MIDAS regression:
+Given MIDAS regression:
 
-  \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i}
-  x_{(t-j)m-i}+\mathbf{z_t}\beta+u_t}
+\deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i}
+x_{(t-j)m-i}+\mathbf{z_t}\beta+u_t}
 
-  estimate the parameters of the restriction
+estimate the parameters of the restriction
 
-  \deqn{\theta_h=g(h,\lambda),} where \eqn{h=0,...,(k+1)m},
-  together with coefficients \eqn{\beta} corresponding to
-  additional low frequency regressors.
+\deqn{\theta_h=g(h,\lambda),} where \eqn{h=0,...,(k+1)m},
+together with coefficients \eqn{\beta} corresponding to
+additional low frequency regressors.
 
-  MIDAS regression involves times series with different
-  frequencies.
+MIDAS regression involves times series with different
+frequencies.
 
-  MIDAS-AR* (a model with a common factor, see (Clements
-  and Galvao, 2008)) can be estimated by specifying
-  additional argument, see an example.
+MIDAS-AR* (a model with a common factor, see (Clements and
+Galvao, 2008)) can be estimated by specifying additional
+argument, see an example.
 
-  The restriction function must return the restricted
-  coefficients of the MIDAS regression.
+The restriction function must return the restricted
+coefficients of the MIDAS regression.
 }
 \examples{
 ##The parameter function
@@ -146,15 +145,15 @@ mr.arstar <-  midas_r(y.ar ~ trend + mls(y.ar, 1, 1, "*")
                      start = list(xx = rep(0, 3)))
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 \references{
-  Clements, M. and Galvao, A., \emph{Macroeconomic
-  Forecasting With Mixed-Frequency Data: Forecasting Output
-  Growth in the United States}, Journal of Business and
-  Economic Statistics, Vol.26 (No.4), (2008) 546-554
+Clements, M. and Galvao, A., \emph{Macroeconomic
+Forecasting With Mixed-Frequency Data: Forecasting Output
+Growth in the United States}, Journal of Business and
+Economic Statistics, Vol.26 (No.4), (2008) 546-554
 }
 \seealso{
-  midas_r.midas_r
+midas_r.midas_r
 }
 

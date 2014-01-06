@@ -2,7 +2,7 @@
 \alias{mls}
 \title{MIDAS lag structure}
 \usage{
-  mls(x, k, m, ...)
+mls(x, k, m, ...)
 }
 \arguments{
   \item{x}{a vector}
@@ -16,14 +16,14 @@
   regression}
 }
 \value{
-  a matrix containing the lags
+a matrix containing the lags
 }
 \description{
-  Create a matrix of selected MIDAS lags
+Create a matrix of selected MIDAS lags
 }
 \details{
-  The function checks whether high frequency data is
-  complete, i.e. \code{m} must divide \code{length(x)}.
+The function checks whether high frequency data is
+complete, i.e. \code{m} must divide \code{length(x)}.
 }
 \examples{
 ## Quarterly frequency data
@@ -39,6 +39,6 @@ embed(x,2)
 mls(x,0:1,1)
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 

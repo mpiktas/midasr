@@ -2,7 +2,7 @@
 \alias{nealmon.gradient}
 \title{Gradient function for normalized exponential Almon lag weights}
 \usage{
-  nealmon.gradient(p, d, m)
+nealmon.gradient(p, d, m)
 }
 \arguments{
   \item{p}{hyperparameters for Almon lag}
@@ -12,13 +12,13 @@
   \item{m}{the frequency ratio, currently ignored}
 }
 \value{
-  the gradient matrix
+the gradient matrix
 }
 \description{
-  Gradient function for normalized exponential Almon lag
-  weights
+Gradient function for normalized exponential Almon lag
+weights
 }
 \author{
-  Vaidotas Zemlys
+Vaidotas Zemlys
 }
 

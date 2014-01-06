@@ -2,9 +2,8 @@
 \alias{hf_lags_table}
 \title{Create a high frequency lag selection table for MIDAS regression model}
 \usage{
-  hf_lags_table(formula, data, start, from, to,
-    IC = c("AIC", "BIC"), test = c("hAh.test"),
-    Ofunction = "optim", user.gradient = FALSE, ...)
+hf_lags_table(formula, data, start, from, to, IC = c("AIC", "BIC"),
+  test = c("hAh.test"), Ofunction = "optim", user.gradient = FALSE, ...)
 }
 \arguments{
   \item{formula}{the formula for MIDAS regression, the lag
@@ -42,24 +41,24 @@
   function, see \link{midas_r}}
 }
 \value{
-  a \code{midas_r_iclagtab} object which is the list with
-  the following elements:
+a \code{midas_r_iclagtab} object which is the list with the
+following elements:
 
-  \item{table}{the table where each row contains calculated
-  information criteria for both restricted and unrestricted
-  MIDAS regression model with given lag structure}
-  \item{candlist}{the list containing fitted models}
-  \item{IC}{the argument IC}
+\item{table}{the table where each row contains calculated
+information criteria for both restricted and unrestricted
+MIDAS regression model with given lag structure}
+\item{candlist}{the list containing fitted models}
+\item{IC}{the argument IC}
 }
 \description{
-  Creates a high frequency lag selection table for MIDAS
-  regression model with given information criteria and
-  minimum and maximum lags.
+Creates a high frequency lag selection table for MIDAS
+regression model with given information criteria and
+minimum and maximum lags.
 }
 \details{
-  This function estimates models sequentially increasing
-  the midas lag from \code{kmin} to \code{kmax} of the last
-  term of the given formula
+This function estimates models sequentially increasing the
+midas lag from \code{kmin} to \code{kmax} of the last term
+of the given formula
 }
 \examples{
 data("USunempr")
@@ -74,6 +73,6 @@ mlr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),
 mlr
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 

@@ -2,8 +2,7 @@
 \alias{hAhr.test}
 \title{Test restrictions on coefficients of MIDAS regression using robust version of the test}
 \usage{
-  hAhr.test(x,
-    PHI = vcovHAC(x$unrestricted, sandwich = FALSE))
+hAhr.test(x, PHI = vcovHAC(x$unrestricted, sandwich = FALSE))
 }
 \arguments{
   \item{x}{MIDAS regression model with restricted
@@ -13,22 +12,22 @@
   \code{vcovHAC(x$unrestricted, sandwich=FALSE)}}
 }
 \value{
-  a \code{htest} object
+a \code{htest} object
 }
 \description{
-  Perform a test whether the restriction on MIDAS
-  regression coefficients holds.
+Perform a test whether the restriction on MIDAS regression
+coefficients holds.
 }
 \details{
-  Given MIDAS regression:
+Given MIDAS regression:
 
-  \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i}
-  x_{(t-j)m-i}+u_t}
+\deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i}
+x_{(t-j)m-i}+u_t}
 
-  test the null hypothesis that the following restriction
-  holds:
+test the null hypothesis that the following restriction
+holds:
 
-  \deqn{\theta_h=g(h,\lambda),} where \eqn{h=0,...,(k+1)m}.
+\deqn{\theta_h=g(h,\lambda),} where \eqn{h=0,...,(k+1)m}.
 }
 \examples{
 ##The parameter function
@@ -78,13 +77,13 @@ mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,
 hAhr.test(mr)
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 \references{
-  Kvedaras V., Zemlys, V. \emph{The statistical content and
-  empirical testing of the MIDAS restrictions}
+Kvedaras V., Zemlys, V. \emph{The statistical content and
+empirical testing of the MIDAS restrictions}
 }
 \seealso{
-  hAh.test
+hAh.test
 }
 

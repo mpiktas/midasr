@@ -2,7 +2,7 @@
 \alias{weight_param}
 \title{Return the estimated hyper parameters of the weight function(s)}
 \usage{
-  weight_param(x, name = weight_names(x))
+weight_param(x, name = weight_names(x))
 }
 \arguments{
   \item{x}{an output from \code{\link{midas_r}}}
@@ -12,14 +12,14 @@
   to \code{\link{midas_r}}}
 }
 \value{
-  a list if \code{length(name)>1}, a vector otherwise
+a list if \code{length(name)>1}, a vector otherwise
 }
 \description{
-  A helper function for working with output of
-  \code{\link{midas_r}}. Returns the estimated parameters
-  of restriction function(s)
+A helper function for working with output of
+\code{\link{midas_r}}. Returns the estimated parameters of
+restriction function(s)
 }
 \author{
-  Vaidotas Zemlys
+Vaidotas Zemlys
 }
 

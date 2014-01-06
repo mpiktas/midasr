@@ -2,8 +2,8 @@
 \alias{modsel}
 \title{Select the model based on given information criteria}
 \usage{
-  modsel(x, IC = x$IC[1], test = x$test[1],
-    type = c("restricted", "unrestricted"), print = TRUE)
+modsel(x, IC = x$IC[1], test = x$test[1], type = c("restricted",
+  "unrestricted"), print = TRUE)
 }
 \arguments{
   \item{x}{and output from iclagtab function}
@@ -21,20 +21,20 @@
   best model.}
 }
 \value{
-  (invisibly) the best model based on information criteria,
-  \link{midas_r} object
+(invisibly) the best model based on information criteria,
+\link{midas_r} object
 }
 \description{
-  Selects the model with minimum of given information
-  criteria and model type
+Selects the model with minimum of given information
+criteria and model type
 }
 \details{
-  This function selects the model from the model selection
-  table for which the chosen information criteria achieves
-  the smallest value. The function works with model tables
-  produced by functions \link{lf_lags_table},
-  \link{hf_lags_table}, \link{amidas_table} and
-  \link{midas_r_ic_table}.
+This function selects the model from the model selection
+table for which the chosen information criteria achieves
+the smallest value. The function works with model tables
+produced by functions \link{lf_lags_table},
+\link{hf_lags_table}, \link{amidas_table} and
+\link{midas_r_ic_table}.
 }
 \examples{
 data("USunempr")
@@ -56,6 +56,6 @@ modsel(mhfr,"BIC","unrestricted")
 modsel(mlfr,"BIC","unrestricted")
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 

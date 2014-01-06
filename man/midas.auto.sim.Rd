@@ -2,7 +2,7 @@
 \alias{midas.auto.sim}
 \title{Simulate autoregressive MIDAS model}
 \usage{
-  midas.auto.sim(n, theta, alpha, x, eps.sd, n.start = NA)
+midas.auto.sim(n, theta, alpha, x, eps.sd, n.start = NA)
 }
 \arguments{
   \item{n}{sample size}
@@ -22,12 +22,12 @@
   burn.in}
 }
 \value{
-  a \code{ts} object
+a \code{ts} object
 }
 \description{
-  Given the predictor variable, the weights and
-  autoregressive coefficients calculate MIDAS regression
-  response variable.
+Given the predictor variable, the weights and
+autoregressive coefficients calculate MIDAS regression
+response variable.
 }
 \examples{
 theta.h0 <- function(p, dk) {
@@ -47,6 +47,6 @@ x <- window(xx,start=start(y))
 midas_r(y~mls(y,1,1)+fmls(x,4*12-1,12,theta.h0),start=list(x=c(-0.1,10,-10,-10)))
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 

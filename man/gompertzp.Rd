@@ -3,7 +3,7 @@
 \title{Normalized Gompertz probability density function MIDAS weights specification
 Calculate MIDAS weights according to normalized Gompertz probability density function specification}
 \usage{
-  gompertzp(p, d, m)
+gompertzp(p, d, m)
 }
 \arguments{
   \item{p}{parameters for normalized Gompertz probability
@@ -14,15 +14,15 @@ Calculate MIDAS weights according to normalized Gompertz probability density fun
   \item{m}{the frequency ratio, currently ignored}
 }
 \value{
-  vector of coefficients
+vector of coefficients
 }
 \description{
-  Normalized Gompertz probability density function MIDAS
-  weights specification Calculate MIDAS weights according
-  to normalized Gompertz probability density function
-  specification
+Normalized Gompertz probability density function MIDAS
+weights specification Calculate MIDAS weights according to
+normalized Gompertz probability density function
+specification
 }
 \author{
-  Julius Vainora
+Julius Vainora
 }
 

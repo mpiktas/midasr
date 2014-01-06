@@ -2,8 +2,8 @@
 \alias{imidas_r.imidas_r}
 \title{Restricted MIDAS regression with I(1) regressors}
 \usage{
-  \method{imidas_r}{imidas_r} (x, start = coef(x),
-    Ofunction = x$argmap.opt$Ofunction, ...)
+\method{imidas_r}{imidas_r}(x, start = coef(x),
+  Ofunction = x$argmap.opt$Ofunction, ...)
 }
 \arguments{
   \item{x}{\code{imidas_r} object}
@@ -19,16 +19,16 @@
   are used.}
 }
 \value{
-  \code{imidas_r} object
+\code{imidas_r} object
 }
 \description{
-  Reestimate the MIDAS regression with I(1) regressors with
-  different starting values
+Reestimate the MIDAS regression with I(1) regressors with
+different starting values
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 \seealso{
-  imidas_r
+imidas_r
 }
 

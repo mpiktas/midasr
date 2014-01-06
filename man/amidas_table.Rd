@@ -2,10 +2,9 @@
 \alias{amidas_table}
 \title{Weight and lag selection table for aggregates based MIDAS regression model}
 \usage{
-  amidas_table(formula, data, weights, wstart, type,
-    start = NULL, from, to, IC = c("AIC", "BIC"),
-    test = c("hAh.test"), Ofunction = "optim",
-    user.gradient = FALSE, ...)
+amidas_table(formula, data, weights, wstart, type, start = NULL, from, to,
+  IC = c("AIC", "BIC"), test = c("hAh.test"), Ofunction = "optim",
+  user.gradient = FALSE, ...)
 }
 \arguments{
   \item{formula}{the formula for MIDAS regression, the lag
@@ -55,29 +54,29 @@
   function, see \link{midas_r}}
 }
 \value{
-  a \code{midas_r_ic_table} object which is the list with
-  the following elements:
+a \code{midas_r_ic_table} object which is the list with the
+following elements:
 
-  \item{table}{the table where each row contains calculated
-  information criteria for both restricted and unrestricted
-  MIDAS regression model with given lag structure}
-  \item{candlist}{the list containing fitted models}
-  \item{IC}{the argument IC} \item{test}{the argument test}
-  \item{weights}{the names of weight functions}
-  \item{lags}{the lags used in models}
+\item{table}{the table where each row contains calculated
+information criteria for both restricted and unrestricted
+MIDAS regression model with given lag structure}
+\item{candlist}{the list containing fitted models}
+\item{IC}{the argument IC} \item{test}{the argument test}
+\item{weights}{the names of weight functions}
+\item{lags}{the lags used in models}
 }
 \description{
-  Create weight and lag selection table for the aggregates
-  based MIDAS regression model
+Create weight and lag selection table for the aggregates
+based MIDAS regression model
 }
 \details{
-  This function estimates models sequentialy increasing the
-  midas lag from \code{kmin} to \code{kmax} and varying the
-  weights of the last term of the given formula
+This function estimates models sequentialy increasing the
+midas lag from \code{kmin} to \code{kmax} and varying the
+weights of the last term of the given formula
 
-  This function estimates models sequentially increasing
-  the midas lag from \code{kmin} to \code{kmax} and varying
-  the weights of the last term of the given formula
+This function estimates models sequentially increasing the
+midas lag from \code{kmin} to \code{kmax} and varying the
+weights of the last term of the given formula
 }
 \examples{
 data("USunempr")
@@ -93,6 +92,6 @@ tb <- amidas_table(y~trend+fmls(x,12,12,nealmon),
                    from=0,to=c(1,2))
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 

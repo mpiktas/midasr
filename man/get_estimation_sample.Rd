@@ -2,21 +2,21 @@
 \alias{get_estimation_sample}
 \title{Get the data which was used to etimate MIDAS regression}
 \usage{
-  get_estimation_sample(object)
+get_estimation_sample(object)
 }
 \arguments{
   \item{object}{\code{midas_r} object}
 }
 \value{
-  a named list with mixed frequency data
+a named list with mixed frequency data
 }
 \description{
-  Gets the data which was used to estimate MIDAS regression
+Gets the data which was used to estimate MIDAS regression
 }
 \details{
-  A helper function.
+A helper function.
 }
 \author{
-  Vaidotas Zemlys
+Vaidotas Zemlys
 }
 

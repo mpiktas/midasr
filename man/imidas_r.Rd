@@ -3,10 +3,10 @@
 \alias{imidas_r.default}
 \title{Restricted MIDAS regression with I(1) regressors}
 \usage{
-  imidas_r(x, ...)
+imidas_r(x, ...)
 
-  \method{imidas_r}{default} (x, data, start,
-    Ofunction = "optim", user.gradient = FALSE, ...)
+\method{imidas_r}{default}(x, data, start, Ofunction = "optim",
+  user.gradient = FALSE, ...)
 }
 \arguments{
   \item{x}{either formula for restricted MIDAS regression
@@ -42,53 +42,52 @@
   function}
 }
 \value{
-  a \code{midas_r} object which is the list with the
-  following elements:
+a \code{midas_r} object which is the list with the
+following elements:
 
-  \item{coefficients}{the estimates of parameters of
-  restrictions} \item{midas.coefficientas}{the estimates of
-  restricted coefficients of MIDAS regression}
-  \item{model}{model data} \item{weights}{the restriction
-  function(s) used in estimation.}
-  \item{unrestricted}{unrestricted regression estimated
-  using \code{\link{midas_u}}} \item{param.map}{parameter
-  map for optimisation function} \item{fn0}{optimisation
-  function for non-linear least squares problem solved in
-  restricted MIDAS regression} \item{rhs}{the function
-  which evaluates the right-hand side of the MIDAS
-  regression} \item{allcoef}{the function which evaluates
-  the restricted coefficients of MIDAS regression}
-  \item{opt}{the output of optimisation procedure}
-  \item{argmap.opt}{the list containing the name of
-  optimisation function together with arguments for
-  optimisation function} \item{start.opt}{the starting
-  values used in optimisation}
+\item{coefficients}{the estimates of parameters of
+restrictions} \item{midas.coefficientas}{the estimates of
+restricted coefficients of MIDAS regression}
+\item{model}{model data} \item{weights}{the restriction
+function(s) used in estimation.}
+\item{unrestricted}{unrestricted regression estimated using
+\code{\link{midas_u}}} \item{param.map}{parameter map for
+optimisation function} \item{fn0}{optimisation function for
+non-linear least squares problem solved in restricted MIDAS
+regression} \item{rhs}{the function which evaluates the
+right-hand side of the MIDAS regression} \item{allcoef}{the
+function which evaluates the restricted coefficients of
+MIDAS regression} \item{opt}{the output of optimisation
+procedure} \item{argmap.opt}{the list containing the name
+of optimisation function together with arguments for
+optimisation function} \item{start.opt}{the starting values
+used in optimisation}
 }
 \description{
-  Estimate restricted MIDAS regression using non-linear
-  least squares, when the regressor is I(1)
+Estimate restricted MIDAS regression using non-linear least
+squares, when the regressor is I(1)
 }
 \details{
-  Given MIDAS regression:
+Given MIDAS regression:
 
-  \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i}
-  x_{(t-j)m-i}+\mathbf{z_t}\beta+u_t}
+\deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i}
+x_{(t-j)m-i}+\mathbf{z_t}\beta+u_t}
 
-  estimate the parameters of the restriction
+estimate the parameters of the restriction
 
-  \deqn{\theta_h=g(h,\lambda),} where \eqn{h=0,...,(k+1)m},
-  together with coefficients \eqn{\beta} corresponding to
-  additional low frequency regressors.
+\deqn{\theta_h=g(h,\lambda),} where \eqn{h=0,...,(k+1)m},
+together with coefficients \eqn{\beta} corresponding to
+additional low frequency regressors.
 
-  It is assumed that \eqn{x} is a I(1) process, hence the
-  special transformation is made. After the transformation
-  \link{midas_r} is used for estimation.
+It is assumed that \eqn{x} is a I(1) process, hence the
+special transformation is made. After the transformation
+\link{midas_r} is used for estimation.
 
-  MIDAS regression involves times series with different
-  frequencies.
+MIDAS regression involves times series with different
+frequencies.
 
-  The restriction function must return the restricted
-  coefficients of the MIDAS regression.
+The restriction function must return the restricted
+coefficients of the MIDAS regression.
 }
 \examples{
 theta.h0 <- function(p, dk) {
@@ -106,9 +105,9 @@ x <- window(xx,start=start(y))
 imr <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,start=list(x=c(-0.1,10,-10,-10)))
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 \seealso{
-  midas_r.midas_r
+midas_r.midas_r
 }
 

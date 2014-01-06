@@ -2,7 +2,7 @@
 \alias{polystep.gradient}
 \title{Gradient of step function specification for MIDAS weights}
 \usage{
-  polystep.gradient(p, d, m, a)
+polystep.gradient(p, d, m, a)
 }
 \arguments{
   \item{p}{vector of parameters}
@@ -15,12 +15,12 @@
   indicating the steps}
 }
 \value{
-  vector of coefficients
+vector of coefficients
 }
 \description{
-  Gradient of step function specification for MIDAS weights
+Gradient of step function specification for MIDAS weights
 }
 \author{
-  Vaidotas Zemlys
+Vaidotas Zemlys
 }
 

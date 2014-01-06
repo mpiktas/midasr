@@ -3,11 +3,10 @@
 \alias{forecast.midas_r}
 \title{Forecast MIDAS regression}
 \usage{
-  forecast(object, ...)
+forecast(object, ...)
 
-  \method{forecast}{midas_r} (object, newdata = NULL,
-    method = c("static", "dynamic"),
-    insample = get_estimation_sample(object), ...)
+\method{forecast}{midas_r}(object, newdata = NULL, method = c("static",
+  "dynamic"), insample = get_estimation_sample(object), ...)
 }
 \arguments{
   \item{object}{midas_r object}
@@ -23,19 +22,19 @@
   \item{...}{additional arguments, not used}
 }
 \value{
-  a vector of forecasts
+a vector of forecasts
 }
 \description{
-  Forecasts MIDAS regression given the future values of
-  regressors. For dynamic models (with lagged response
-  variable) there is an option to calculate dynamic
-  forecast, when forecasted values of response variable are
-  substituted into the lags of response variable.
+Forecasts MIDAS regression given the future values of
+regressors. For dynamic models (with lagged response
+variable) there is an option to calculate dynamic forecast,
+when forecasted values of response variable are substituted
+into the lags of response variable.
 }
 \details{
-  Given future values of regressors this function combines
-  the historical values used in the fitting the MIDAS
-  regression model and calculates the forecasts.
+Given future values of regressors this function combines
+the historical values used in the fitting the MIDAS
+regression model and calculates the forecasts.
 }
 \examples{
 data("USrealgdp")
@@ -66,6 +65,6 @@ mr.dyn <- midas_r(y ~ trend + mls(y, 1:2, 1, "*")
 forecast(mr.dyn, list(trend = trendn, x = xn), method = "dynamic")
 }
 \author{
-  Vaidotas Zemlys
+Vaidotas Zemlys
 }
 

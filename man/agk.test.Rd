@@ -2,18 +2,18 @@
 \alias{agk.test}
 \title{Andreou, Ghysels, Kourtellos LM test}
 \usage{
-  agk.test(x)
+agk.test(x)
 }
 \arguments{
   \item{x}{MIDAS regression object of class
   \code{\link{midas_r}}}
 }
 \value{
-  a \code{htest} object
+a \code{htest} object
 }
 \description{
-  Perform the test whether hyperparameters of normalized
-  exponential Almon lag weights are zero
+Perform the test whether hyperparameters of normalized
+exponential Almon lag weights are zero
 }
 \examples{
 ##' ##Load data
@@ -29,11 +29,11 @@ mr <- midas_r(y~t+fmls(x,11,12,nealmon),start=list(x=c(0,0,0)))
 agk.test(mr)
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 \references{
-  Andreou E., Ghysels E., Kourtellos A. \emph{Regression
-  models with mixed sampling frequencies} Journal of
-  Econometrics 158 (2010) 246-261
+Andreou E., Ghysels E., Kourtellos A. \emph{Regression
+models with mixed sampling frequencies} Journal of
+Econometrics 158 (2010) 246-261
 }
 

@@ -2,13 +2,11 @@
 \alias{select_and_forecast}
 \title{Create table for different forecast horizons}
 \usage{
-  select_and_forecast(formula, data, from, to, insample,
-    outsample, weights, wstart, start = NULL, IC = "AIC",
-    seltype = c("restricted", "unrestricted"),
-    test = "hAh.test",
-    ftype = c("fixed", "recursive", "rolling"),
-    measures = c("MSE", "MAPE", "MASE"),
-    fweights = c("EW", "BICW", "MSFE", "DMSFE"), ...)
+select_and_forecast(formula, data, from, to, insample, outsample, weights,
+  wstart, start = NULL, IC = "AIC", seltype = c("restricted",
+  "unrestricted"), test = "hAh.test", ftype = c("fixed", "recursive",
+  "rolling"), measures = c("MSE", "MAPE", "MASE"), fweights = c("EW",
+  "BICW", "MSFE", "DMSFE"), ...)
 }
 \arguments{
   \item{formula}{initial formula for the}
@@ -52,18 +50,17 @@
   see \link{midas_r}}
 }
 \value{
-  a list containing forecasts, tables of accuracy measures
-  and the list with selected models
+a list containing forecasts, tables of accuracy measures
+and the list with selected models
 }
 \description{
-  Creates tables for different forecast horizons and table
-  for combined forecasts
+Creates tables for different forecast horizons and table
+for combined forecasts
 }
 \details{
-  Divide data into in-sample and out-of-sample. Fit
-  different forecasting horizons for in-sample data.
-  Calculate accuracy measures for individual and average
-  forecasts.
+Divide data into in-sample and out-of-sample. Fit different
+forecasting horizons for in-sample data. Calculate accuracy
+measures for individual and average forecasts.
 }
 \examples{
 ### Sets a seed for RNG ###
@@ -94,6 +91,6 @@ y<-2+0.1*trend+mls(x,0:7,4)\%*\%fn.x+mls(z,0:16,12)\%*\%fn.z+rnorm(n)
 ## )
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 

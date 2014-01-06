@@ -3,7 +3,7 @@
 \title{Normalized log-Cauchy probability density function MIDAS weights specification
 Calculate MIDAS weights according to normalized log-Cauchy probability density function specification}
 \usage{
-  lcauchyp(p, d, m)
+lcauchyp(p, d, m)
 }
 \arguments{
   \item{p}{parameters for normalized log-Cauchy probability
@@ -14,15 +14,15 @@ Calculate MIDAS weights according to normalized log-Cauchy probability density f
   \item{m}{the frequency ratio, currently ignored}
 }
 \value{
-  vector of coefficients
+vector of coefficients
 }
 \description{
-  Normalized log-Cauchy probability density function MIDAS
-  weights specification Calculate MIDAS weights according
-  to normalized log-Cauchy probability density function
-  specification
+Normalized log-Cauchy probability density function MIDAS
+weights specification Calculate MIDAS weights according to
+normalized log-Cauchy probability density function
+specification
 }
 \author{
-  Julius Vainora
+Julius Vainora
 }
 

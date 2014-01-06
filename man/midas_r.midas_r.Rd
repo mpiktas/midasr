@@ -2,8 +2,8 @@
 \alias{midas_r.midas_r}
 \title{Restricted MIDAS regression}
 \usage{
-  \method{midas_r}{midas_r} (x, start = coef(x),
-    Ofunction = x$argmap.opt$Ofunction, ...)
+\method{midas_r}{midas_r}(x, start = coef(x),
+  Ofunction = x$argmap.opt$Ofunction, ...)
 }
 \arguments{
   \item{x}{\code{midas_r} object}
@@ -19,16 +19,16 @@
   are used.}
 }
 \value{
-  \code{midas_r} object
+\code{midas_r} object
 }
 \description{
-  Reestimate the MIDAS regression with different starting
-  values
+Reestimate the MIDAS regression with different starting
+values
 }
 \author{
-  Vaidotas Zemlys
+Vaidotas Zemlys
 }
 \seealso{
-  midas_r
+midas_r
 }
 

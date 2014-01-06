@@ -3,7 +3,7 @@
 \title{Gradient function for normalized log-Cauchy probability density function MIDAS weights specification
 Calculate gradient function for normalized log-Cauchy probability density function specification of MIDAS weights.}
 \usage{
-  lcauchyp.gradient(p, d, m)
+lcauchyp.gradient(p, d, m)
 }
 \arguments{
   \item{p}{parameters for normalized log-Cauchy probability
@@ -14,15 +14,15 @@ Calculate gradient function for normalized log-Cauchy probability density functi
   \item{m}{the frequency ratio, currently ignored}
 }
 \value{
-  vector of coefficients
+vector of coefficients
 }
 \description{
-  Gradient function for normalized log-Cauchy probability
-  density function MIDAS weights specification Calculate
-  gradient function for normalized log-Cauchy probability
-  density function specification of MIDAS weights.
+Gradient function for normalized log-Cauchy probability
+density function MIDAS weights specification Calculate
+gradient function for normalized log-Cauchy probability
+density function specification of MIDAS weights.
 }
 \author{
-  Julius Vainora
+Julius Vainora
 }
 

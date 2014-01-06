@@ -3,12 +3,11 @@
 \alias{midas_r_ic_table.default}
 \title{Create a weight and lag selection table for MIDAS regression model}
 \usage{
-  midas_r_ic_table(formula, ...)
+midas_r_ic_table(formula, ...)
 
-  \method{midas_r_ic_table}{default} (formula, data = NULL,
-    start = NULL, table, IC = c("AIC", "BIC"),
-    test = c("hAh.test"), Ofunction = "optim",
-    user.gradient = FALSE, showprogress = TRUE, ...)
+\method{midas_r_ic_table}{default}(formula, data = NULL, start = NULL,
+  table, IC = c("AIC", "BIC"), test = c("hAh.test"), Ofunction = "optim",
+  user.gradient = FALSE, showprogress = TRUE, ...)
 }
 \arguments{
   \item{formula}{the formula for MIDAS regression, the lag
@@ -42,24 +41,24 @@
   function, see \link{midas_r}}
 }
 \value{
-  a \code{midas_r_ic_table} object which is the list with
-  the following elements:
+a \code{midas_r_ic_table} object which is the list with the
+following elements:
 
-  \item{table}{the table where each row contains calculated
-  information criteria for both restricted and unrestricted
-  MIDAS regression model with given lag structure}
-  \item{candlist}{the list containing fitted models}
-  \item{IC}{the argument IC}
+\item{table}{the table where each row contains calculated
+information criteria for both restricted and unrestricted
+MIDAS regression model with given lag structure}
+\item{candlist}{the list containing fitted models}
+\item{IC}{the argument IC}
 }
 \description{
-  Creates a weight and lag selection table for MIDAS
-  regression model with given information criteria and
-  minimum and maximum lags.
+Creates a weight and lag selection table for MIDAS
+regression model with given information criteria and
+minimum and maximum lags.
 }
 \details{
-  This function estimates models sequentially increasing
-  the midas lag from \code{kmin} to \code{kmax} and varying
-  the weights of the last term of the given formula
+This function estimates models sequentially increasing the
+midas lag from \code{kmin} to \code{kmax} and varying the
+weights of the last term of the given formula
 }
 \examples{
 data("USunempr")
@@ -78,6 +77,6 @@ mwlr <- midas_r_ic_table(y~trend+fmls(x,12,12,nealmon),
 mwlr
 }
 \author{
-  Virmantas Kvedaras, Vaidotas Zemlys
+Virmantas Kvedaras, Vaidotas Zemlys
 }
 
