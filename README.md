@@ -17,7 +17,7 @@ The package also provides all the popular MIDAS regression restrictions such as 
 
 The package development was influenced by features of the [MIDAS Matlab toolbox][3] created by Eric Ghysels.
 
-The package has the project [webpage][1] and you can follow its developmenton  [github][2]. 
+The package has the project [webpage][1] and you can follow its development on  [github][2]. 
 
 The detailed description of the package features can be found in the [User guide][4].  All of the code examples in the user guide and some additional examples together with the user guide .Rnw file can be found in the midasr-user-guide github [repository][5]. 
 

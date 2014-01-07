@@ -1,3 +1,18 @@
+midasr 0.2
+============
+A bug fix release
+
+* Fix a bug, where the midas_r_ic_table would not work with formula containing only one term
+
+* More explicit error messages are displayed when optimisation fails or when robust covariance matrix cannot be calculated
+
+* Add progress indicator to average_forecast function
+
+* Fix a bug in data_to_list function, make forecast.midas_r work with midas_u objects.
+
+* Fix a bug in average_forecast, rolling samples were turning to recursive ones. 
+
+
 midasr 0.1
 ============
 Release to CRAN.
