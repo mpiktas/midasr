@@ -10,7 +10,7 @@ A bug fix release
 
 * Fix a bug in data_to_list function, make forecast.midas_r work with midas_u objects.
 
-* Fix a bug in average_forecast, rolling samples were turning to recursive ones. 
+* Fix a bug in average_forecast, rolling samples were turning to recursive ones, thanks to Michael Swan for pointing it out.
 
 
 midasr 0.1
