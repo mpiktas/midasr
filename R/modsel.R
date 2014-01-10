@@ -1119,10 +1119,14 @@ average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recu
     reeval <- function(candlist,redata) {
         lapply(candlist,function(mod) {
             ##Setup all the necessary info
-            out <- midas_r(formula(mod),data=redata,start=mod$start.list,Ofunction="optim",method="BFGS",control=list(maxit=0))
+            if(inherits(mod,"midas_r_np")) {
+                midas_r_np(formula(mod),data=redata)
+            } else {
+                out <- midas_r(formula(mod),data=redata,start=mod$start.list,Ofunction="optim",method="BFGS",control=list(maxit=0))
             ##Run optimisation with the original model settings
-            out$argmap.opt <- mod$argmap.opt
-            midas_r(out,start=coef(mod))        
+                out$argmap.opt <- mod$argmap.opt
+                midas_r(out,start=coef(mod))
+            }
         })
     }
 
