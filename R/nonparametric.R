@@ -44,34 +44,94 @@ midas_r_np <- function(x,data,lambda=NULL) {
     mf <- eval(mf,Zenv)
     mt <- attr(mf, "terms")
 
-    if(attr(mt,"intercept")==1)stop("Models with intercept are not supported yet")
+    terms.lhs <- as.list(attr(mt,"variables"))[-2:-1]
+    term.labels <- attr(mt,"term.labels") 
 
+    rfd <- vector("list",length(terms.lhs))
+    yname <- all.vars(mt[[2]])
+
+    for(i in 1:length(rfd)) {
+        fr <- terms.lhs[[i]]
+        #This a behaviour of R we rely on. It might be non-standard one.
+        fun <- as.character(fr)[1]
+        rfd[[i]] <- if(fun %in% c("fmls","mls","dmls")) {
+            lags <- eval(fr[[3]],Zenv)
+            nm <-as.character(fr[[2]])            
+            nol <- switch(fun,
+                              fmls = lags+1,
+                              dmls = lags+1,
+                              mls = length(lags)
+                              )
+            if(nol<3 & nm!=yname)stop("For nonparametric MIDAS you need at least 3 high frequency lags")          
+           
+            wlab <- ifelse(nm==yname,"",nm)
+            list(length=nol,name=nm,wlabel=wlab,weight=function(p)p)
+        } else {
+            list(length=1,name=term.labels[i],wlabel="",weight=function(p)p)
+        }
+    }
+    
+    if(attr(mt,"intercept")==1) {
+        rfd <- c(list(list(length=1,name="(Intercept)",wlabel="",weight=function(p)p)),rfd)
+    }
+
+
+    names(rfd) <- sapply(rfd,"[[","name")
+    rf <- lapply(rfd,"[[","weight")
+    names(rf) <- sapply(rfd,"[[","name")
+    
+    weight_names <- sapply(rfd,"[[","wlabel")
+    weight_inds <- which(weight_names!="")
+    weight_names <- weight_names[weight_names!=""]
+    lengths <- sapply(rfd,"[[","length")
+    
+    build_indices <- function(ci,nm) {
+        inds <- cbind(c(1,ci[-length(ci)]+1),ci)
+        inds <- apply(inds,1,function(x)list(x[1]:x[2]))
+        inds <- lapply(inds,function(x)x[[1]])
+        names(inds) <- nm
+        inds
+    }
+    
+    pinds <- build_indices(cumsum(lengths),names(rfd))
+        
+    if(length(weight_names)>1)stop("Only one non-autoregressive mixed frequency term is currently supported")
+    
+    
+    resplace <- pinds[[weight_names]][1]     
+    rno <- rfd[[weight_names]]$length
+    
    # args <- list(...)
     y <- model.response(mf, "numeric")
     X <- model.matrix(mt, mf)    
-
+    
     k <- ncol(X)
-           
-    D <- bandSparse(k-2,k,c(0,1,2),diagonals=list(rep(1,k-2),rep(-2,k-2),rep(1,k-2)))
+    
+    D <- bandSparse(rno-2,k,resplace-1+c(0,1,2),diagonals=list(rep(1,rno-2),rep(-2,rno-2),rep(1,rno-2)))
+  
     DD <- crossprod(D)
     ol <- opt_lambda(y,X,DD,lambda)
 
     fit <- X%*%ol$beta
     res <- y-fit
     
-    out <- list(coefficients=as.numeric(ol$beta),
-                midas.coefficients=as.numeric(ol$beta),
+    cf <- as.numeric(ol$beta)
+    names(cf) <- names(unlist(pinds))
+    
+    out <- list(coefficients=cf,
+                midas.coefficients=cf,
                 model=cbind(y,X),
                 call=cl,        
                 terms=mt,
                 fitted.values=as.numeric(fit),
                 residuals=as.numeric(res),
+                param.map=pinds,
+                weights=rf[weight_inds],
                 lambda=ol$lambda,
                 klambda=ol$klambda,
                 AIC=ol$AIC,
                 Zenv=Zenv
-                )
-    
+                )    
     class(out) <- "midas_r_np"
     out
 }
@@ -92,17 +152,18 @@ predict.midas_r_np <- predict.midas_r
 ##' @export
 ##' @method print midas_r_np
 print.midas_r_np <- function(x,...) {
-    cat("Nonparametric MIDAS regression model")
+    cat("Nonparametric MIDAS regression model",paste0("(",nrow(x$model)), "low frequency observations)")
+    cat("\nFormula: ", deparse(formula(terms(x))))    
     cat("\nThe smoothing parameter: ", x$lambda)
     cat("\nThe effective number of parameters:", x$klambda)
     cat("\nAIC of the model: ",AIC(x))
-    cat("\nResidual standard error: ", sqrt(mean(residuals(x)^2)),"\n")
+    cat("\nRoot mean squared error: ", sqrt(mean(residuals(x)^2)),"\n")
 }
 
 ##' @export
 ##' @method summary midas_r_np
 summary.midas_r_np <- function(object,...) {
-   print(object)
+  print(object,...)
 }
 
 opt_lambda <- function(y,X,DD,lambda) {
