@@ -8,7 +8,7 @@
 ##' @param lambda smoothing parameter, defaults to \code{NULL}, which means that it is chosen by minimising AIC.
 ##' @return a \code{midas_r_np} object
 ##' @author Vaidotas Zemlys
-##' @references Breitung J, Roling C, Elengikal S (2013). \emph{The statistical content and empirical testing of the MIDAS restrictions} Working paper, URL http://www.ect.uni-bonn.de/mitarbeiter/ joerg-breitung/npmidas.
+##' @references Breitung J, Roling C, Elengikal S (2013). \emph{The statistical content and empirical testing of the MIDAS restrictions} Working paper, URL http://www.ect.uni-bonn.de/mitarbeiter/joerg-breitung/npmidas.
 ##' @export
 ##' @import Matrix
 ##' @examples
@@ -17,7 +17,7 @@
 ##' y <- diff(log(USrealgdp))
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
-##' midas_r_np(y~fmls(x,12,12)-1)
+##' midas_r_np(y~trend+fmls(x,12,12))
 midas_r_np <- function(x,data,lambda=NULL) {
     Zenv <- new.env(parent=environment(x))
 

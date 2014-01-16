@@ -30,7 +30,7 @@ data("USrealgdp")
 y <- diff(log(USrealgdp))
 x <- window(diff(USunempr),start=1949)
 trend <- 1:length(y)
-midas_r_np(y~fmls(x,12,12)-1)
+midas_r_np(y~trend+fmls(x,12,12))
 }
 \author{
 Vaidotas Zemlys
@@ -39,7 +39,6 @@ Vaidotas Zemlys
 Breitung J, Roling C, Elengikal S (2013). \emph{The
 statistical content and empirical testing of the MIDAS
 restrictions} Working paper, URL
-http://www.ect.uni-bonn.de/mitarbeiter/
-joerg-breitung/npmidas.
+http://www.ect.uni-bonn.de/mitarbeiter/joerg-breitung/npmidas.
 }
 
