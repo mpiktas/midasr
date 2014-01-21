@@ -1138,7 +1138,7 @@ average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recu
                        )       
     }
     else {
-        if(type=="rolling") {
+        if(type%in%c("rolling","recursive")) {
             last_in<- length(insample)
             if(insample[last_in]>outsample[1])stop("The in-sample and out-of-sample indexes should not overlap") 
             if(outsample[1]-insample[last_in]!=1)stop("There should be no gaps between in-sample and out-of-sample indexes")
