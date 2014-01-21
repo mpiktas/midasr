@@ -1103,7 +1103,11 @@ average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recu
     if(missing(data))stop("Data need to be supplied for forecasting")
     
     type <- match.arg(type)
-  
+ 
+    last_in<- length(insample)
+    if(insample[last_in]>outsample[1])stop("The in-sample and out-of-sample indexes should not overlap") 
+    if(outsample[1]-insample[last_in]!=1)stop("There should be no gaps between in-sample and out-of-sample indexes")
+   
     datasplit <- split_data(data,insample,outsample)
 
     indata <- datasplit$indata
@@ -1138,12 +1142,8 @@ average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recu
                        )       
     }
     else {
-        if(type%in%c("rolling","recursive")) {
-            last_in<- length(insample)
-            if(insample[last_in]>outsample[1])stop("The in-sample and out-of-sample indexes should not overlap") 
-            if(outsample[1]-insample[last_in]!=1)stop("There should be no gaps between in-sample and out-of-sample indexes")
-            fulls <- c(insample,outsample)
-            
+        if(type%in%c("rolling")) {
+            fulls <- c(insample,outsample)            
         }
         outm <- matrix(NA,nrow=length(outsample),ncol=length(modlist))
         if(showprogress) {
