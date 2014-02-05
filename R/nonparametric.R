@@ -141,6 +141,14 @@ midas_r_np <- function(x,data,lambda=NULL) {
 AIC.midas_r_np <- function(object, ..., k) {
     object$AIC(object$lambda)
 }
+
+##' @export
+##' @method BIC midas_r_np
+BIC.midas_r_np <- function(object, ..., k) {
+    #for compatibility
+    object$AIC(object$lambda)
+}
+
 ##' @export
 ##' @method forecast midas_r_np
 forecast.midas_r_np <- forecast.midas_r
