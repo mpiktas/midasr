@@ -51,8 +51,9 @@ predict.midas_r <- function(object, newdata, na.action = na.omit, ... ) {
     if(missing(newdata))
       return(as.vector(fitted(object)))
     else {
-        ee <- data_to_env(newdata)
-        parent.env(ee) <- parent.frame()
+        ee <- data_to_env(newdata)    
+        ZZ <- object$Zenv    
+        parent.env(ee) <- ZZ
     }
     
     assign("ee",ee,Zenv)
