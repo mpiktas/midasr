@@ -136,12 +136,14 @@ midas_r_np <- function(x,data,lambda=NULL) {
     out
 }
 
+##' @import stats
 ##' @export
 ##' @method AIC midas_r_np
 AIC.midas_r_np <- function(object, ..., k) {
     object$AIC(object$lambda)
 }
 
+##' @import stats
 ##' @export
 ##' @method BIC midas_r_np
 BIC.midas_r_np <- function(object, ..., k) {
