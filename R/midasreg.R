@@ -304,7 +304,7 @@ midas_r.fit <- function(x) {
             args$gr <- x$gradient
         }
         opt <- try(do.call(function.opt,args),silent=TRUE)
-        if(class(opt)=="try-error") {
+        if(inherits(opt,"try-error")) {
             stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
         }
         par <- opt$par
@@ -318,7 +318,7 @@ midas_r.fit <- function(x) {
             args$gr <- x$gradient
         }
         opt <- try(do.call(function.opt,args),silent=TRUE)
-        if(class(opt)=="try-error") {
+        if(inherits(opt,"try-error")) {
             stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
         }
         bmet <- which.min(opt$value)
@@ -347,7 +347,7 @@ midas_r.fit <- function(x) {
         args$formula <- formula(y~rhs(p))
         args$start <- list(p=x$start.opt)
         opt <- try(do.call("nls",args),silent=TRUE)
-        if(class(opt)=="try-error") {
+        if(inherits(opt,"try-error")) {
             stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
         }
         par <- coef(opt)
