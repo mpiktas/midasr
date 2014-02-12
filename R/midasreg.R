@@ -321,9 +321,10 @@ midas_r.fit <- function(x) {
         if(class(opt)=="try-error") {
             stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
         }
-        par <- as.numeric(opt[which.min(opt$value),1:length(args$par)])        
+        bmet <- which.min(opt$value)
+        par <- as.numeric(opt[bmet,1:length(args$par)])        
         names(par) <- names(coef(x))
-        x$convergence <- opt$convergence
+        x$convergence <- opt$convcode[bmet]
     }    
     if(function.opt=="lm") {
         if(is.null(x$unrestricted))stop("Not possible to estimate MIDAS model, more parameters than observations")
