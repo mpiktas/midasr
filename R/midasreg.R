@@ -298,7 +298,7 @@ midas_r.fit <- function(x) {
     function.opt <- args$Ofunction
     args$Ofunction <- NULL
     if(function.opt=="optim" | function.opt=="spg") {  
-        args$p <- x$start.opt
+        args$par <- x$start.opt
         args$fn <- x$fn0
         if(x$user.gradient) {
             args$gr <- x$gradient
@@ -311,6 +311,20 @@ midas_r.fit <- function(x) {
         names(par) <- names(coef(x))
         x$convergence <- opt$convergence
     }
+    if(function.opt=="optimx") {  
+        args$par <- x$start.opt
+        args$fn <- x$fn0
+        if(x$user.gradient) {
+            args$gr <- x$gradient
+        }
+        opt <- try(do.call(function.opt,args),silent=TRUE)
+        if(class(opt)=="try-error") {
+            stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
+        }
+        par <- as.numeric(opt[which.min(opt$value),1:length(args$par)])        
+        names(par) <- names(coef(x))
+        x$convergence <- opt$convergence
+    }    
     if(function.opt=="lm") {
         if(is.null(x$unrestricted))stop("Not possible to estimate MIDAS model, more parameters than observations")
         par <- coef(x$unrestricted)
