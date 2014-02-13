@@ -130,6 +130,7 @@ midas_r_np <- function(x,data,lambda=NULL) {
                 lambda=ol$lambda,
                 klambda=ol$klambda,
                 AIC=ol$AIC,
+                opt=ol$opt,
                 Zenv=Zenv
                 )    
     class(out) <- "midas_r_np"
@@ -182,20 +183,21 @@ opt_lambda <- function(y,X,DD,lambda) {
     Xy <- crossprod(X,y)
     tX <- t(X)
     AIC <- function(lambda) {
-            Qlambda <- XX+lambda*n*DD   
-            klambda <- sum(diag(X%*%solve(Qlambda,tX)))
+            Qlambda <- XX+lambda*n*DD        
+            klambda <- sum(X*t(solve(Qlambda,tX)))
             beta <- solve(Qlambda,Xy)
             res <- y-X%*%beta
             log(sum(res^2))+2*(klambda+1)/(n-klambda-2)
         }
     if(is.null(lambda)) {       
-        opt <- optim(1,AIC,method="BFGS")
-        lambda <- opt$par
+        opt <- optimize(AIC,c(0,100))     
+        lambda <- opt$minimum
     }
-    Qlambda <- XX+lambda*n*DD   
-    klambda <- sum(diag(X%*%solve(Qlambda,tX)))
+    else opt <- NULL
+    Qlambda <- XX+lambda*n*DD
+    klambda <- sum(X*t(solve(Qlambda,tX)))
     beta <- solve(Qlambda,Xy)    
     AICl <- AIC(lambda)
-    list(beta=beta,klambda=klambda,lambda=lambda,AIC=AIC)
+    list(beta=beta,klambda=klambda,lambda=lambda,AIC=AIC,opt=opt)
     
 }

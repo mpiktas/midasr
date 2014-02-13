@@ -1120,7 +1120,7 @@ average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recu
         lapply(candlist,function(mod) {
             ##Setup all the necessary info
             if(inherits(mod,"midas_r_np")) {
-                midas_r_np(formula(mod),data=redata)
+                do.call("midas_r_np",list(formula(mod),data=redata),envir=mod$Zenv)
             } else {             
                 out <- do.call("midas_r",list(formula(mod),data=redata,start=mod$start.list,Ofunction="optim",method="BFGS",control=list(maxit=0)),envir=mod$Zenv)
             ##Run optimisation with the original model settings
