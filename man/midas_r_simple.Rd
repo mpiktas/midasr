@@ -1,8 +1,8 @@
-\name{midas_r_fast}
-\alias{midas_r_fast}
+\name{midas_r_simple}
+\alias{midas_r_simple}
 \title{Restricted MIDAS regression}
 \usage{
-midas_r_fast(y, X, z = NULL, weight, grw = NULL, startx, startz = NULL,
+midas_r_simple(y, X, z = NULL, weight, grw = NULL, startx, startz = NULL,
   method = c("Nelder-Mead", "BFGS"), ...)
 }
 \arguments{
@@ -29,7 +29,8 @@ midas_r_fast(y, X, z = NULL, weight, grw = NULL, startx, startz = NULL,
 an object similar to \code{midas_r} object
 }
 \description{
-Fast function for fitting MIDAS regression
+Function for fitting MIDAS regression without the formula
+interface
 }
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys

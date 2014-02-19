@@ -674,7 +674,7 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
 
 ##' Restricted MIDAS regression
 ##'
-##' Fast function for fitting MIDAS regression
+##' Function for fitting MIDAS regression without the formula interface
 ##' @param y model response
 ##' @param X prepared matrix of high frequency variable lags
 ##' @param z additional low frequency variables
@@ -688,7 +688,8 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @import numDeriv
 ##' @import optimx
-midas_r_fast <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method=c("Nelder-Mead","BFGS"),...) {
+##' @export
+midas_r_simple <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method=c("Nelder-Mead","BFGS"),...) {
     d <- ncol(X)
     nw <- length(startx)
     if(!is.matrix(z))z <- matrix(z,ncol=1)
