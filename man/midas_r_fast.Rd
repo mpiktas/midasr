@@ -3,7 +3,7 @@
 \title{Restricted MIDAS regression}
 \usage{
 midas_r_fast(y, X, z = NULL, weight, grw = NULL, startx, startz = NULL,
-  method = "BFGS", ...)
+  method = c("Nelder-Mead", "BFGS"), ...)
 }
 \arguments{
   \item{y}{model response}
@@ -26,7 +26,7 @@ midas_r_fast(y, X, z = NULL, weight, grw = NULL, startx, startz = NULL,
   \item{...}{additional parameters to \link{optim}}
 }
 \value{
-a \code{midas_r} object
+an object similar to \code{midas_r} object
 }
 \description{
 Fast function for fitting MIDAS regression
