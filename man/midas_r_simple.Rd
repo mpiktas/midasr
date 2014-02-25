@@ -32,6 +32,17 @@ an object similar to \code{midas_r} object
 Function for fitting MIDAS regression without the formula
 interface
 }
+\examples{
+data("USunempr")
+data("USrealgdp")
+y <- diff(log(USrealgdp))
+x <- window(diff(USunempr),start=1949)
+trend <- 1:length(y)
+
+X<-fmls(x,11,12)
+
+midas_r_simple(y,X,trend,weight=nealmon,startx=c(0,0,0))
+}
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
