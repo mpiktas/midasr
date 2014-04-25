@@ -5,7 +5,8 @@
 library(midasr)
 data(rvsp500)
 
-y <- as.numeric(rvsp500[,2])
+ii <- which(rvsp500$DateID=="20120522")
+y <- as.numeric(rvsp500[1:ii,2])
 
 allh <- lapply(c(5,10,20,40),function(h){
     rvh <- filter(c(rep(0,h),y),c(rep(1,h),rep(0,h+1)))

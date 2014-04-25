@@ -331,3 +331,42 @@ lcauchyp.gradient <- function(p, d, m) {
   cbind(lc, p[1] * (dp2 - lc * sum(dp2) / sum(lc)),
         p[1] * (dp3 - lc * sum(dp3) / sum(lc))) / sum(lc)
 }
+
+##' HAR(3)-RV model MIDAS weights specification
+##'
+##' MIDAS weights for Heterogeneous Autoregressive model of Realized Volatilty (HAR-RV). It is assumed that month has 20 days.
+##' @title HAR(3)-RV model MIDAS weights specification
+##' @param p parameters for Almon lag
+##' @param d number of the coefficients
+##' @param m the frequency, currently ignored.
+##' @return vector of coefficients
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @references Corsi, F., \emph{A Simple Approximate Long-Memory Model of Realized Volatility}, Journal of Financial Econometrics Vol. 7 No. 2 (2009) 174-196 
+##' @export
+harstep <- function(p,d,m) {
+    if(d!=20) stop("HAR(3)-RV process requires 20 lags")
+    out <- rep(0,20)
+    out[1] <- p[1]+p[2]/5+p[3]/20
+    out[2:5] <- p[2]/5+p[3]/20
+    out[6:20] <- p[3]/20
+    out
+}
+##' Gradient function for HAR(3)-RV model MIDAS weights specification
+##'
+##' MIDAS weights for Heterogeneous Autoregressive model of Realized Volatilty (HAR-RV). It is assumed that month has 20 days.
+##' @title Gradient function for HAR(3)-RV model MIDAS weights specification
+##' @param p parameters for Almon lag
+##' @param d number of the coefficients
+##' @param m the frequency, currently ignored.
+##' @return vector of coefficients
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @references Corsi, F., \emph{A Simple Approximate Long-Memory Model of Realized Volatility}, Journal of Financial Econometrics Vol. 7 No. 2 (2009) 174-196 
+##' @export
+harstep.gradient <- function(p,d,m) {
+   if(d!=20) stop("HAR(3)-RV process requires 20 lags")
+   out <- matrix(0,ncol=3,nrow=d)
+   out[1,1] <- 1
+   out[1:5,2] <- 1/5
+   out[1:20,3] <- 1/20
+   out
+}
