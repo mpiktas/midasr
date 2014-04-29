@@ -21,9 +21,9 @@ midas_r_simple(y, X, z = NULL, weight, grw = NULL, startx, startz = NULL,
   \item{startz}{the starting values for additional low
   frequency variables}
 
-  \item{method}{a method passed to \link{optim}}
+  \item{method}{a method passed to \link{optimx}}
 
-  \item{...}{additional parameters to \link{optim}}
+  \item{...}{additional parameters to \link{optimx}}
 }
 \value{
 an object similar to \code{midas_r} object
