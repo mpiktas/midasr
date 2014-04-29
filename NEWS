@@ -1,3 +1,13 @@
+midasr 0.3
+============
+* Add experimental support for nonparametric MIDAS, see Breitung et al. http://www.ect.uni-bonn.de/mitarbeiter/joerg-breitung/npmidas
+
+* Add dependency and support to the package optimx. This gives more flexibility in chosing the optimisation method. The default is now optimx, instead of optim.
+
+* Add data sets needed for midasr user guide.
+
+* Add GPL-2 licencing
+
 midasr 0.2
 ============
 A bug fix release

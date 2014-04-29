@@ -16,5 +16,5 @@ Imports:
     MASS,
     numDeriv,
     Matrix
-License: MIT + file LICENCE
+License: GPL-2 | MIT + file LICENCE
 BugReports: https://github.com/mpiktas/midasr/issues
