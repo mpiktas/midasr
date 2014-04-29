@@ -4,14 +4,26 @@
 \title{Realized volatility of S&P500 index}
 \format{A \code{data.frame} object with two columns. First column contains date id, and the second the realized volatility for S&P500 index.}
 \source{
-\href{http://realized.oxford-man.ox.ac.uk/media/1366/oxfordmanrealizedvolatilityindices.zip}{Heber,
-Gerd, Asger Lunde, Neil Shephard and Kevin Sheppard (2009)
-"Oxford-Man Institute's realized library", Oxford-Man
-Institute, University of Oxfors}
+\href{http://realized.oxford-man.ox.ac.uk/media/1366/oxfordmanrealizedvolatilityindices.zip}{http://realized.oxford-man.ox.ac.uk/media/1366/oxfordmanrealizedvolatilityindices.zip}
 }
 \description{
 Realized volatility of S&P500(Live) index of the period
-2000 01 03 - 2012 05 22
+2000 01 03 - 2013 11 22
+}
+\examples{
+## Do not run:
+## Download the data from
+## http://realized.oxford-man.ox.ac.uk/media/1366/oxfordmanrealizedvolatilityindices.zip
+## It contains the file OxfordManRealizedVolatilityIndices.csv.
+
+## rvi <- read.csv("OxfordManRealizedVolatilityIndices.csv",check.names=FALSE,skip=2)
+## ii <- which(rvi$DateID=="20131112")
+## rvsp500 <- na.omit(rvi[1:ii,c("DataID","SPX2.rv")]
+}
+\references{
+Heber, Gerd and Lunde, Asger, and Shephard, Neil and
+Sheppard, Kevin \emph{Oxford-Man Institute's realized
+library}, Oxford-Man Institute, University of Oxford (2009)
 }
 \keyword{datasets}
 

@@ -225,8 +225,8 @@ midas_r.default <- function(x, data, start, Ofunction="optim", user.gradient=FAL
     mt <- attr(mf, "terms")
     args <- list(...)
     y <- model.response(mf, "numeric")
-    X <- model.matrix(mt, mf)    
-
+    X <- model.matrix(mt, mf)
+    
     prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,itr$lagsTable)
     
     class(prepmd) <- "midas_r"
@@ -298,19 +298,34 @@ midas_r.fit <- function(x) {
     function.opt <- args$Ofunction
     args$Ofunction <- NULL
     if(function.opt=="optim" | function.opt=="spg") {  
-        args$p <- x$start.opt
+        args$par <- x$start.opt
         args$fn <- x$fn0
         if(x$user.gradient) {
             args$gr <- x$gradient
         }
         opt <- try(do.call(function.opt,args),silent=TRUE)
-        if(class(opt)=="try-error") {
+        if(inherits(opt,"try-error")) {
             stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
         }
         par <- opt$par
         names(par) <- names(coef(x))
         x$convergence <- opt$convergence
     }
+    if(function.opt=="optimx") {  
+        args$par <- x$start.opt
+        args$fn <- x$fn0
+        if(x$user.gradient) {
+            args$gr <- x$gradient
+        }
+        opt <- try(do.call(function.opt,args),silent=TRUE)
+        if(inherits(opt,"try-error")) {
+            stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
+        }
+        bmet <- which.min(opt$value)
+        par <- as.numeric(opt[bmet,1:length(args$par)])        
+        names(par) <- names(coef(x))
+        x$convergence <- opt$convcode[bmet]
+    }    
     if(function.opt=="lm") {
         if(is.null(x$unrestricted))stop("Not possible to estimate MIDAS model, more parameters than observations")
         par <- coef(x$unrestricted)
@@ -332,7 +347,7 @@ midas_r.fit <- function(x) {
         args$formula <- formula(y~rhs(p))
         args$start <- list(p=x$start.opt)
         opt <- try(do.call("nls",args),silent=TRUE)
-        if(class(opt)=="try-error") {
+        if(inherits(opt,"try-error")) {
             stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
         }
         par <- coef(opt)
@@ -659,7 +674,7 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
 
 ##' Restricted MIDAS regression
 ##'
-##' Fast function for fitting MIDAS regression
+##' Function for fitting MIDAS regression without the formula interface
 ##' @param y model response
 ##' @param X prepared matrix of high frequency variable lags
 ##' @param z additional low frequency variables
@@ -667,15 +682,33 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
 ##' @param grw the gradient of weight function
 ##' @param startx the starting values for weight function
 ##' @param startz the starting values for additional low frequency variables
-##' @param method a method passed to \link{optim}
-##' @param ... additional parameters to \link{optim}
-##' @return a \code{midas_r} object
+##' @param method a method passed to \link{optimx}
+##' @param ... additional parameters to \link{optimx}
+##' @return an object similar to \code{midas_r} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @import numDeriv
-midas_r_fast <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method="BFGS",...) {
-
+##' @import optimx
+##' @examples
+##' 
+##' data("USunempr")
+##' data("USrealgdp")
+##' y <- diff(log(USrealgdp))
+##' x <- window(diff(USunempr),start=1949)
+##' trend <- 1:length(y)
+##'
+##' X<-fmls(x,11,12)
+##'
+##' midas_r_simple(y,X,trend,weight=nealmon,startx=c(0,0,0))
+##' @export
+##' 
+midas_r_simple <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method=c("Nelder-Mead","BFGS"),...) {
     d <- ncol(X)
-    nw <- length(start)
+    nw <- length(startx)
+    if(!is.matrix(z))z <- matrix(z,ncol=1)
+    model <- na.omit(cbind(y,X,z))
+    y <- model[,1]
+    XX <- model[,-1]
+    
     if(is.null(z)) {        
         all_coef <- function(p) {
             weight(p,d)
@@ -685,10 +718,15 @@ midas_r_fast <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method="B
     }
     else {
         all_coef <- function(p) {
-            c(weight(p[1:nw]),p[-nw:-1])
-        }
+            c(weight(p[1:nw],d),p[-nw:-1])
+        }        
         nz <- ncol(z)
-        if(is.null(startz))startz <- rep(0,nz)
+        if(is.null(startz)) {            
+            ZZ <- model[,1+1:d]%*%weight(startx,d)
+            Z <- model[,(d+2):ncol(model)]
+            prec <- suppressWarnings(lsfit(cbind(Z,ZZ),y,intercept=FALSE))
+            startz <- coef(prec)[1:nz]
+        }
         if(!is.null(grw)) {
             gradD <- function(p) {
                 ww <- grw(p[1:nw],d)               
@@ -700,12 +738,12 @@ midas_r_fast <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method="B
         else gradD <- NULL
         start <- c(startx,startz)
     }
-    model <- na.omit(cbind(y,X,z))
+   
     n <- nrow(model)
     fn0 <- function(p) {
-        sum((model[,1]-model[,-1]%*%all_coef(p))^2)
+        sum((y-XX%*%all_coef(p))^2)
     }
-    
+  
     if(is.null(grw)) {
         gradD <- function(p)jacobian(all_coef,p)
         gr <- function(p)grad(fn0,p)
@@ -713,17 +751,19 @@ midas_r_fast <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method="B
     }
     else {
         gr <- function(p) {
-             XD <- model[,-1] %*% gradD(p)
-             resid <- model[,1] - model[,-1] %*% all_coef(p)
+             XD <- XX %*% gradD(p)
+             resid <- y - XX %*% all_coef(p)
              as.vector(-2*apply(as.vector(resid)*XD,2,sum)) 
         }
         gr0 <- gr
     }
-    opt <- optim(start,fn0,gr0,method=method,...)
+    opt <- optimx(start,fn0,gr0,method=method,...)
+    bmet <- which.min(opt$value)
+    par <- as.numeric(opt[bmet, 1:length(start)])   
     call <- match.call()
-    fitted.values <- as.vector(model[,-1]%*%all_coef(opt$par))
-    list(coefficients=opt$par,
-         midas.coefficients=all_coef(opt$par),
+    fitted.values <- as.vector(XX%*%all_coef(par))
+    list(coefficients=par,
+         midas.coefficients=all_coef(par),
          model=model,
          weights=weight,
          fn0=fn0,
@@ -734,7 +774,7 @@ midas_r_fast <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method="B
          hessian=function(x)numDeriv::hessian(fn0,x),
          gradD=gradD,
          fitted.values=fitted.values,
-         residuals=as.vector(model[,1]-fitted.values))
+         residuals=as.vector(y-fitted.values))
              
 }
 

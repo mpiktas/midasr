@@ -5,7 +5,8 @@
 library(midasr)
 data(rvsp500)
 
-y <- log(as.numeric(rvsp500[,2]))
+ii <- which(rvsp500$DateID=="20120522")
+y <- log(as.numeric(rvsp500[1:ii,2]))
 
 nlmn <- function(p,d,m) {
   i <- 1:d/100
