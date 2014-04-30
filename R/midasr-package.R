@@ -98,7 +98,8 @@ NULL
 ##' ##     am <- midas_r(y~trend+mls(z,0:16,12,almonp),data=indt,start=list(z=c(1,0,0,0)))
 ##' ##     modl <- list(um,nm,am)
 ##' ##     names(modl) <- c("um","nm","am")
-##' ##     list(norms=sapply(modl,bnorm),mse=sapply(modl,function(mod)mean((forecast(mod,newdata=outdt)-outdt$y)^2)))
+##' ##     list(norms=sapply(modl,bnorm),
+##' ##          mse=sapply(modl,function(mod)mean((forecast(mod,newdata=outdt)-outdt$y)^2)))
 ##' ## }
 ##' 
 ##' ## repr <- function(n,R) {
