@@ -36,9 +36,9 @@ midas_r_np(y~trend+fmls(x,12,12))
 Vaidotas Zemlys
 }
 \references{
-Breitung J, Roling C, Elengikal S (2013). \emph{The
-statistical content and empirical testing of the MIDAS
-restrictions} Working paper, URL
+Breitung J, Roling C, Elengikal S (2013). \emph{Forecasting
+inflation rates using daily data: A nonparametric MIDAS
+approach} Working paper, URL
 http://www.ect.uni-bonn.de/mitarbeiter/joerg-breitung/npmidas.
 }
 
