@@ -323,7 +323,7 @@ get_frequency_info<- function(mt,Zenv) {
 ##' @param ... additional arguments, not used
 ##' @return a vector of forecasts
 ##' @author Vaidotas Zemlys
-##' @rdname forecast.midas_r
+##' @method forecast midas_r
 ##' @examples
 ##' data("USrealgdp")
 ##' data("USunempr")
@@ -351,14 +351,7 @@ get_frequency_info<- function(mt,Zenv) {
 ##'                   start = list(x = rep(0, 3)))
 ##' 
 ##' forecast(mr.dyn, list(trend = trendn, x = xn), method = "dynamic")
-##'
-##' @export
-forecast <- function(object,...) UseMethod("forecast") 
-
-##' @rdname forecast.midas_r
-##' @method forecast midas_r
-##' @S3method forecast midas_r
-##' @export forecast.midas_r
+##' @export 
 forecast.midas_r <- function(object,newdata=NULL,method=c("static","dynamic"),insample=get_estimation_sample(object),...) {
 
     method <- match.arg(method)
@@ -494,3 +487,9 @@ get_estimation_sample <- function(object) {
     #The weights in the mls terms come up as variables, we do not need them
     insample[!sapply(insample,is.function)]
 }
+
+##' @importFrom forecast forecast
+##' @name forecast
+##' @rdname forecast.midas_r
+##' @export
+NULL

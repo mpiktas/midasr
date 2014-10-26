@@ -2,7 +2,7 @@ Package: midasr
 Title: Mixed Data Sampling Regression
 Description: Econometric methods for mixed frequency time series data analysis
 URL: http://mpiktas.github.io/midasr/
-Version: 0.3
+Version: 0.3.1
 Maintainer: Vaidotas Zemlys <zemlys@gmail.com>
 Author: Virmantas Kvedaras <virmantas.kvedaras@mif.vu.lt>, Vaidotas Zemlys
     <vaidotas.zemlys@mif.vu.lt>
@@ -13,6 +13,7 @@ Depends:
 Imports:
     MASS,
     numDeriv,
-    Matrix
+    Matrix,
+    forecast
 License: GPL-2 | MIT + file LICENCE
 BugReports: https://github.com/mpiktas/midasr/issues
