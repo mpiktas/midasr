@@ -8,7 +8,7 @@ amweights(p, d, m, weight = nealmon, type = c("A", "B", "C"))
 \arguments{
 \item{p}{parameters for weight functions, see details.}
 
-\item{d}{number of lags}
+\item{d}{number of high frequency lags}
 
 \item{m}{the frequency}
 
@@ -23,7 +23,10 @@ a vector of weights
 Produces weights for aggregates based MIDAS regression
 }
 \details{
-Given a weight function \eqn{w(\beta,\theta)} which has a property of being defined as \eqn{\beta g(\theta)} the following combinations are defined, corresponding to structure types \code{A}, \code{B} and \code{C} respectively:
+Suppose a weight function \eqn{w(\beta,\theta)} satisfies the following equation:
+\deqn{w(\beta,\theta)=\beta g(\theta)}
+
+The following combinations are defined, corresponding to structure types \code{A}, \code{B} and \code{C} respectively:
 \deqn{(w(\beta_1,\theta_1),...,w(\beta_k,\theta_k))}
 \deqn{(w(\beta_1,\theta),...,w(\beta_k,\theta))}
 \deqn{\beta(w(1,\theta_1),...,w(1,\theta_k))}
