@@ -182,18 +182,20 @@ last_term_info <- function(x,Zenv) {
 term_info <- function(mt,term.name,Zenv) {
     vars <- as.list(attr(mt,"variables"))[-1]
     term.no <- find_mls_terms(term.name,vars)
+
+    if(length(term.no)==0) stop("No mls terms for variable ", term.name)
+    if(length(term.no)>1) stop("There can be only one mls term for variable ", term.name)
     
-    last.term <- vars[[term.no]]
+    mls_term <- vars[[term.no]]
     
-    lags <- as.numeric(eval(last.term[[3]],Zenv))
-    freq <- as.numeric(eval(last.term[[4]],Zenv))
-    weightname <- as.character(last.term[[5]])
-    mtype <- as.character(last.term[[1]])
-  
-    if(!(mtype%in%c("fmls","dmls","mls")))stop("The last term in the formula must be a MIDAS lag term")
+    lags <- as.numeric(eval(mls_term[[3]],Zenv))
+    freq <- as.numeric(eval(mls_term[[4]],Zenv))
+    weightname <- as.character(mls_term[[5]])
+    mtype <- as.character(mls_term[[1]])
+      
     if(mtype=="fmls")lags <- 0:lags
 
-    list(lags=lags,weight=weightname,varname=as.character(last.term[[2]]),frequency=freq)  
+    list(lags=lags,weight=weightname,varname=as.character(mls_term[[2]]),frequency=freq)  
 }
 
 

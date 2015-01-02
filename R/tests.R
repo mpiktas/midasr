@@ -204,7 +204,7 @@ prep_hAh <- function(x) {
 
     cfur <- coef(unrestricted)
    
-    h.0 <- P%*%(cfur-x$midas.coefficients)
+    h.0 <- P%*%(cfur-x$midas_coefficients)
 
     Delta.0 <- D0%*%tcrossprod(ginv(crossprod(D0,XtX)%*%D0),D0)
     
@@ -234,31 +234,31 @@ prep_hAh <- function(x) {
 ##' agk.test(mr)
 ##'
 agk.test <- function(x) {
-    tl <- attributes(x$terms)$term.labels
-    wn <- grep("nealmon",tl,value=TRUE)   
-    if(length(wn)==0)stop("This test can be only used for regressions with normalized Exponential Almon lag weights")    
+
+    weight_names<- sapply(x$term_info,"[[","weight_name")
+    nealmon_indices<- grep("nealmon",weight_names)
+    
+    if(length(nealmon_indices)==0)stop("This test can be only used for regressions with normalized Exponential Almon lag weights")    
     X <- x$model[,-1]
     y <- x$model[,1]
-    if(attr(x$terms,"intercept")==1) tl <- c("(Intercept)",tl)
-    Xa <- lapply(tl,function(nm) {
-        if(nm %in% wn) {       
-            apply(X[,grep(wn,colnames(X),fixed=TRUE)],1,mean)
+               
+    Xa <- lapply(x$term_info,function(ti) {        
+        if(ti$weight_name == "nealmon") {       
+            apply(X[,ti$midas_coef_map],1,mean)
         }
         else {
-            X[,nm,drop=FALSE]
+            X[,ti$midas_coef_map,drop=FALSE]
         }
     })
     Xa <- do.call("cbind",Xa)
    
     ustar <- residuals(lm(y~Xa-1))
     u <- residuals(x)
-    w <- weight_param(x)
-    if(is.list(w)) {
-        r <- sum(sapply(w,length))
-    }
-    else {
-        r <- length(w)
-    }
+    
+    w <- x$maps$coef[names(x$weights)]
+    w <- lapply(x$term_info[nealmon_indices],"[[","coef_map")
+    r <- sum(sapply(w,length))
+        
     S.LS <- sum(ustar^2)
     S.M <- sum(u^2)
       

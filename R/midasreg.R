@@ -98,7 +98,7 @@ midas_u <- function(formula, data ,...) {
 ##' @return a \code{midas_r} object which is the list with the following elements:
 ##' 
 ##' \item{coefficients}{the estimates of parameters of restrictions}
-##' \item{midas.coefficientas}{the estimates of restricted coefficients of MIDAS regression}
+##' \item{midas_coefficients}{the estimates of restricted coefficients of MIDAS regression}
 ##' \item{model}{model data}
 ##' \item{weights}{the MIDAS weights used in estimation.}
 ##' \item{unrestricted}{unrestricted regression estimated using \code{\link{midas_u}}}
@@ -188,7 +188,6 @@ midas_u <- function(formula, data ,...) {
 ##' 
 ##' @export
 midas_r <- function(x,...)UseMethod("midas_r")
-
 
 #' @rdname midas_r
 #' @method midas_r default
@@ -357,8 +356,8 @@ midas_r.fit <- function(x) {
     x$opt <- opt
     x$coefficients <- par
     names(par) <- NULL
-    x$midas.coefficients <- x$allcoef(par)
-    x$fitted.values <- as.vector(x$model[,-1]%*%x$midas.coefficients)
+    x$midas_coefficients <- x$gen_midas_coef(par)
+    x$fitted.values <- as.vector(x$model[,-1]%*%x$midas_coefficients)
     x$residuals <- as.vector(x$model[,1]-x$fitted.values)
     x
 }
@@ -413,19 +412,19 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
              eval(gmf,Zenv)
          }
          return(list(weight=rf,
-                     name=as.character(fr[[2]]),
+                     term_name=as.character(fr[[2]]),
                      gradient=grf,
-                     start=rep(0,mf[[3]]),
-                     wlabel=as.character(fr[[2]])))
+                     start=rep(0,mf[[3]]),                    
+                     weight_name=as.character(fr[[5]])))
     }
     
     uterm <- function(name,k=1) {
         force(k)
         list(weight=function(p)p,
-             name=name,
+             term_name=name,
              gradient=function(p)diag(k),
-             start=rep(0,k),
-             wlabel="")
+             start=rep(0,k),             
+             weight_name="")
         
     }
 
@@ -453,17 +452,17 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
     }
    
     if (attr(mt,"intercept")==1)  {
-        rfd <- c(list(list(weight=function(p)p,name="(Intercept)",gradient=function(p)return(matrix(1)),start=0,wlabel="")),rfd)
+        rfd <- c(list(list(weight=function(p)p,term_name="(Intercept)",gradient=function(p)return(matrix(1)),start=0,weight_name="")),rfd)
         term.labels <- c("(Intercept)",term.labels)
     }
     
     rf <- lapply(rfd,"[[","weight")
-    names(rf) <- sapply(rfd,"[[","name")
+    names(rf) <- sapply(rfd,"[[","term_name")
     
 
-    weight_names <- sapply(rfd,"[[","wlabel")
+    weight_names <- sapply(rfd,"[[","weight_name")
     weight_inds <- which(weight_names!="")
-    weight_names <- weight_names[weight_names!=""]
+    weight_names <- names(rf)[weight_names!=""]
     
     
     start_default <- lapply(rfd,"[[","start")
@@ -494,9 +493,13 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
     
     for(i in 1:length(start_default))names(start_default[[i]]) <- NULL
 
+    initial_midas_coef <- mapply(function(fun,st)fun(st),rf,start_default,SIMPLIFY=FALSE)
+    if(sum(is.na(unlist(initial_midas_coef)))>0) stop("Check your starting values, NA in midas coefficients") 
+    
+    npx <- cumsum(sapply(initial_midas_coef,length))
+    xinds <- build_indices(npx,names(start_default))        
+     
     if(length(weight_names)>0 && guess_start) {
-        npx <- cumsum(sapply(mapply(function(fun,st)fun(st),rf,start_default,SIMPLIFY=FALSE),length))
-        xinds <- build_indices(npx,names(start_default))
         wi <- rep(FALSE,length(rf))
         wi[weight_inds] <- TRUE
         Xstart <- mapply(function(fun,st,inds,iswhgt) {        
@@ -647,17 +650,24 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
     ##Override default method of optim. Use BFGS instead of Nelder-Mead
     if(!("method"%in% names(control)) & Ofunction=="optim") {        
         control$method <- "BFGS"
-    }
-    
+    }    
+    term_info <- rfd
+    names(term_info) <- sapply(term_info,"[[","term_name")
+    term_info <- mapply(function(term,pind,xind){
+        term$start <- NULL
+        term$coef_index <- pind
+        term$midas_coef_index <- xind
+        term
+    },term_info,pinds[names(term_info)],xinds[names(term_info)],SIMPLIFY=FALSE)
+
     list(coefficients=starto,
-         midas.coefficients=all_coef(starto),
-         model=cbind(y,X),
-         weights=rf[weight_inds],
+         midas_coefficients=all_coef(starto),
+         model=cbind(y,X),         
          unrestricted=unrestricted,
-         param.map=pinds,
+         term_info=term_info,
          fn0=fn0,
          rhs=mdsrhs,
-         allcoef=all_coef,
+         gen_midas_coef = all_coef,
          opt=NULL,
          argmap.opt=control,
          start.opt=starto,
@@ -763,11 +773,10 @@ midas_r_simple <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method=
     call <- match.call()
     fitted.values <- as.vector(XX%*%all_coef(par))
     list(coefficients=par,
-         midas.coefficients=all_coef(par),
+         midas_coefficients=all_coef(par),
          model=model,
          weights=weight,
-         fn0=fn0,
-         allcoef=all_coef,
+         fn0=fn0,    
          opt=opt,
          call=call,
          gradient=gr,

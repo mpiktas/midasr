@@ -119,7 +119,7 @@ midas_r_np <- function(x,data,lambda=NULL) {
     names(cf) <- names(unlist(pinds))
     
     out <- list(coefficients=cf,
-                midas.coefficients=cf,
+                midas_coefficients=cf,
                 model=cbind(y,X),
                 call=cl,        
                 terms=mt,
