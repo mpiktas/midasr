@@ -11,7 +11,7 @@
 ##' @return a \code{midas_r} object which is the list with the following elements:
 ##' 
 ##' \item{coefficients}{the estimates of parameters of restrictions}
-##' \item{midas.coefficientas}{the estimates of restricted coefficients of MIDAS regression}
+##' \item{midas_coefficients}{the estimates of restricted coefficients of MIDAS regression}
 ##' \item{model}{model data}
 ##' \item{weights}{the restriction function(s) used in estimation.}
 ##' \item{unrestricted}{unrestricted regression estimated using \code{\link{midas_u}}}
