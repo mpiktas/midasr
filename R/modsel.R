@@ -1144,7 +1144,7 @@ average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recu
 
     if(type=="fixed") {
         outf <- lapply(bestm,function(mod)                  
-                       cbind(outdata[[yname]],forecast.midas_r(mod,newdata=outdata,method="static"))
+                       cbind(outdata[[yname]],point_forecast.midas_r(mod,newdata=outdata,method="static"))
                        )       
     }
     else {
@@ -1168,7 +1168,7 @@ average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recu
             else newin <- insample
             splitnew <- split_data(data,newin,newout)
             emod <- reeval(modlist,splitnew$indata)
-            outm[i,] <- sapply(emod,forecast.midas_r,newdata=splitnew$outdata,method="static")
+            outm[i,] <- sapply(emod,point_forecast.midas_r,newdata=splitnew$outdata,method="static")
             if(showprogress) setTxtProgressBar(pb, i)
         }
         if(length(modlist)>1) {

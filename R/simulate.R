@@ -141,3 +141,69 @@ midas_auto_sim <- function(n, alpha, x, theta, rand_gen = rnorm, innov = rand_ge
 ##1. If there is no autoregression, simply add future xreg times coefficient + bootstrapped error
 ##2. If there is autoregression, run dynamic forecast with future xreg, past y and bootstrapped error.
 
+##Call simulate from forecast.midas_r. 
+
+##Maybe rewrite simulate based on formula?
+##Do a bsic 
+
+simulate.midas_r <- function(object, nsim = nrow(object$model), future=TRUE, newdata=NULL,
+                             innov = NULL, bootstrap = FALSE, type = c("static", "dynamic"),
+                             freqinfo = NULL, insample = NULL) {
+    if (is.null(innov)) {
+        if (!exists(".Random.seed", envir = .GlobalEnv)) 
+            runif(1)
+        if (is.null(seed)) 
+            RNGstate <- .Random.seed
+        else {
+            R.seed <- .Random.seed
+            set.seed(seed)
+            RNGstate <- structure(seed, kind = as.list(RNGkind()))
+            on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
+        }
+    }
+    if(is.null(freqinfo)) {
+        freqinfo <- get_frequency_info(object$terms, object$Zenv)
+    }
+    
+    if(is.null(insample)) {
+        insample <- get_estimation_sample(object)
+    }
+    
+    if(future) {
+        e <- tsboot(residuals(object), h) 
+        if(type == "static") {
+            res <- predict.midas_r(object, newdata = data, na.action = na.pass)
+            n <- length(res)
+            xm <- res[n+1-h:1]
+            sim <- xm + e
+        } else {
+            fdata <- insample[names(freqinfo)]
+            outsample <- outsample[names(outsample)!=yname]
+            yna <- list(NA)
+            names(yna) <- yname
+            res <- rep(NA,h)        
+            for(i in 1:h) {
+                ##Get the data for the current low frequency lag
+                hout <- mapply(function(var,m){
+                    var[1:m+(i-1)*m]
+                },outsample,freqinfo[names(outsample)],SIMPLIFY=FALSE)
+                hout <- c(yna,hout)
+                fdata <- rbind_list(fdata[names(hout)],hout)
+                if(class(fdata)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
+                rr <- predict.midas_r(object,newdata=fdata,na.action=na.pass)
+                n <- length(rr)
+                res[i] <- rr[n] + e[i]
+                fdata[[yname]][n] <- res[i]             
+            }
+            sim <- res
+        }
+    } else {
+        e <- tsboot(residuals(object))
+        if(type == "static") {
+            sim <- fitted(object) + e
+        } else {
+            
+        }        
+    }
+    sim
+}

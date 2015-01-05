@@ -78,7 +78,6 @@ predict.midas_r <- function(object, newdata, na.action = na.omit, ... ) {
 ##' @method predict midas_u
 predict.midas_u <- predict.midas_r
 
-
 ##' @export
 ##' @method summary midas_r
 summary.midas_r <- function(object, vcov.=vcovHAC, df=NULL, prewhite=TRUE, ...) {
@@ -276,7 +275,73 @@ get_frequency_info<- function(mt,Zenv) {
 ##' 
 ##' forecast(mr.dyn, list(trend = trendn, x = xn), method = "dynamic")
 ##' @export 
-forecast.midas_r <- function(object, newdata=NULL, method=c("static","dynamic"), insample=get_estimation_sample(object), ...) {
+forecast.midas_r <- function(object, newdata=NULL, bootstrap=TRUE, level=c(80,95), fan=FALSE, npaths=5000, method=c("static","dynamic"), insample=get_estimation_sample(object), ...) {
+
+    method <- match.arg(method)
+
+    outsample <- data_to_list(newdata)
+    ##Fix this, as for default it is not necessary
+    insample <- data_to_list(insample)
+    ##Get the name of response variable
+    yname <- all.vars(object$terms[[2]])
+   
+    ##Get the frequency information of each variable    
+    freqinfo <- get_frequency_info(terms(object),object$Zenv)
+
+    if(length(setdiff(names(freqinfo),c(yname,names(outsample))))>0) stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
+
+    if(length(setdiff(names(freqinfo),c(yname,names(insample))))>0) stop("Missing variables in in-sample. Please supply the data for all the variables in regression")
+    
+    outsample <- outsample[intersect(names(outsample),names(freqinfo))]
+    firstno <- names(outsample)[1]
+ 
+    h <- length(outsample[[firstno]])%/%freqinfo[firstno]
+        
+    if(method=="static") {
+        if(!(yname %in% names(outsample))) {
+            outsample <- c(list(rep(NA,h)),outsample)
+            names(outsample)[1] <- yname
+        }
+        data <- try(rbind_list(insample[names(outsample)],outsample))
+        if(class(data)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
+        res <- predict.midas_r(object,newdata=data,na.action=na.pass)        
+        n <- length(res)
+        pred <- res[n+1-h:1]
+    }
+    else {
+        fdata <- insample[names(freqinfo)]
+        outsample <- outsample[names(outsample)!=yname]
+        yna <- list(NA)
+        names(yna) <- yname
+        res <- rep(NA,h)        
+        for(i in 1:h) {
+            ##Get the data for the current low frequency lag
+            hout <- mapply(function(var,m){
+                var[1:m+(i-1)*m]
+            },outsample,freqinfo[names(outsample)],SIMPLIFY=FALSE)
+            hout <- c(yna,hout)
+            fdata <- rbind_list(fdata[names(hout)],hout)
+            if(class(fdata)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
+            rr <- predict.midas_r(object,newdata=fdata,na.action=na.pass)
+            n <- length(rr)
+            res[i] <- rr[n]
+            fdata[[yname]][n] <- res[i]             
+        }
+        pred <- res
+    }
+    return(structure(list(method = paste0("MIDAS regression forecast (",method,")"),
+                          model = object,
+                          level = level,
+                          mean = pred,
+                          lower = lower,
+                          upper = upper,
+                          fitted = predict(object),
+                          residuals = residuals(object),                          
+                          x = insample
+                          ), class = "forecast"))
+}
+
+point_forecast.midas_r <- function(object, newdata=NULL, method=c("static","dynamic"), insample=get_estimation_sample(object), ...) {
 
     method <- match.arg(method)
 
@@ -329,8 +394,7 @@ forecast.midas_r <- function(object, newdata=NULL, method=c("static","dynamic"),
             fdata[[yname]][n] <- res[i]             
         }
         res
-    }
-    
+    }    
 }
 
 ##' @export
