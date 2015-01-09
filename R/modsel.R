@@ -942,7 +942,7 @@ select_and_forecast<- function(formula,data,from,to,
         stop("Supported weight schemes are EW, BICW, MSFE, DMSFE")
     }
     
-    Zenv <-  Zenv <- new.env(parent=environment(formula))
+    Zenv <- new.env(parent=environment(formula))
     formula <- as.formula(formula)
 
     if(missing(data)||is.null(data)) dataenv <- Zenv
@@ -951,7 +951,7 @@ select_and_forecast<- function(formula,data,from,to,
     ##Change this, there is a cleaner way
     mt <- terms(formula)
     yname <- all.vars(mt[[2]])       
-    m <- get_frequency_info(mt,Zenv)
+    m <- get_frequency_info(mt, Zenv)
     nms <- names(m)
     fullsample <- lapply(nms,function(nm)eval(as.name(nm),dataenv))
     names(fullsample) <- nms

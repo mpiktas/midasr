@@ -209,7 +209,9 @@ midas_coef <- function(x) {
     else x$midas_coefficients
 }
 
-get_frequency_info <- function(object) {    
+get_frequency_info <- function(x,...) UseMethod("get_frequency_info")
+
+get_frequency_info.midas_r <- function(object) {    
     yname <- all.vars(object$terms[[2]])
     res <- sapply(object$term_info,"[[","frequency")
     ##Make sure response variable is first
@@ -221,6 +223,31 @@ get_frequency_info <- function(object) {
     }
     res[setdiff(names(res),"(Intercept)")]
 }
+
+get_frequency_info.default <- function (mt, Zenv) 
+{
+    vars <- as.list(attr(mt, "variables"))[-1]
+    res <- lapply(vars, function(l) {
+        if (length(l) > 1) {
+            if (as.character(l[[1]]) %in% c("mls", "fmls", "dmls")) {
+                m <- eval(l[[4]], Zenv)
+                varnames <- as.character(all.vars(l[[2]]))
+                list(varname = varnames, m = rep(m, length(varnames)))
+            }
+            else {
+                varnames <- as.character(all.vars(l))
+                list(varname = varnames, m = rep(1, length(varnames)))
+            }
+        }
+        else list(varname = as.character(l), m = 1)
+    })
+    varn <- Reduce("c", lapply(res, "[[", "varname"))
+    freq <- Reduce("c", lapply(res, "[[", "m"))
+    out <- freq
+    names(out) <- varn
+    out[unique(names(out))]
+}
+
 
 ##' Forecasts MIDAS regression given the future values of regressors. For dynamic models (with lagged response variable) there is an option to calculate dynamic forecast, when forecasted values of response variable are substituted into the lags of response variable.
 ##' 
@@ -269,7 +296,7 @@ forecast.midas_r <- function(object, newdata=NULL, se = FALSE, level=c(80,95),
                              show_progress = TRUE, ...) {
     pred <- point_forecast.midas_r(object, newdata = newdata, method = method, insample = insample)
     if(se) {
-        sim <- simulate(object, nsim = npaths, future = TRUE, newdata = newdata, method = method, insample = insample, show_progess = show_progress)
+        sim <- simulate(object, nsim = npaths, future = TRUE, newdata = newdata, method = method, insample = insample, show_progress = show_progress)
         if (fan) 
             level <- seq(51, 99, by = 3)
         else {
@@ -298,7 +325,7 @@ forecast.midas_r <- function(object, newdata=NULL, se = FALSE, level=c(80,95),
                           upper = upper,
                           fitted = predict(object),
                           residuals = residuals(object),                          
-                          x = insample
+                          x = object$model[, 1]
                           ), class = "forecast"))
 }
 
@@ -313,7 +340,7 @@ point_forecast.midas_r <- function(object, newdata=NULL, method=c("static","dyna
     yname <- all.vars(object$terms[[2]])
    
     ##Get the frequency information of each variable    
-    freqinfo <- get_frequency_info(terms(object),object$Zenv)
+    freqinfo <- get_frequency_info(object)
 
     if(length(setdiff(names(freqinfo),c(yname,names(outsample))))>0) stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
 
