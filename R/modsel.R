@@ -315,7 +315,7 @@ weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh.
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
 ##' @param Ofunction see \link{midasr}
 ##' @param user.gradient see \link{midas_r}
-##' @param showprogress logical, TRUE to show progress bar, FALSE for silent evaluation
+##' @param show_progress logical, TRUE to show progress bar, FALSE for silent evaluation
 ##' @param ... additional parameters to optimisation function, see \link{midas_r}
 ##' @return a \code{midas_r_ic_table} object which is the list with the following elements:
 ##'
@@ -348,7 +348,7 @@ midas_r_ic_table <- function(formula,...) UseMethod("midas_r_ic_table")
 #' @rdname midas_r_ic_table
 #' @method midas_r_ic_table default
 #' @export
-midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,showprogress=TRUE,...) {
+midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,show_progress=TRUE,...) {
     
     Zenv <- new.env(parent=environment(formula))
     formula <- as.formula(formula)
@@ -430,16 +430,16 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
         res
     })
    
-    if(showprogress) {
+    if(show_progress) {
         cat("\nModel selection progress:\n")
         pb <- txtProgressBar(min=0,max=length(mrm),initial=0,style=3)
     }
     candlist <- mapply(function(l,i){
-       if(showprogress) setTxtProgressBar(pb, i)
+       if(show_progress) setTxtProgressBar(pb, i)
         out <- try(midas_r(l),silent=TRUE)
         out        
     },mrm,1:length(mrm),SIMPLIFY=FALSE)
-    if(showprogress)close(pb)   
+    if(show_progress)close(pb)   
     success <- sapply(candlist,class)
 
     if("try-error" %in% success)
@@ -986,7 +986,7 @@ select_and_forecast<- function(formula,data,from,to,
    
     bestm <- mapply(function(fh,prog)
                     mapply(function(tb,i){
-                        out <- modsel(midas_r_ic_table(formula,data=indata,start=start,table=tb,IC=IC,test=test,showprogress=FALSE),IC=IC,type=seltype,print=FALSE,...)
+                        out <- modsel(midas_r_ic_table(formula,data=indata,start=start,table=tb,IC=IC,test=test,show_progress=FALSE),IC=IC,type=seltype,print=FALSE,...)
                         setTxtProgressBar(pb, i)
                         out
                     },fh,as.list(prog+1:length(fh)),SIMPLIFY=FALSE),
@@ -1070,7 +1070,7 @@ split_data <- function(data,insample,outsample) {
 ##' @param type a string indicating which type of forecast to use. 
 ##' @param fweights names of weighting schemes
 ##' @param measures names of accuracy measures
-##' @param showprogress logical, TRUE to show progress bar, FALSE for silent evaluation
+##' @param show_progress logical, TRUE to show progress bar, FALSE for silent evaluation
 ##' @return a list containing forecasts and tables of accuracy measures
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
@@ -1099,7 +1099,7 @@ split_data <- function(data,insample,outsample) {
 ##'                         type="fixed",                            
 ##'                         measures=c("MSE","MAPE","MASE"),
 ##'                         fweights=c("EW","BICW","MSFE","DMSFE"))
-average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recursive","rolling"),fweights=c("EW","BICW","MSFE","DMSFE"),measures=c("MSE","MAPE","MASE"),showprogress=TRUE) {
+average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recursive","rolling"),fweights=c("EW","BICW","MSFE","DMSFE"),measures=c("MSE","MAPE","MASE"),show_progress=TRUE) {
 
     #if(length(modlist)==1)stop("Need more than 1 model to produce average forecasts")
     if(missing(data))stop("Data need to be supplied for forecasting")
@@ -1152,7 +1152,7 @@ average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recu
             fulls <- c(insample,outsample)            
         }
         outm <- matrix(NA,nrow=length(outsample),ncol=length(modlist))
-        if(showprogress) {
+        if(show_progress) {
             cat("\nDoing", type, "forecast :\n")    
             pb <- txtProgressBar(min=0,max=length(outsample),initial=0,style=3)
         }
@@ -1169,14 +1169,14 @@ average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recu
             splitnew <- split_data(data,newin,newout)
             emod <- reeval(modlist,splitnew$indata)
             outm[i,] <- sapply(emod,point_forecast.midas_r,newdata=splitnew$outdata,method="static")
-            if(showprogress) setTxtProgressBar(pb, i)
+            if(show_progress) setTxtProgressBar(pb, i)
         }
         if(length(modlist)>1) {
             outf <- lapply(data.frame(outm),function(x)cbind(outdata[[yname]],x))}
         else {
             outf <- list(cbind(outdata[[yname]],outm[,1]))
         }
-        if(showprogress)close(pb)
+        if(show_progress)close(pb)
     }
     
     msrfun <- lapply(measures,function(msr)eval(as.name(msr)))

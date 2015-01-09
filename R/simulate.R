@@ -1,30 +1,3 @@
-##' Simulate AR(1) or MA(1) model
-##'
-##' Simulate MIDAS regressor as a AR(1) or MA(1) time series
-##'  
-##' @param model A named vector of length one. Name is either "ar", or "ma"
-##' depending on which AR(1) or MA(1) process should be generated
-##' @param n the length of output series
-##' @param innov.sd the standard error of innovations, which are zero mean normal random variables
-##' @param frequency the frequency of the regressor, should be larger than one.
-##' @param n.start the length of the burn.in period, the default is 300.
-##' @return a time-series object of class \code{ts} 
-##' @author Virmantas Kvedaras, Vaidotas Zemlys 
-##' @examples
-##' #Generate AR(1) model with rho=0.6, with frequency 12
-##' x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
-##' @export
-simplearma.sim <- function(model,n,innov.sd,frequency,n.start=300) {
-    e <- rnorm(n+n.start,sd=innov.sd)
-    if(names(model)=="ar"){
-        res <- filter(e,filter=model,method="recursive",sides=1)
-    }
-    if(names(model)=="ma"){
-        res <- c(0,e[2:length(e)]+model*e[1:(length(e)-1)])
-    }
-    ts(res[-n.start:-1],frequency=frequency)
-}
-
 ##' Simulate simple MIDAS regression response variable
 ##'
 ##' Given the predictor variable and the coefficients simulate MIDAS regression response variable.
@@ -136,21 +109,27 @@ midas_auto_sim <- function(n, alpha, x, theta, rand_gen = rnorm, innov = rand_ge
     ts(y[-(1:n_start)],start=end(x)[1]-nout+1,frequency=1)
 }
 
-
-##simulate.midas_r
-##1. If there is no autoregression, simply add future xreg times coefficient + bootstrapped error
-##2. If there is autoregression, run dynamic forecast with future xreg, past y and bootstrapped error.
-
-##Call simulate from forecast.midas_r. 
-
-##Maybe rewrite simulate based on formula?
-##Do a bsic 
-
+##' .. content for \description{} (no empty lines) ..
+##'
+##' .. content for \details{} ..
+##' @title 
+##' @param object 
+##' @param nsim 
+##' @param future 
+##' @param newdata 
+##' @param innov 
+##' @param method 
+##' @param insample 
+##' @param seed 
+##' @param show_progress 
+##' @return 
+##' @author Vaidotas Zemlys
 simulate.midas_r <- function(object, nsim = 999, future=TRUE, newdata=NULL,
-                             innov = NULL,
-                             type = c("static", "dynamic"),
-                             freqinfo = NULL, insample = NULL, seed = NULL) {
-    type <- match.arg(type)
+                             insample = NULL,
+                             method = c("static", "dynamic"),
+                             innov = NULL,                            
+                             seed = NULL, show_progress = TRUE) {
+    method <- match.arg(method)
     yname <- all.vars(object$terms[[2]])
     
     if (is.null(innov)) {
@@ -165,9 +144,8 @@ simulate.midas_r <- function(object, nsim = 999, future=TRUE, newdata=NULL,
             on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
         }
     } 
-    if(is.null(freqinfo)) {
-        freqinfo <- get_frequency_info(object$terms, object$Zenv)
-    }
+    
+    freqinfo <- get_frequency_info(object)    
     
     if(is.null(insample)) {
         insample <- get_estimation_sample(object)
@@ -176,51 +154,29 @@ simulate.midas_r <- function(object, nsim = 999, future=TRUE, newdata=NULL,
     if(future) {
         outsample <- data_to_list(newdata)
         outsample <- outsample[intersect(names(outsample),names(freqinfo))]
-        firstno <- names(outsample)[1]
-        
+        firstno <- names(outsample)[1]        
         h <- length(outsample[[firstno]])%/%freqinfo[firstno]
-
-        if(is.null(innov)) innov <- matrix(sample(residuals(object), nsim*h, replace=TRUE), ncol=nsim)
+        if(is.null(innov)) innov <- matrix(sample(residuals(object), nsim*h, replace=TRUE), nrow=nsim)
         else {
             innov <- try(matrix(innov))
             if(inherits(class(innov),"try-error")) stop("Innovations must be a matrix or an object which can be coerced to matrix")
-            if(nrow(innov)!=h) stop("The number of rows of innovation matrix must coincide with number of forecasting periods, which is ", h, " based on supplied new data")
-        }
-        if(type == "static") {
-            if(!(yname %in% names(outsample))) {
-                outsample <- c(list(rep(NA,h)),outsample)
-                names(outsample)[1] <- yname
-            }
-            data <- try(rbind_list(insample[names(outsample)],outsample))
-
-            if(class(data)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
-            res <- predict.midas_r(object, newdata = data, na.action = na.pass)
-            n <- length(res)
-            xm <- res[n+1-h:1]
+            if(ncol(innov)!=h) stop("The number of columns of innovation matrix must coincide with number of forecasting periods, which is ", h, " based on supplied new data")
+            nsim <- ncol(innov)
+        }        
+        if(method == "static") {
+            xm <- static_forecast(object, h, insample, outsample, yname)           
             sim <- xm + innov
         } else {
-            sim <- matrix(NA, ncol = nsim, nrow = h)
-            for(j in 1:nsim) {
-                fdata <- insample[names(freqinfo)]
-                outsample <- outsample[names(outsample)!=yname]
-                yna <- list(NA)
-                names(yna) <- yname
-                res <- rep(NA,h)        
-                for(i in 1:h) {
-                    ##Get the data for the current low frequency lag
-                    hout <- mapply(function(var,m){
-                        var[1:m+(i-1)*m]
-                    },outsample,freqinfo[names(outsample)],SIMPLIFY=FALSE)
-                    hout <- c(yna,hout)
-                    fdata <- rbind_list(fdata[names(hout)],hout)
-                    if(class(fdata)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
-                    rr <- predict.midas_r(object,newdata=fdata,na.action=na.pass)
-                    n <- length(rr)
-                    res[i] <- rr[n] + innov[i,j]
-                    fdata[[yname]][n] <- res[i]             
-                }
-                sim[,j] <- res
+            sim <- matrix(NA, ncol = h, nrow = nsim)
+            if(show_progress) {
+                cat("\nDynamic simulation progress:\n")    
+                pb <- txtProgressBar(min=0, max=nsim, initial=0, style=3)
             }
+            for(j in 1:nsim) {                
+                sim[j, ] <-  dynamic_forecast(object, h, insample[names(freqinfo)], outsample, freqinfo, innov[j, ])
+                if(show_progress) setTxtProgressBar(pb, j)
+            }
+            if(show_progress) close(pb)
         }
     } else {
         modres <- residuals(object)
@@ -230,16 +186,59 @@ simulate.midas_r <- function(object, nsim = 999, future=TRUE, newdata=NULL,
             innov <- try(matrix(innov))
             if(inherits(class(innov),"try-error")) stop("Innovations must be a matrix or an object which can be coerced to matrix")
             if(nrow(innov)!=length(residuals(object))) stop("The number of rows of innovation matrix must coincide with effective sample size, which is ", nm)
+            nsim <- ncol(innov)
         }       
-        if(type == "static") {
+        if(method == "static") {
             sim <- fitted(object) + innov
         } else {
-            ##figure out when it is the start of yname and then do the same thing as in future=TRUE.
+            sim <- matrix(NA, ncol = nm, nrow = nsim)
+            n <- length(insample[[yname]])
+            dsplit <- split_data(insample,1:(n-nm),(n-nm+1):n)
+            if(show_progress) {
+                cat("\nDynamic simulation progress:\n")    
+                pb <- txtProgressBar(min=0, max=nsim, initial=0, style=3)
+            }
+            for(j in 1:nsim) {                
+                sim[j, ] <-  dynamic_forecast(object, h, dsplit$indata, dsplit$outdata, freqinfo, innov[j, ])
+                if(show_progress)setTxtProgressBar(pb, j)
+            }
+            if(show_progress) close(pb)
         }        
     }
     sim
 }
 
-recursive_estimation <- function() {
-    
+dynamic_forecast <- function(object, h, fdata, outsample, freqinfo, innov = rep(0,h) ) {
+    yname <- names(freqinfo)[1]
+    outsample <- outsample[names(outsample)!=yname]
+    yna <- list(NA)
+    names(yna) <- yname
+    res <- rep(NA,h)        
+    for(i in 1:h) {
+        ##Get the data for the current low frequency lag
+        hout <- mapply(function(var,m){
+            var[1:m+(i-1)*m]
+        },outsample,freqinfo[names(outsample)],SIMPLIFY=FALSE)
+        hout <- c(yna,hout)
+        fdata <- rbind_list(fdata[names(hout)],hout)
+        if(class(fdata)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
+        rr <- predict.midas_r(object,newdata=fdata,na.action=na.pass)
+        n <- length(rr)
+        res[i] <- rr[n] + innov[i]
+        fdata[[yname]][n] <- res[i]             
+    }
+    res
 }
+
+static_forecast <- function(object, h, insample, outsample, yname) {
+    if(!(yname %in% names(outsample))) {
+        outsample <- c(list(rep(NA,h)),outsample)
+        names(outsample)[1] <- yname
+    }
+    data <- try(rbind_list(insample[names(outsample)],outsample))
+    if(class(data)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
+    res <- predict.midas_r(object,newdata=data,na.action=na.pass)        
+    n <- length(res)
+    res[n+1-h:1]
+}
+

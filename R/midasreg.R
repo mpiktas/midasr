@@ -392,6 +392,7 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
          mf[[1]] <- fr[[5]]
          noarg <- length(formals(eval(fr[[5]],Zenv)))
          if(noarg<2)stop("The weight function must have at least two arguments")
+         freq <- mf[[4]]         
          mf <- mf[1:min(length(mf),noarg+1)]
          for(j in 3:length(mf)) {
              mf[[j]] <- eval(mf[[j]],Zenv)
@@ -401,8 +402,7 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
                               dmls = 0:mf[[3]],
                               mls = mf[[3]]
                               )
-         freq <- mf[[4]]
-         
+        
          mf[[3]] <- switch(type,
                            fmls = mf[[3]]+1,
                            dmls = mf[[3]]+1, 

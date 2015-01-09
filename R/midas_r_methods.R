@@ -209,30 +209,18 @@ midas_coef <- function(x) {
     else x$midas_coefficients
 }
 
-get_frequency_info<- function(mt,Zenv) {
-    vars <- as.list(attr(mt,"variables"))[-1]
-    res <- lapply(vars, function(l) {
-        if(length(l)>1) {
-            if(as.character(l[[1]])%in%c("mls","fmls","dmls")) {             
-                m <-eval(l[[4]],Zenv)              
-                varnames <- as.character(all.vars(l[[2]]))
-                list(varname=varnames,m=rep(m,length(varnames)))
-            }
-            else {
-                varnames <- as.character(all.vars(l))
-                list(varname=varnames,m=rep(1,length(varnames)))
-            }
-        }
-        else list(varname=as.character(l),m=1)
-    })
-    
-    varn <- Reduce("c",lapply(res,"[[","varname"))
-    freq <- Reduce("c",lapply(res,"[[","m"))
-    out <- freq
-    names(out) <- varn
-    out[unique(names(out))]
+get_frequency_info <- function(object) {    
+    yname <- all.vars(object$terms[[2]])
+    res <- sapply(object$term_info,"[[","frequency")
+    ##Make sure response variable is first
+    if(!(yname %in% names(res))) {
+        res <- c(1,res)
+        names(res)[1] <- yname
+    } else {
+        res <- res[c(yname,setdiff(names(res),yname))]
+    }
+    res[setdiff(names(res),"(Intercept)")]
 }
-
 
 ##' Forecasts MIDAS regression given the future values of regressors. For dynamic models (with lagged response variable) there is an option to calculate dynamic forecast, when forecasted values of response variable are substituted into the lags of response variable.
 ##' 
@@ -275,60 +263,33 @@ get_frequency_info<- function(mt,Zenv) {
 ##' 
 ##' forecast(mr.dyn, list(trend = trendn, x = xn), method = "dynamic")
 ##' @export 
-forecast.midas_r <- function(object, newdata=NULL, bootstrap=TRUE, level=c(80,95), fan=FALSE, npaths=5000, method=c("static","dynamic"), insample=get_estimation_sample(object), ...) {
-
-    method <- match.arg(method)
-
-    outsample <- data_to_list(newdata)
-    ##Fix this, as for default it is not necessary
-    insample <- data_to_list(insample)
-    ##Get the name of response variable
-    yname <- all.vars(object$terms[[2]])
-   
-    ##Get the frequency information of each variable    
-    freqinfo <- get_frequency_info(terms(object),object$Zenv)
-
-    if(length(setdiff(names(freqinfo),c(yname,names(outsample))))>0) stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
-
-    if(length(setdiff(names(freqinfo),c(yname,names(insample))))>0) stop("Missing variables in in-sample. Please supply the data for all the variables in regression")
+forecast.midas_r <- function(object, newdata=NULL, se = FALSE, level=c(80,95),
+                             fan=FALSE, npaths=999,
+                             method=c("static","dynamic"), insample=get_estimation_sample(object),
+                             show_progress = TRUE, ...) {
+    pred <- point_forecast.midas_r(object, newdata = newdata, method = method, insample = insample)
+    if(se) {
+        sim <- simulate(object, nsim = npaths, future = TRUE, newdata = newdata, method = method, insample = insample, show_progess = show_progress)
+        if (fan) 
+            level <- seq(51, 99, by = 3)
+        else {
+            if (min(level) > 0 & max(level) < 1) 
+                level <- 100 * level
+            else if (min(level) < 0 | max(level) > 99.99) 
+                stop("Confidence limit out of range")
+        }
+        nint <- length(level)        
+        lower <- apply(sim, 2, quantile, 0.5 - level/200, type = 8)
+        upper <- apply(sim, 2, quantile, 0.5 + level/200, type = 8)
+        if (nint > 1L) {
+            lower <- t(lower)
+            upper <- t(upper)
+        }    
+    } else {
+        lower <- NULL
+        upper <- NULL
+    }
     
-    outsample <- outsample[intersect(names(outsample),names(freqinfo))]
-    firstno <- names(outsample)[1]
- 
-    h <- length(outsample[[firstno]])%/%freqinfo[firstno]
-        
-    if(method=="static") {
-        if(!(yname %in% names(outsample))) {
-            outsample <- c(list(rep(NA,h)),outsample)
-            names(outsample)[1] <- yname
-        }
-        data <- try(rbind_list(insample[names(outsample)],outsample))
-        if(class(data)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
-        res <- predict.midas_r(object,newdata=data,na.action=na.pass)        
-        n <- length(res)
-        pred <- res[n+1-h:1]
-    }
-    else {
-        fdata <- insample[names(freqinfo)]
-        outsample <- outsample[names(outsample)!=yname]
-        yna <- list(NA)
-        names(yna) <- yname
-        res <- rep(NA,h)        
-        for(i in 1:h) {
-            ##Get the data for the current low frequency lag
-            hout <- mapply(function(var,m){
-                var[1:m+(i-1)*m]
-            },outsample,freqinfo[names(outsample)],SIMPLIFY=FALSE)
-            hout <- c(yna,hout)
-            fdata <- rbind_list(fdata[names(hout)],hout)
-            if(class(fdata)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
-            rr <- predict.midas_r(object,newdata=fdata,na.action=na.pass)
-            n <- length(rr)
-            res[i] <- rr[n]
-            fdata[[yname]][n] <- res[i]             
-        }
-        pred <- res
-    }
     return(structure(list(method = paste0("MIDAS regression forecast (",method,")"),
                           model = object,
                           level = level,
@@ -364,36 +325,10 @@ point_forecast.midas_r <- function(object, newdata=NULL, method=c("static","dyna
     h <- length(outsample[[firstno]])%/%freqinfo[firstno]
         
     if(method=="static") {
-        if(!(yname %in% names(outsample))) {
-            outsample <- c(list(rep(NA,h)),outsample)
-            names(outsample)[1] <- yname
-        }
-        data <- try(rbind_list(insample[names(outsample)],outsample))
-        if(class(data)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
-        res <- predict.midas_r(object,newdata=data,na.action=na.pass)        
-        n <- length(res)
-        res[n+1-h:1]
+        res <- static_forecast(object, h, insample, outsample, yname)
     }
     else {
-        fdata <- insample[names(freqinfo)]
-        outsample <- outsample[names(outsample)!=yname]
-        yna <- list(NA)
-        names(yna) <- yname
-        res <- rep(NA,h)        
-        for(i in 1:h) {
-            ##Get the data for the current low frequency lag
-            hout <- mapply(function(var,m){
-                var[1:m+(i-1)*m]
-            },outsample,freqinfo[names(outsample)],SIMPLIFY=FALSE)
-            hout <- c(yna,hout)
-            fdata <- rbind_list(fdata[names(hout)],hout)
-            if(class(fdata)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
-            rr <- predict.midas_r(object,newdata=fdata,na.action=na.pass)
-            n <- length(rr)
-            res[i] <- rr[n]
-            fdata[[yname]][n] <- res[i]             
-        }
-        res
+        res <- dynamic_forecast(object, h, insample[names(freqinfo)], outsample, freqinfo)        
     }    
 }
 
