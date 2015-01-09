@@ -395,7 +395,14 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
          mf <- mf[1:min(length(mf),noarg+1)]
          for(j in 3:length(mf)) {
              mf[[j]] <- eval(mf[[j]],Zenv)
-         }        
+         }
+         lagstruct <- switch(type,
+                              fmls = 0:mf[[3]],
+                              dmls = 0:mf[[3]],
+                              mls = mf[[3]]
+                              )
+         freq <- mf[[4]]
+         
          mf[[3]] <- switch(type,
                            fmls = mf[[3]]+1,
                            dmls = mf[[3]]+1, 
@@ -415,16 +422,23 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
                      term_name=as.character(fr[[2]]),
                      gradient=grf,
                      start=rep(0,mf[[3]]),                    
-                     weight_name=as.character(fr[[5]])))
+                     weight_name=as.character(fr[[5]]),
+                     frequency=freq,
+                     lag_structure=lagstruct
+                     )
+                
+                )
     }
     
-    uterm <- function(name,k=1) {
+    uterm <- function(name,k=1,lags) {
         force(k)
         list(weight=function(p)p,
              term_name=name,
              gradient=function(p)diag(k),
              start=rep(0,k),             
-             weight_name="")
+             weight_name="",
+             frequency = 1,
+             lag_structure = lags)
         
     }
 
@@ -442,17 +456,29 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
                               dmls = lags+1,
                               mls = length(lags)
                               )
+                lagstruct <- switch(fun,
+                              fmls = 0:lags,
+                              dmls = 0:lags,
+                              mls = lags
+                              )
                 nm <- as.character(fr[[2]])
-                uterm(nm,nol)
+                uterm(nm,nol,lagstruct)
             }            
         }
         else {
-            uterm(term.labels[i],1)
+            uterm(term.labels[i],1,0)
         }
     }
    
     if (attr(mt,"intercept")==1)  {
-        rfd <- c(list(list(weight=function(p)p,term_name="(Intercept)",gradient=function(p)return(matrix(1)),start=0,weight_name="")),rfd)
+        rfd <- c(list(list(weight=function(p)p,
+                           term_name="(Intercept)",
+                           gradient=function(p)return(matrix(1)),
+                           start=0,
+                           weight_name="",
+                           frequency = 1,
+                           lag_structure = 0
+                           )),rfd)
         term.labels <- c("(Intercept)",term.labels)
     }
     
