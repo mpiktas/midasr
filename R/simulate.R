@@ -3,9 +3,11 @@
 ##' Given the predictor variable and the coefficients simulate MIDAS regression response variable.
 ##' 
 ##' @param n The sample size
-##' @param theta a vector with MIDAS regression coefficients 
 ##' @param x a \code{ts} object with MIDAS regression predictor variable
-##' @param eps.sd the standard error of the regression disturbances, which are assumed to be independent normal zero mean random variables 
+##' @param theta a vector with MIDAS regression coefficients 
+##' @param rand_gen the function which generates the sample of innovations, the default is \code{\link{rnorm}} 
+##' @param innov the vector with innovations, the default is NULL, i.e. innovations are generated using argument \code{rand_gen}
+##' @param ... additional arguments to \code{rand_gen}.
 ##' @return a \code{ts} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @examples
@@ -63,7 +65,7 @@ midas_sim <- function(n, x, theta, rand_gen = rnorm, innov = rand_gen(n, ...), .
 ##' @param rand_gen a function to generate the innovations, default is the normal distribution.
 ##' @param innov an optional time series of innovations.
 ##' @param n_start number of observations to omit for the burn.in.
-##' @param ... 
+##' @param ... additional arguments to function \code{rand_gen}.
 ##' @return a \code{ts} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
@@ -109,26 +111,53 @@ midas_auto_sim <- function(n, alpha, x, theta, rand_gen = rnorm, innov = rand_ge
     ts(y[-(1:n_start)],start=end(x)[1]-nout+1,frequency=1)
 }
 
-##' .. content for \description{} (no empty lines) ..
+##' Simulates one or more responses from the distribution corresponding to a fitted MIDAS regression object.
 ##'
-##' .. content for \details{} ..
-##' @title 
-##' @param object 
-##' @param nsim 
-##' @param future 
-##' @param newdata 
-##' @param innov 
-##' @param method 
-##' @param insample 
-##' @param seed 
-##' @param show_progress 
-##' @return 
-##' @author Vaidotas Zemlys
-simulate.midas_r <- function(object, nsim = 999, future=TRUE, newdata=NULL,
+##' Only the regression innovations are simulated, it is assumed that the predictor variables and coefficients are fixed. The
+##' innovation distribution is simulated via bootstrap. 
+##' @title Simulate MIDAS regression response
+##' @param object \code{\link{midas_r}} object
+##' @param nsim number of simulations
+##' @param future logical, if \code{TRUE} forecasts are simulated, if \code{FALSE} in-sample simulation is performed.
+##' @param newdata a named list containing future values of mixed frequency regressors.  The default is \code{NULL}, meaning that only in-sample data is used.
+##' @param innov a matrix containing the simulated innovations. The default is \code{NULL}, meaning, that innovations are simulated from model residuals.
+##' @param method the simulation method, if \code{"static"} in-sample values for dependent variable are used in autoregressive MIDAS model, if \code{"dynamic"}
+##' the dependent variable values are calculated step-by-step from the initial in-sample values.
+##' @param insample a list containing the historic mixed frequency data 
+##' @param seed either NULL or an integer that will be used in a call to set.seed before simulating the time series. The default, NULL will not change the random generator state.
+##' @param show_progress logical, TRUE to show progress bar, FALSE for silent evaluation
+##' @return a matrix of simulated responses. Each row contains a simulated response.
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @method simulate midas_r
+##' @rdname simulate.midas_r
+##' @examples
+##' data("USrealgdp")
+##' data("USunempr")
+##' 
+##' y <- diff(log(USrealgdp))
+##' x <- window(diff(USunempr), start = 1949)
+##' trend <- 1:length(y)
+##' 
+##' ##24 high frequency lags of x included
+##' mr <- midas_r(y ~ trend + fmls(x, 23, 12, nealmon), start = list(x = rep(0, 3)))
+##'
+##' simulate(mr, nsim=10, future=FALSE)
+##'
+##' ##Forecast horizon
+##' h <- 3
+##' ##Declining unemployment
+##' xn <- rep(-0.1, 12*3)
+##' ##New trend values
+##' trendn <- length(y) + 1:h
+##'
+##' simulate(mr, nsim = 10, future = TRUE, newdata = list(trend = trendn, x = xn)
+##' 
+##' @export
+simulate.midas_r <- function(object, nsim = 999, seed = NULL, future=TRUE, newdata=NULL,
                              insample = NULL,
                              method = c("static", "dynamic"),
                              innov = NULL,                            
-                             seed = NULL, show_progress = TRUE) {
+                             show_progress = TRUE) {
     method <- match.arg(method)
     yname <- all.vars(object$terms[[2]])
     
@@ -206,39 +235,5 @@ simulate.midas_r <- function(object, nsim = 999, future=TRUE, newdata=NULL,
         }        
     }
     sim
-}
-
-dynamic_forecast <- function(object, h, fdata, outsample, freqinfo, innov = rep(0,h) ) {
-    yname <- names(freqinfo)[1]
-    outsample <- outsample[names(outsample)!=yname]
-    yna <- list(NA)
-    names(yna) <- yname
-    res <- rep(NA,h)        
-    for(i in 1:h) {
-        ##Get the data for the current low frequency lag
-        hout <- mapply(function(var,m){
-            var[1:m+(i-1)*m]
-        },outsample,freqinfo[names(outsample)],SIMPLIFY=FALSE)
-        hout <- c(yna,hout)
-        fdata <- rbind_list(fdata[names(hout)],hout)
-        if(class(fdata)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
-        rr <- predict.midas_r(object,newdata=fdata,na.action=na.pass)
-        n <- length(rr)
-        res[i] <- rr[n] + innov[i]
-        fdata[[yname]][n] <- res[i]             
-    }
-    res
-}
-
-static_forecast <- function(object, h, insample, outsample, yname) {
-    if(!(yname %in% names(outsample))) {
-        outsample <- c(list(rep(NA,h)),outsample)
-        names(outsample)[1] <- yname
-    }
-    data <- try(rbind_list(insample[names(outsample)],outsample))
-    if(class(data)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
-    res <- predict.midas_r(object,newdata=data,na.action=na.pass)        
-    n <- length(res)
-    res[n+1-h:1]
 }
 

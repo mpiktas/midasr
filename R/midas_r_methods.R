@@ -18,7 +18,7 @@ deviance.midas_r <- function(object,...) {
 ##' 
 ##' @title Predict method for MIDAS regression fit
 ##' @param object \code{\link{midas_r}} object
-##' @param newdata a named list containing data for mixed frequencies. If omitted, the fitted values are used.
+##' @param newdata a named list containing data for mixed frequencies. If omitted, the in-sample values are used.
 ##' @param na.action function determining what should be done with missing values in \code{newdata}. The most likely cause of missing values is the insufficient data for the lagged variables. The default is to omit such missing values.
 ##' @param ... additional arguments, not used
 ##' @return a vector of predicted values
@@ -248,6 +248,40 @@ get_frequency_info.default <- function (mt, Zenv)
     out[unique(names(out))]
 }
 
+dynamic_forecast <- function(object, h, fdata, outsample, freqinfo, innov = rep(0,h) ) {
+    yname <- names(freqinfo)[1]
+    outsample <- outsample[names(outsample)!=yname]
+    yna <- list(NA)
+    names(yna) <- yname
+    res <- rep(NA,h)        
+    for(i in 1:h) {
+        ##Get the data for the current low frequency lag
+        hout <- mapply(function(var,m){
+            var[1:m+(i-1)*m]
+        },outsample,freqinfo[names(outsample)],SIMPLIFY=FALSE)
+        hout <- c(yna,hout)
+        fdata <- rbind_list(fdata[names(hout)],hout)
+        if(class(fdata)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
+        rr <- predict.midas_r(object,newdata=fdata,na.action=na.pass)
+        n <- length(rr)
+        res[i] <- rr[n] + innov[i]
+        fdata[[yname]][n] <- res[i]             
+    }
+    res
+}
+
+static_forecast <- function(object, h, insample, outsample, yname) {
+    if(!(yname %in% names(outsample))) {
+        outsample <- c(list(rep(NA,h)),outsample)
+        names(outsample)[1] <- yname
+    }
+    data <- try(rbind_list(insample[names(outsample)],outsample))
+    if(class(data)=="try-error")stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
+    res <- predict.midas_r(object,newdata=data,na.action=na.pass)        
+    n <- length(res)
+    res[n+1-h:1]
+}
+
 
 ##' Forecasts MIDAS regression given the future values of regressors. For dynamic models (with lagged response variable) there is an option to calculate dynamic forecast, when forecasted values of response variable are substituted into the lags of response variable.
 ##' 
@@ -255,11 +289,27 @@ get_frequency_info.default <- function (mt, Zenv)
 ##' 
 ##' @title Forecast MIDAS regression
 ##' @param object midas_r object
-##' @param newdata newdata
+##' @param newdata a named list containing future values of mixed frequency regressors. The default is \code{NULL}, meaning that only in-sample data is used.
+##' @param se logical, if \code{TRUE}, the prediction intervals are calculated
+##' @param level confidence level for prediction intervals
+##' @param fan if TRUE, level is set to seq(50,99,by=1). This is suitable for fan plots
+##' @param npaths the number of samples for simulating prediction intervals
 ##' @param method the forecasting method, either \code{"static"} or \code{"dynamic"}
 ##' @param insample a list containing the historic mixed frequency data 
-##' @param ... additional arguments, not used
-##' @return a vector of forecasts
+##' @param show_progress logical, if \code{TRUE}, the progress bar is shown if \code{se = TRUE}
+##' @param ... additional arguments to \code{simulate.midas_r}
+##' @return an object of class \code{"forecast"}, a list containing following elements:
+##'
+##' \item{method}{the name of forecasting method: MIDAS regression, static or dynamic}
+##' \item{model}{original object of \class{midas_r}}
+##' \item{mean}{point forecasts}
+##' \item{lower}{lower limits for prediction intervals}
+##' \item{upper}{upper limits for prediction intervals}
+##' \item{fitted}{fitted values, one-step forecasts}
+##' \item{residuals}{residuals from the fitted model}
+##' \item{x}{the original response variable}
+##'
+##' The methods \code{print}, \code{summary} and \code{plot} from package \code{forecast} can be used on the object.
 ##' @author Vaidotas Zemlys
 ##' @method forecast midas_r
 ##' @examples
@@ -289,6 +339,14 @@ get_frequency_info.default <- function (mt, Zenv)
 ##'                   start = list(x = rep(0, 3)))
 ##' 
 ##' forecast(mr.dyn, list(trend = trendn, x = xn), method = "dynamic")
+##'
+##' ##Load package forecast to use print, summary and plot methods.
+##' ## library(forecast)
+##' ## fmr <- forecast(mr, list(trend = trendn, x = xn), method = "static")
+##' ## fmr
+##' ## summary(fmr)
+##' ## plot(fmr)
+##' 
 ##' @export 
 forecast.midas_r <- function(object, newdata=NULL, se = FALSE, level=c(80,95),
                              fan=FALSE, npaths=999,
@@ -296,7 +354,7 @@ forecast.midas_r <- function(object, newdata=NULL, se = FALSE, level=c(80,95),
                              show_progress = TRUE, ...) {
     pred <- point_forecast.midas_r(object, newdata = newdata, method = method, insample = insample)
     if(se) {
-        sim <- simulate(object, nsim = npaths, future = TRUE, newdata = newdata, method = method, insample = insample, show_progress = show_progress)
+        sim <- simulate(object, nsim = npaths, future = TRUE, newdata = newdata, method = method, insample = insample, show_progress = show_progress, ...)
         if (fan) 
             level <- seq(51, 99, by = 3)
         else {

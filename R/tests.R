@@ -244,10 +244,10 @@ agk.test <- function(x) {
                
     Xa <- lapply(x$term_info,function(ti) {        
         if(ti$weight_name == "nealmon") {       
-            apply(X[,ti$midas_coef_map],1,mean)
+            apply(X[,ti$midas_coef_index],1,mean)
         }
         else {
-            X[,ti$midas_coef_map,drop=FALSE]
+            X[,ti$midas_coef_index,drop=FALSE]
         }
     })
     Xa <- do.call("cbind",Xa)

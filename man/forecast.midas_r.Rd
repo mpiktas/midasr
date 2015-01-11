@@ -4,22 +4,45 @@
 \alias{forecast.midas_r}
 \title{Forecast MIDAS regression}
 \usage{
-\method{forecast}{midas_r}(object, newdata = NULL, method = c("static",
-  "dynamic"), insample = get_estimation_sample(object), ...)
+\method{forecast}{midas_r}(object, newdata = NULL, se = FALSE,
+  level = c(80, 95), fan = FALSE, npaths = 999, method = c("static",
+  "dynamic"), insample = get_estimation_sample(object),
+  show_progress = TRUE, ...)
 }
 \arguments{
 \item{object}{midas_r object}
 
-\item{newdata}{newdata}
+\item{newdata}{a named list containing future values of mixed frequency regressors. The default is \code{NULL}, meaning that only in-sample data is used.}
+
+\item{se}{logical, if \code{TRUE}, the prediction intervals are calculated}
+
+\item{level}{confidence level for prediction intervals}
+
+\item{fan}{if TRUE, level is set to seq(50,99,by=1). This is suitable for fan plots}
+
+\item{npaths}{the number of samples for simulating prediction intervals}
 
 \item{method}{the forecasting method, either \code{"static"} or \code{"dynamic"}}
 
 \item{insample}{a list containing the historic mixed frequency data}
 
-\item{...}{additional arguments, not used}
+\item{show_progress}{logical, if \code{TRUE}, the progress bar is shown if \code{se = TRUE}}
+
+\item{...}{additional arguments to \code{simulate.midas_r}}
 }
 \value{
-a vector of forecasts
+an object of class \code{"forecast"}, a list containing following elements:
+
+\item{method}{the name of forecasting method: MIDAS regression, static or dynamic}
+\item{model}{original object of \class{midas_r}}
+\item{mean}{point forecasts}
+\item{lower}{lower limits for prediction intervals}
+\item{upper}{upper limits for prediction intervals}
+\item{fitted}{fitted values, one-step forecasts}
+\item{residuals}{residuals from the fitted model}
+\item{x}{the original response variable}
+
+The methods \code{print}, \code{summary} and \code{plot} from package \code{forecast} can be used on the object.
 }
 \description{
 Forecasts MIDAS regression given the future values of regressors. For dynamic models (with lagged response variable) there is an option to calculate dynamic forecast, when forecasted values of response variable are substituted into the lags of response variable.
@@ -54,6 +77,13 @@ mr.dyn <- midas_r(y ~ trend + mls(y, 1:2, 1, "*")
                   start = list(x = rep(0, 3)))
 
 forecast(mr.dyn, list(trend = trendn, x = xn), method = "dynamic")
+
+##Load package forecast to use print, summary and plot methods.
+## library(forecast)
+## fmr <- forecast(mr, list(trend = trendn, x = xn), method = "static")
+## fmr
+## summary(fmr)
+## plot(fmr)
 }
 \author{
 Vaidotas Zemlys

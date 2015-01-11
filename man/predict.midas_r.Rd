@@ -8,7 +8,7 @@
 \arguments{
 \item{object}{\code{\link{midas_r}} object}
 
-\item{newdata}{a named list containing data for mixed frequencies. If omitted, the fitted values are used.}
+\item{newdata}{a named list containing data for mixed frequencies. If omitted, the in-sample values are used.}
 
 \item{na.action}{function determining what should be done with missing values in \code{newdata}. The most likely cause of missing values is the insufficient data for the lagged variables. The default is to omit such missing values.}
 
