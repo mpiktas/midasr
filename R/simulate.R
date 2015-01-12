@@ -25,10 +25,10 @@
 ##' plot(theta0)
 ##'
 ##' ##Generate the predictor variable, leave 4 low frequency lags of data for burn-in.
-##' x <- ts(arima.sim(model = list(ar = 0.6), 504*12), frequency = 12)
+##' xx <- ts(arima.sim(model = list(ar = 0.6), 600 * 12), frequency = 12)
 ##'
 ##' ##Simulate the response variable
-##' y <- midas_sim(500, x, theta0)
+##' y <- midas_sim(500, xx, theta0)
 ##'
 ##' x <- window(xx, start=start(y))
 ##' midas_r(y ~ mls(y, 1, 1) + fmls(x, 4*12-1, 12, theta.h0), start = list(x = c(-0.1, 10, -10, -10)))
@@ -80,7 +80,7 @@ midas_sim <- function(n, x, theta, rand_gen = rnorm, innov = rand_gen(n, ...), .
 ##' theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
 ##'
 ##' ##Generate the predictor variable
-##' xx <- ts(arima.sim(model = list(ar = 0.6), 3000 *12), frequency = 12)
+##' xx <- ts(arima.sim(model = list(ar = 0.6), 1000 * 12), frequency = 12)
 ##' 
 ##' y <- midas_auto_sim(500, 0.5, xx, theta0, n_start = 200)
 ##' x <- window(xx, start=start(y))
@@ -118,14 +118,15 @@ midas_auto_sim <- function(n, alpha, x, theta, rand_gen = rnorm, innov = rand_ge
 ##' @title Simulate MIDAS regression response
 ##' @param object \code{\link{midas_r}} object
 ##' @param nsim number of simulations
+##' @param seed either NULL or an integer that will be used in a call to set.seed before simulating the time series. The default, NULL will not change the random generator state.
 ##' @param future logical, if \code{TRUE} forecasts are simulated, if \code{FALSE} in-sample simulation is performed.
 ##' @param newdata a named list containing future values of mixed frequency regressors.  The default is \code{NULL}, meaning that only in-sample data is used.
-##' @param innov a matrix containing the simulated innovations. The default is \code{NULL}, meaning, that innovations are simulated from model residuals.
+##' @param insample a list containing the historic mixed frequency data 
 ##' @param method the simulation method, if \code{"static"} in-sample values for dependent variable are used in autoregressive MIDAS model, if \code{"dynamic"}
 ##' the dependent variable values are calculated step-by-step from the initial in-sample values.
-##' @param insample a list containing the historic mixed frequency data 
-##' @param seed either NULL or an integer that will be used in a call to set.seed before simulating the time series. The default, NULL will not change the random generator state.
+##' @param innov a matrix containing the simulated innovations. The default is \code{NULL}, meaning, that innovations are simulated from model residuals.
 ##' @param show_progress logical, TRUE to show progress bar, FALSE for silent evaluation
+##' @param ... not used currently
 ##' @return a matrix of simulated responses. Each row contains a simulated response.
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @method simulate midas_r
@@ -150,14 +151,14 @@ midas_auto_sim <- function(n, alpha, x, theta, rand_gen = rnorm, innov = rand_ge
 ##' ##New trend values
 ##' trendn <- length(y) + 1:h
 ##'
-##' simulate(mr, nsim = 10, future = TRUE, newdata = list(trend = trendn, x = xn)
+##' simulate(mr, nsim = 10, future = TRUE, newdata = list(trend = trendn, x = xn))
 ##' 
 ##' @export
 simulate.midas_r <- function(object, nsim = 999, seed = NULL, future=TRUE, newdata=NULL,
                              insample = NULL,
                              method = c("static", "dynamic"),
                              innov = NULL,                            
-                             show_progress = TRUE) {
+                             show_progress = TRUE, ...) {
     method <- match.arg(method)
     yname <- all.vars(object$terms[[2]])
     
@@ -237,3 +238,8 @@ simulate.midas_r <- function(object, nsim = 999, seed = NULL, future=TRUE, newda
     sim
 }
 
+##' @importFrom stats simulate
+##' @name simulate
+##' @rdname simulate.midas_r
+##' @export
+NULL

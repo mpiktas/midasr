@@ -48,11 +48,13 @@ theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
 ##Do not run
 #plot(theta0)
 
-##Generate the predictor variable
-x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
+##' ##Generate the predictor variable
+xx <- ts(arima.sim(model = list(ar = 0.6), 600 * 12), frequency = 12)
 
 ##Simulate the response variable
-y <- midas.sim(500,theta0,x,1)
+y <- midas_sim(500, xx, theta0)
+
+x <- window(xx, start=start(y))
 
 ##Create low frequency data.frame
 ldt <- data.frame(y=y,trend=1:length(y))

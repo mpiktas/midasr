@@ -39,14 +39,13 @@ plot(theta0)
 
 ##Generate the predictor variable
 set.seed(13)
-x <- simplearma.sim(list(ar=0.6),1500*12,1,12)
+
+xx <- ts(arima.sim(model = list(ar = 0.6), 600 * 12), frequency = 12)
 
 ##Simulate the response variable
-y <- midas.sim(500,theta0,x,1)
+y <- midas_sim(500, xx, theta0)
 
-##Remove unnecessary history of x
-x <- window(x,start=start(y))
-
+x <- window(xx, start=start(y))
 ##Fit restricted model
 mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,list(y=y,x=x),
               start=list(x=c(-0.1,0.1,-0.1,-0.001)))

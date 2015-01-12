@@ -50,10 +50,10 @@ theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
 plot(theta0)
 
 ##Generate the predictor variable, leave 4 low frequency lags of data for burn-in.
-x <- ts(arima.sim(model = list(ar = 0.6), 504*12), frequency = 12)
+xx <- ts(arima.sim(model = list(ar = 0.6), 600 * 12), frequency = 12)
 
 ##Simulate the response variable
-y <- midas_sim(500, x, theta0)
+y <- midas_sim(500, xx, theta0)
 
 x <- window(xx, start=start(y))
 midas_r(y ~ mls(y, 1, 1) + fmls(x, 4*12-1, 12, theta.h0), start = list(x = c(-0.1, 10, -10, -10)))

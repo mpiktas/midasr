@@ -8,9 +8,10 @@ theta.h0 <- function(p, dk) {
 
 theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
 
-xx <- simplearma.sim(list(ar=1),1500*12,1,12)
-y <- midas.sim(500,theta0,xx,1)
-x <- window(xx,start=start(y))
+xx <- ts(cumsum(rnorm(1000*12)), frequency = 12)
+y <- midas_auto_sim(500, 0.5, xx, theta0, n_start = 200)
+x <- window(xx, start=start(y))
+
 dx <- c(NA,diff(x))
 
 pp1 <- function(p,d)cumsum(theta.h0(p,d))

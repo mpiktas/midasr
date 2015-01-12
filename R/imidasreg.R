@@ -36,9 +36,12 @@
 ##'
 ##' theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
 ##' 
-##' xx <- simplearma.sim(list(ar=1),1500*12,1,12)
-##' y <- midas.sim(500,theta0,xx,1)
-##' x <- window(xx,start=start(y))
+##' xx <- ts(cumsum(rnorm(600*12)), frequency = 12)
+##'
+##' ##Simulate the response variable
+##' y <- midas_sim(500, xx, theta0)
+##'
+##' x <- window(xx, start=start(y))
 ##'
 ##' imr <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,start=list(x=c(-0.1,10,-10,-10)))
 ##' 

@@ -40,7 +40,7 @@ theta.h0 <- function(p, dk) {
 theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
 
 ##Generate the predictor variable
-xx <- ts(arima.sim(model = list(ar = 0.6), 3000 *12), frequency = 12)
+xx <- ts(arima.sim(model = list(ar = 0.6), 1000 * 12), frequency = 12)
 
 y <- midas_auto_sim(500, 0.5, xx, theta0, n_start = 200)
 x <- window(xx, start=start(y))

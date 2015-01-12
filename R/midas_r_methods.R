@@ -301,7 +301,7 @@ static_forecast <- function(object, h, insample, outsample, yname) {
 ##' @return an object of class \code{"forecast"}, a list containing following elements:
 ##'
 ##' \item{method}{the name of forecasting method: MIDAS regression, static or dynamic}
-##' \item{model}{original object of \class{midas_r}}
+##' \item{model}{original object of class \code{midas_r}}
 ##' \item{mean}{point forecasts}
 ##' \item{lower}{lower limits for prediction intervals}
 ##' \item{upper}{upper limits for prediction intervals}
@@ -501,3 +501,5 @@ get_estimation_sample <- function(object) {
 ##' @rdname forecast.midas_r
 ##' @export
 NULL
+
+
