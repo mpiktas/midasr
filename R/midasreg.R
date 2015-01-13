@@ -100,23 +100,28 @@ midas_u <- function(formula, data ,...) {
 ##' @return a \code{midas_r} object which is the list with the following elements:
 ##' 
 ##' \item{coefficients}{the estimates of parameters of restrictions}
-##' \item{midas_coefficients}{the estimates of restricted coefficients of MIDAS regression}
+##' \item{midas_coefficients}{the estimates of MIDAS coefficients of MIDAS regression}
 ##' \item{model}{model data}
-##' \item{weights}{the MIDAS weights used in estimation.}
 ##' \item{unrestricted}{unrestricted regression estimated using \code{\link{midas_u}}}
-##' \item{param.map}{parameter map for optimisation function}
+##' \item{term_info}{the named list. Each element is a list with the information about the term, such as its frequency, function for weights, gradient function of weights, etc.}
 ##' \item{fn0}{optimisation function for non-linear least squares problem solved in restricted MIDAS regression}
 ##' \item{rhs}{the function which evaluates the right-hand side of the MIDAS regression}
-##' \item{allcoef}{the function which evaluates the restricted coefficients of MIDAS regression}
+##' \item{gen_midas_coef}{the function which generates the MIDAS coefficients of MIDAS regression}
 ##' \item{opt}{the output of optimisation procedure}
 ##' \item{argmap.opt}{the list containing the name of optimisation function together with arguments for optimisation function}
 ##' \item{start.opt}{the starting values used in optimisation}
+##' \item{start.list}{the starting values as a list}
 ##' \item{call}{the call to the function}
 ##' \item{terms}{terms object}
 ##' \item{gradient}{gradient of NLS objective function}
 ##' \item{hessian}{hessian of NLS objective function}
+##' \item{gradD}{gradient function of MIDAS weight functions} 
 ##' \item{Zenv}{the environment in which data is placed}
 ##' \item{user.gradient}{the value of supplied argument user.gradient}
+##' \item{nobs}{the number of effective observations}
+##' \item{convergence}{the convergence message}
+##' \item{fitted.values}{the fitted values of MIDAS regression}
+##' \item{residuals}{the residuals of MIDAS regression}
 ##' 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @references Clements, M. and Galvao, A., \emph{Macroeconomic Forecasting With Mixed-Frequency Data: Forecasting Output Growth in the United States}, Journal of Business and Economic Statistics, Vol.26 (No.4), (2008) 546-554

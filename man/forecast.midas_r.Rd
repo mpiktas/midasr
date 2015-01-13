@@ -78,12 +78,12 @@ mr.dyn <- midas_r(y ~ trend + mls(y, 1:2, 1, "*")
 
 forecast(mr.dyn, list(trend = trendn, x = xn), method = "dynamic")
 
-##Load package forecast to use print, summary and plot methods.
-## library(forecast)
-## fmr <- forecast(mr, list(trend = trendn, x = xn), method = "static")
-## fmr
-## summary(fmr)
-## plot(fmr)
+##Use print, summary and plot methods from package forecast
+
+fmr <- forecast(mr, list(trend = trendn, x = xn), method = "static")
+fmr
+summary(fmr)
+plot(fmr)
 }
 \author{
 Vaidotas Zemlys

@@ -340,12 +340,12 @@ static_forecast <- function(object, h, insample, outsample, yname) {
 ##' 
 ##' forecast(mr.dyn, list(trend = trendn, x = xn), method = "dynamic")
 ##'
-##' ##Load package forecast to use print, summary and plot methods.
-##' ## library(forecast)
-##' ## fmr <- forecast(mr, list(trend = trendn, x = xn), method = "static")
-##' ## fmr
-##' ## summary(fmr)
-##' ## plot(fmr)
+##' ##Use print, summary and plot methods from package forecast
+##' 
+##' fmr <- forecast(mr, list(trend = trendn, x = xn), method = "static")
+##' fmr
+##' summary(fmr)
+##' plot(fmr)
 ##' 
 ##' @export 
 forecast.midas_r <- function(object, newdata=NULL, se = FALSE, level=c(80,95),
@@ -502,4 +502,62 @@ get_estimation_sample <- function(object) {
 ##' @export
 NULL
 
+##' Plots MIDAS coefficients of a restricted MIDAS regression for a selected term.
+##'
+##' Plots MIDAS coefficients of a selected MIDAS regression term together with corresponding MIDAS coefficients and their confidence intervals
+##' of unrestricted MIDAS regression
+##' @title Plot MIDAS coefficients
+##' @param x \code{midas_r} object
+##' @param term_name the term name for which the coefficients are plotted. Default is \code{NULL}, which selects the first MIDAS term
+##' @param title the title string of the graph. The default is \code{NULL} for the default title.
+##' @param vcov. the covariance matrix to calculate the standard deviation of the cofficients
+##' @param ... additional arguments passed to \code{vcov.}
+##' @return a data frame with restricted MIDAS coefficients, unrestricted MIDAS coefficients and lower and upper confidence interval limits. The data
+##' frame is returned invisibly.
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @examples
+##' data("USrealgdp")
+##' data("USunempr")
+##' 
+##' y <- diff(log(USrealgdp))
+##' x <- window(diff(USunempr), start = 1949)
+##' trend <- 1:length(y)
+##' 
+##' ##24 high frequency lags of x included
+##' mr <- midas_r(y ~ trend + fmls(x, 23, 12, nealmon), start = list(x = rep(0, 3)))
+##' 
+##' plot_midas_coef(mr)
+##' @export
+plot_midas_coef <- function(x, term_name=NULL, title = NULL, vcov. = sandwich,  ...) {
+    if(is.null(term_name)) {
+        wt <- do.call("rbind",lapply(x$term_info,function(l)c(l$term_name,l$weight_name)))
+        wt <- data.frame(wt)
+        colnames(wt) <- c("term_name","weight_name")
+        wt <- wt[wt$weight_name != "", ]
+        if(nrow(wt)==0) stop("No terms with MIDAS weights in midas_r object")
+        if(nrow(wt)>1) warning("Multiple terms with MIDAS weights, choosing the first one. Please specify the desired term name using 'term_name' argument.")
+        term_name <-wt$term_name[1]
+    }
+    ti <- x$term_info[[term_name]]
+    ucoef <- coef(x$unrestricted)[ti$midas_coef_index]
+    mcoef <- midas_coef(x)[ti$midas_coef_index]
+
+    k <- length(mcoef)
+    sdval <- sqrt(diag(vcov.(x$unrestricted, ...)))
+    sdval <- sdval[ti$midas_coef_index]
+
+    pd <- data.frame(restricted=mcoef, unrestricted=ucoef, lower=ucoef - 1.96*sdval,upper=ucoef + 1.96*sdval)
+    
+    ylim <- range(c(pd[,1],pd[,2],pd[,3],pd[,4]))
+    
+    plot(0:(k-1), pd$unrestricted, col="black", ylab="MIDAS coefficients", xlab="High frequency lag", ylim = ylim)
+    if(is.null(title)) {
+        title(main = paste0("MIDAS coefficients for term ",term_name,": ",ti$weight_name, " vs unrestricted"))
+    } else title(main = title)
+    points(c(0:(k - 1)), pd$restricted, type = "l", col = "blue")    
+    points(c(0:(k - 1)), pd$lower, type = "l", col = "red", lty = 2)
+    points(c(0:(k - 1)), pd$upper, type = "l", col = "red", lty = 2)
+    
+    invisible(pd)
+}
 
