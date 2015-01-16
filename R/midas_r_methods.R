@@ -72,7 +72,7 @@ predict.midas_r <- function(object, newdata, na.action = na.omit, ... ) {
     mt <- attr(mf, "terms")
 
     X <- model.matrix(mt, mf) 
-    as.vector(X %*% midas_coef(object))
+    as.vector(X %*% coef(object, midas = TRUE))
 }
 ##' @export
 ##' @method predict midas_u
@@ -123,7 +123,7 @@ summary.midas_r <- function(object, vcov.=vcovHAC, df=NULL, prewhite=TRUE, ...) 
         "t value", "Pr(>|t|)"))
     ans <- list(formula=formula(object$terms),residuals=r,sigma=sqrt(resvar),
                 df=c(p,rdf), cov.unscaled=XDtXDinv, call=object$call,
-                coefficients=param,midas_coefficients=midas_coef(object))
+                coefficients=param,midas_coefficients=coef(object, midas = TRUE))
     class(ans) <- "summary.midas_r"
     ans
 }
@@ -196,17 +196,57 @@ logLik.midas_r <- function(object,...) {
     val
 }
 
-##' Return the coefficients of MIDAS regression
+##' Extracts various coefficients of MIDAS regression
 ##'
-##' A helper function for working with output of \code{\link{midas_r}}. Returns the regression coefficients.
+##' MIDAS regression has two sets of cofficients. The first set is the coefficients associated with the parameters
+##' of weight functions associated with MIDAS regression terms. These are the coefficients of the NLS problem associated with MIDAS regression.
+##' The second is the coefficients of the linear model, i.e  the values of weight
+##' functions of terms, or so called MIDAS coefficients. By default the function returns the first set of the coefficients.
 ##' 
-##' @param x an output from \code{\link{midas_r}}
-##' @return vector with coefficients of MIDAS regression
+##' @title Extract coefficients of MIDAS regression
+##' @param object \code{midas_r} object
+##' @param midas logical, if \code{TRUE}, MIDAS coefficients are returned, if \code{FALSE} (default), coefficients of NLS problem are returned
+##' @param term_names a character vector with term names. Default is \code{NULL}, which means that coefficients of all the terms are returned
+##' @param ... not used currently
+##' @return a vector with coefficients
 ##' @author Vaidotas Zemlys
+##' @method coef midas_r
+##' @rdname coef.midas_r
+##' @examples
+##'
+##' #Simulate MIDAS regression
+##' n<-250
+##' trend<-c(1:n)
+##' x<-rnorm(4*n)
+##' z<-rnorm(12*n)
+##' fn.x <- nealmon(p=c(1,-0.5),d=8)
+##' fn.z <- nealmon(p=c(2,0.5,-0.1),d=17)
+##' y<-2+0.1*trend+mls(x,0:7,4)%*%fn.x+mls(z,0:16,12)%*%fn.z+rnorm(n)
+##' eqr<-midas_r(y ~ trend + mls(x, 0:7, 4, nealmon) +
+##'              mls(z, 0:16, 12, nealmon),
+##'              start = list(x = c(1, -0.5), z = c(2, 0.5, -0.1)))
+##'
+##' coef(eqr)
+##' coef(eqr, term_names = "x")
+##' coef(eqr, midas = TRUE)
+##' coef(eqr, midas = TRUE, term_names = "x")
+##' 
 ##' @export
-midas_coef <- function(x) {
-    if(is.null(x$midas_coefficients))coef(x)
-    else x$midas_coefficients
+coef.midas_r <- function(object, midas = FALSE, term_names = NULL, ...) {
+    if(is.null(term_names)) {
+        if(midas) return(object$midas_coefficients)
+        else return(object$coefficients)
+    } else {
+        if(length(setdiff(term_names,names(object$term_info)))>0) stop("Some of the term names are not present in estimated MIDAS regression")
+        if(midas) {
+            res <- lapply(object$term_info[term_names], function(x) object$midas_coefficients[x$midas_coef_index])
+        } else {
+            res <- lapply(object$term_info[term_names], function(x) object$coefficients[x$coef_index])
+        }
+        names(res) <- NULL
+        if(length(res)==1) return(res[[1]])
+        else return(unlist(res))
+    }        
 }
 
 get_frequency_info <- function(x,...) UseMethod("get_frequency_info")
@@ -540,7 +580,7 @@ plot_midas_coef <- function(x, term_name=NULL, title = NULL, vcov. = sandwich,  
     }
     ti <- x$term_info[[term_name]]
     ucoef <- coef(x$unrestricted)[ti$midas_coef_index]
-    mcoef <- midas_coef(x)[ti$midas_coef_index]
+    mcoef <- coef(x, midas = TRUE)[ti$midas_coef_index]
 
     k <- length(mcoef)
     sdval <- sqrt(diag(vcov.(x$unrestricted, ...)))

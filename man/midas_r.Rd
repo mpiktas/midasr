@@ -36,12 +36,18 @@ a \code{midas_r} object which is the list with the following elements:
 \item{opt}{the output of optimisation procedure}
 \item{argmap.opt}{the list containing the name of optimisation function together with arguments for optimisation function}
 \item{start.opt}{the starting values used in optimisation}
+\item{start.list}{the starting values as a list}
 \item{call}{the call to the function}
 \item{terms}{terms object}
 \item{gradient}{gradient of NLS objective function}
 \item{hessian}{hessian of NLS objective function}
+\item{gradD}{gradient function of MIDAS weight functions}
 \item{Zenv}{the environment in which data is placed}
 \item{user.gradient}{the value of supplied argument user.gradient}
+\item{nobs}{the number of effective observations}
+\item{convergence}{the convergence message}
+\item{fitted.values}{the fitted values of MIDAS regression}
+\item{residuals}{the residuals of MIDAS regression}
 }
 \description{
 Estimate restricted MIDAS regression using non-linear least squares.

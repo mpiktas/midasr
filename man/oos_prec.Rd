@@ -28,7 +28,7 @@ The code in the example generates the out-of-sample prediction precision data fo
 ## }
 
 ## bnorm <- function(x) {
-##     sqrt(sum((midas_coef(x)-c(2,0.1,nealmon(p=c(2,0.5,-0.1),d=17)))^2))
+##     sqrt(sum((coef(x, midas = TRUE)-c(2,0.1,nealmon(p=c(2,0.5,-0.1),d=17)))^2))
 ## }
 
 ## rep1 <- function(n) {

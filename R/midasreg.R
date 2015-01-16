@@ -83,6 +83,7 @@ midas_u <- function(formula, data ,...) {
    
     out <- eval(mf,Zenv)
     out$Zenv <- Zenv
+    out$midas_coefficients <- out$coefficients
     class(out) <- c("midas_u",class(out))
     out
 }
