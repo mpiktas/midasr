@@ -8,7 +8,7 @@ midas_r_ic_table(formula, ...)
 
 \method{midas_r_ic_table}{default}(formula, data = NULL, start = NULL,
   table, IC = c("AIC", "BIC"), test = c("hAh.test"), Ofunction = "optim",
-  user.gradient = FALSE, show_progress = TRUE, ...)
+  weight_gradients = NULL, show_progress = TRUE, ...)
 }
 \arguments{
 \item{formula}{the formula for MIDAS regression, the lag selection is performed for the last MIDAS lag term in the formula}
@@ -25,7 +25,7 @@ midas_r_ic_table(formula, ...)
 
 \item{Ofunction}{see \link{midasr}}
 
-\item{user.gradient}{see \link{midas_r}}
+\item{weight_gradients}{see \link{midas_r}}
 
 \item{show_progress}{logical, TRUE to show progress bar, FALSE for silent evaluation}
 

@@ -5,7 +5,7 @@
 \usage{
 amidas_table(formula, data, weights, wstart, type, start = NULL, from, to,
   IC = c("AIC", "BIC"), test = c("hAh.test"), Ofunction = "optim",
-  user.gradient = FALSE, ...)
+  weight_gradients = NULL, ...)
 }
 \arguments{
 \item{formula}{the formula for MIDAS regression, the lag selection is performed for the last MIDAS lag term in the formula}
@@ -30,7 +30,7 @@ amidas_table(formula, data, weights, wstart, type, start = NULL, from, to,
 
 \item{Ofunction}{see \link{midasr}}
 
-\item{user.gradient}{see \link{midas_r}}
+\item{weight_gradients}{see \link{midas_r}}
 
 \item{...}{additional parameters to optimisation function, see \link{midas_r}}
 }

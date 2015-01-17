@@ -48,7 +48,7 @@
 ##'
 ##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,list(y=y,x=x),
 ##'               start=list(x=c(-0.1,0.1,-0.1,-0.001)),
-##'               user.gradient=TRUE)
+##'               weight_gradients=list())
 ##'
 ##' ##The test will use an user supplied gradient of weight function. See the
 ##' ##help of midas_r on how to supply the gradient.
@@ -136,7 +136,7 @@ hAh.test <- function(x) {
 ##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,
 ##'               list(y=y,x=x),
 ##'               start=list(x=c(-0.1,0.1,-0.1,-0.001)),
-##'               user.gradient=TRUE)
+##'               weight_gradients=list())
 ##'
 ##' ##Use exact gradient. Note the 
 ##' hAhr.test(mr)

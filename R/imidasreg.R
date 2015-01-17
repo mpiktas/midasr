@@ -6,24 +6,38 @@
 ##' @param data a named list containing data with mixed frequencies
 ##' @param start the starting values for optimisation. Must be a list with named elements.
 ##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are the arguments passed to this function. The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
-##' @param user.gradient the default value is \code{FALSE}, which means that the numeric approximation of weight function gradient is calculated. If \code{TRUE} it is assumed that the R function for weight function gradient has the name of the weight function appended with \code{.gradient}. This function must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly.
+##' @param weight_gradients a named list containing gradient functions of weights. The weight gradient function must return the matrix with dimensions
+##' \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the number of coefficients in unrestricted and restricted regressions correspondingly.
+##' The names of the list should coincide with the names of weights used in formula.
+##' The default value is NULL, which means that the numeric approximation of weight function gradient is calculated. If the argument is not NULL, but the
+##' name of the weight used in formula is not present, it is assumed that there exists an R function which has  
+##' the name of the weight function appended with \code{.gradient}. 
 ##' @param ... additional arguments supplied to optimisation function
 ##' @return a \code{midas_r} object which is the list with the following elements:
 ##' 
 ##' \item{coefficients}{the estimates of parameters of restrictions}
-##' \item{midas_coefficients}{the estimates of restricted coefficients of MIDAS regression}
+##' \item{midas_coefficients}{the estimates of MIDAS coefficients of MIDAS regression}
 ##' \item{model}{model data}
-##' \item{weights}{the restriction function(s) used in estimation.}
 ##' \item{unrestricted}{unrestricted regression estimated using \code{\link{midas_u}}}
-##' \item{param.map}{parameter map for optimisation function}
+##' \item{term_info}{the named list. Each element is a list with the information about the term, such as its frequency, function for weights, gradient function of weights, etc.}
 ##' \item{fn0}{optimisation function for non-linear least squares problem solved in restricted MIDAS regression}
 ##' \item{rhs}{the function which evaluates the right-hand side of the MIDAS regression}
-##' \item{allcoef}{the function which evaluates the restricted coefficients of MIDAS regression}
+##' \item{gen_midas_coef}{the function which generates the MIDAS coefficients of MIDAS regression}
 ##' \item{opt}{the output of optimisation procedure}
 ##' \item{argmap.opt}{the list containing the name of optimisation function together with arguments for optimisation function}
 ##' \item{start.opt}{the starting values used in optimisation}
-##' 
-##' 
+##' \item{start.list}{the starting values as a list}
+##' \item{call}{the call to the function}
+##' \item{terms}{terms object}
+##' \item{gradient}{gradient of NLS objective function}
+##' \item{hessian}{hessian of NLS objective function}
+##' \item{gradD}{gradient function of MIDAS weight functions} 
+##' \item{Zenv}{the environment in which data is placed}
+##' \item{use_gradient}{TRUE if user supplied gradient is used, FALSE otherwise}
+##' \item{nobs}{the number of effective observations}
+##' \item{convergence}{the convergence message}
+##' \item{fitted.values}{the fitted values of MIDAS regression}
+##' \item{residuals}{the residuals of MIDAS regression}
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @rdname imidas_r
 ##' @seealso midas_r.midas_r
@@ -67,7 +81,7 @@ imidas_r <- function(x,...)UseMethod("imidas_r")
 ##' @rdname imidas_r
 ##' @method imidas_r default
 ##' @export
-imidas_r.default <- function(x, data, start, Ofunction="optim", user.gradient=FALSE,...) {
+imidas_r.default <- function(x, data, start, Ofunction = "optim", weight_gradients = NULL,...) {
 
     Zenv <- new.env(parent=environment(x))
     

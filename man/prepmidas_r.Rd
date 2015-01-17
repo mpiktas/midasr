@@ -3,7 +3,7 @@
 \alias{prepmidas_r}
 \title{Prepare necessary objects for fitting of the MIDAS regression}
 \usage{
-prepmidas_r(y, X, mt, Zenv, cl, args, start, Ofunction, user.gradient,
+prepmidas_r(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradients,
   lagsTable, unrestricted = NULL, guess_start = TRUE)
 }
 \arguments{
@@ -23,7 +23,7 @@ prepmidas_r(y, X, mt, Zenv, cl, args, start, Ofunction, user.gradient,
 
 \item{Ofunction}{the optimisation function}
 
-\item{user.gradient}{see \link{midas_r} documentation}
+\item{weight_gradients}{a list of gradient functions for weights}
 
 \item{lagsTable}{the lagstable from \link{checkARstar}}
 

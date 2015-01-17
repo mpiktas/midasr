@@ -7,7 +7,7 @@
 midas_r(x, ...)
 
 \method{midas_r}{default}(x, data, start, Ofunction = "optim",
-  user.gradient = FALSE, ...)
+  weight_gradients = NULL, ...)
 }
 \arguments{
 \item{x}{either formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function}
@@ -18,7 +18,12 @@ midas_r(x, ...)
 
 \item{Ofunction}{the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}}
 
-\item{user.gradient}{the default value is FALSE, which means that the numeric approximation of weight function gradient is calculated. If TRUE  it is assumed that the R function for weight function gradient has the name of the weight function appended with \code{.gradient}. This function must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly.}
+\item{weight_gradients}{a named list containing gradient functions of weights. The weight gradient function must return the matrix with dimensions
+\eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the number of coefficients in unrestricted and restricted regressions correspondingly.
+The names of the list should coincide with the names of weights used in formula.
+The default value is NULL, which means that the numeric approximation of weight function gradient is calculated. If the argument is not NULL, but the
+name of the weight used in formula is not present, it is assumed that there exists an R function which has
+the name of the weight function appended with \code{.gradient}.}
 
 \item{...}{additional arguments supplied to optimisation function}
 }
@@ -43,7 +48,7 @@ a \code{midas_r} object which is the list with the following elements:
 \item{hessian}{hessian of NLS objective function}
 \item{gradD}{gradient function of MIDAS weight functions}
 \item{Zenv}{the environment in which data is placed}
-\item{user.gradient}{the value of supplied argument user.gradient}
+\item{use_gradient}{TRUE if user supplied gradient is used, FALSE otherwise}
 \item{nobs}{the number of effective observations}
 \item{convergence}{the convergence message}
 \item{fitted.values}{the fitted values of MIDAS regression}

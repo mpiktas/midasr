@@ -11,7 +11,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables("X")
 ##' @param IC the information criteria which to compute
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
 ##' @param Ofunction see \link{midasr}
-##' @param user.gradient see \link{midas_r}
+##' @param weight_gradients see \link{midas_r}
 ##' @param ... additional parameters to optimisation function, see \link{midas_r}
 ##' @return a \code{midas_r_iclagtab} object which is the list with the following elements:
 ##'
@@ -34,7 +34,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables("X")
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-hf_lags_table<- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
+hf_lags_table<- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",weight_gradients=NULL,...) {
 
     if(!identical(names(from),names(to)))stop("The names of lag structure start and end should be identical")
     from <- as.list(from)
@@ -76,7 +76,7 @@ hf_lags_table<- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hA
     start <- start[!(names(start)%in% varnames)]
     if(length(start)==0)start <- NULL
   
-    midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,user.gradient=FALSE,...)
+    midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,weight_gradients=weight_gradients,...)
 }
 
 ##' Create a low frequency lag selection table for MIDAS regression model
@@ -90,7 +90,7 @@ hf_lags_table<- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hA
 ##' @param IC the information criteria which to compute
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
 ##' @param Ofunction see \link{midasr}
-##' @param user.gradient see \link{midas_r}
+##' @param weight_gradients see \link{midas_r}
 ##' @param ... additional parameters to optimisation function, see \link{midas_r}
 ##' @return a \code{midas_r_ic_table} object which is the list with the following elements:
 ##'
@@ -113,7 +113,7 @@ hf_lags_table<- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hA
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-lf_lags_table <- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
+lf_lags_table <- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",weight_gradients=NULL,...) {
 
     if(!identical(names(from),names(to)))stop("The names of lag structure start and end should be identical")
     from <- as.list(from)
@@ -156,7 +156,7 @@ lf_lags_table <- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("h
     start <- start[!(names(start)%in% varnames)]
     if(length(start)==0)start <- NULL
         
-    midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,user.gradient=FALSE,...)
+    midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,weight_gradients=weight_gradients,...)
 }
 
 last_term_info <- function(x,Zenv) {
@@ -257,7 +257,7 @@ modsel <- function(x,IC=x$IC[1],test=x$test[1],type=c("restricted","unrestricted
 ##' @param IC the information criteria which to compute
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
 ##' @param Ofunction see \link{midasr}
-##' @param user.gradient see \link{midas_r}
+##' @param weight_gradients see \link{midas_r}
 ##' @param ... additional parameters to optimisation function, see \link{midas_r}
 ##' @return a \code{midas_r_ic_table} object which is the list with the following elements:
 ##'
@@ -280,7 +280,7 @@ modsel <- function(x,IC=x$IC[1],test=x$test[1],type=c("restricted","unrestricted
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
+weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",weight_gradients=NULL,...) {
     
     Zenv <- new.env(parent=environment(formula))
     cl <- match.call()
@@ -300,7 +300,7 @@ weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh.
     names(table) <- varnames
     start <- start[!(names(start) %in% varnames)]
     if(length(start)==0)start <- NULL
-    midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,user.gradient=FALSE,...)
+    midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,weight_gradients=weight_gradients,...)
 }
 
 
@@ -314,7 +314,7 @@ weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh.
 ##' @param IC the names of information criteria which to compute
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
 ##' @param Ofunction see \link{midasr}
-##' @param user.gradient see \link{midas_r}
+##' @param weight_gradients see \link{midas_r}
 ##' @param show_progress logical, TRUE to show progress bar, FALSE for silent evaluation
 ##' @param ... additional parameters to optimisation function, see \link{midas_r}
 ##' @return a \code{midas_r_ic_table} object which is the list with the following elements:
@@ -348,7 +348,7 @@ midas_r_ic_table <- function(formula,...) UseMethod("midas_r_ic_table")
 #' @rdname midas_r_ic_table
 #' @method midas_r_ic_table default
 #' @export
-midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,show_progress=TRUE,...) {
+midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",weight_gradients=NULL,show_progress=TRUE,...) {
     
     Zenv <- new.env(parent=environment(formula))
     formula <- as.formula(formula)
@@ -425,7 +425,7 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
     })
        
     mrm <- lapply(modellist,function(mm) {
-        res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cl,args,mm$start,Ofunction,user.gradient,mm$itr$lagsTable)
+        res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cl,args,mm$start,Ofunction,weight_gradients,mm$itr$lagsTable)
         class(res) <- "midas_r"
         res
     })
@@ -750,7 +750,7 @@ expand_amidas <- function(weight,type=c("A","B","C"),from=0,to,m,start) {
 ##' @param IC the names of information criteria which should be calculated
 ##' @param test the names of statistical tests to perform on restricted model, p-values are reported in the columns of model selection table
 ##' @param Ofunction see \link{midasr}
-##' @param user.gradient see \link{midas_r}
+##' @param weight_gradients see \link{midas_r}
 ##' @param ... additional parameters to optimisation function, see \link{midas_r}
 ##' @return a \code{midas_r_ic_table} object which is the list with the following elements:
 ##'
@@ -778,7 +778,7 @@ expand_amidas <- function(weight,type=c("A","B","C"),from=0,to,m,start) {
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} and varying the weights of the last term of the given formula 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-amidas_table <- function(formula,data,weights,wstart,type,start=NULL,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",user.gradient=FALSE,...) {
+amidas_table <- function(formula,data,weights,wstart,type,start=NULL,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",weight_gradients=NULL,...) {
     Zenv <- new.env(parent=environment(formula))
     cl <- match.call()
     mf <- match.call(expand.dots = FALSE)
@@ -820,7 +820,7 @@ amidas_table <- function(formula,data,weights,wstart,type,start=NULL,from,to,IC=
     
     table <- list(do.call("+",tb))
     names(table) <- lti$varname
-    midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,user.gradient=FALSE,...)
+    midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,weight_gradients = NULL,...)
 }
     
 

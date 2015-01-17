@@ -96,7 +96,12 @@ midas_u <- function(formula, data ,...) {
 ##' @param data a named list containing data with mixed frequencies
 ##' @param start the starting values for optimisation. Must be a list with named elements.
 ##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
-##' @param user.gradient the default value is FALSE, which means that the numeric approximation of weight function gradient is calculated. If TRUE  it is assumed that the R function for weight function gradient has the name of the weight function appended with \code{.gradient}. This function must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the numbers of coefficients in unrestricted and restricted regressions correspondingly. 
+##' @param weight_gradients a named list containing gradient functions of weights. The weight gradient function must return the matrix with dimensions
+##' \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the number of coefficients in unrestricted and restricted regressions correspondingly.
+##' The names of the list should coincide with the names of weights used in formula.
+##' The default value is NULL, which means that the numeric approximation of weight function gradient is calculated. If the argument is not NULL, but the
+##' name of the weight used in formula is not present, it is assumed that there exists an R function which has  
+##' the name of the weight function appended with \code{.gradient}. 
 ##' @param ... additional arguments supplied to optimisation function
 ##' @return a \code{midas_r} object which is the list with the following elements:
 ##' 
@@ -118,7 +123,7 @@ midas_u <- function(formula, data ,...) {
 ##' \item{hessian}{hessian of NLS objective function}
 ##' \item{gradD}{gradient function of MIDAS weight functions} 
 ##' \item{Zenv}{the environment in which data is placed}
-##' \item{user.gradient}{the value of supplied argument user.gradient}
+##' \item{use_gradient}{TRUE if user supplied gradient is used, FALSE otherwise}
 ##' \item{nobs}{the number of effective observations}
 ##' \item{convergence}{the convergence message}
 ##' \item{fitted.values}{the fitted values of MIDAS regression}
@@ -199,7 +204,7 @@ midas_r <- function(x,...)UseMethod("midas_r")
 #' @rdname midas_r
 #' @method midas_r default
 #' @export
-midas_r.default <- function(x, data, start, Ofunction="optim", user.gradient=FALSE,...) {
+midas_r.default <- function(x, data, start, Ofunction="optim", weight_gradients=NULL,...) {
 
     Zenv <- new.env(parent=environment(x))
 
@@ -233,7 +238,7 @@ midas_r.default <- function(x, data, start, Ofunction="optim", user.gradient=FAL
     y <- model.response(mf, "numeric")
     X <- model.matrix(mt, mf)
     
-    prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,itr$lagsTable)
+    prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,weight_gradients,itr$lagsTable)
     
     class(prepmd) <- "midas_r"
     midas_r.fit(prepmd)    
@@ -306,7 +311,7 @@ midas_r.fit <- function(x) {
     if(function.opt=="optim" | function.opt=="spg") {  
         args$par <- x$start.opt
         args$fn <- x$fn0
-        if(x$user.gradient) {
+        if(x$use_gradient) {
             args$gr <- x$gradient
         }
         opt <- try(do.call(function.opt,args),silent=TRUE)
@@ -320,7 +325,7 @@ midas_r.fit <- function(x) {
     if(function.opt=="optimx") {  
         args$par <- x$start.opt
         args$fn <- x$fn0
-        if(x$user.gradient) {
+        if(x$use_gradient) {
             args$gr <- x$gradient
         }
         opt <- try(do.call(function.opt,args),silent=TRUE)
@@ -341,7 +346,7 @@ midas_r.fit <- function(x) {
     }
     if(function.opt=="nls") {
         rhs <- x$rhs
-        if(x$user.gradient) {
+        if(x$use_gradient) {
             orhs <- rhs
             rhs <- function(p) {
                 res <- orhs(p)
@@ -380,15 +385,16 @@ midas_r.fit <- function(x) {
 ##' @param args additional argument
 ##' @param start starting values
 ##' @param Ofunction the optimisation function
-##' @param user.gradient see \link{midas_r} documentation
+##' @param weight_gradients a list of gradient functions for weights
 ##' @param lagsTable the lagstable from \link{checkARstar}
 ##' @param unrestricted the unrestricted model
 ##' @param guess_start if TRUE, get the initial values for non-MIDAS terms via OLS, if FALSE, initialize them with zero.
 ##' @author Vaidotas Zemlys
-prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTable,unrestricted=NULL,guess_start=TRUE) {
+prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradients, lagsTable, unrestricted = NULL, guess_start = TRUE) {
     
-    ##High frequency variables can enter to formula
-    ##only within fmls function
+    if(is.null(weight_gradients)) use_gradient <- FALSE
+    else use_gradient=TRUE
+    
     terms.lhs <- as.list(attr(mt,"variables"))[-2:-1]
     term.labels <- attr(mt,"term.labels") 
 
@@ -418,13 +424,23 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
              mf[[2]] <- p
              eval(mf,Zenv)
          }
-         gmf <- mf
-         ##Make this customizable
-         gmf[[1]] <- as.name(paste0(as.character(fr[[5]]),".gradient"))
-         grf <- function(p) {
-             gmf[[2]] <- p
-             eval(gmf,Zenv)
-         }
+
+         if(use_gradient) {
+             gmf <- mf
+             weight_name <- as.character(fr[[5]])
+             if(weight_name %in% names(weight_gradients)) {
+                 weight_gradient_name <- paste0(weight_name,"_tmp_gradient_fun")
+                 gmf[[1]] <- as.name(weight_gradient_name)
+                 assign(weight_gradient_name,weight_gradients[[weight_name]],Zenv)
+             } else {
+                 #warning("Gradient function for weight ", weight_name, " is not present, using function ",weight_name,".gradient for gradient")
+                 gmf[[1]] <- as.name(paste0(weight_name,".gradient"))
+             }
+             grf <- function(p) {
+                 gmf[[2]] <- p
+                 eval(gmf,Zenv)
+             }
+         } else grf <- NULL
          return(list(weight=rf,
                      term_name=as.character(fr[[2]]),
                      gradient=grf,
@@ -598,7 +614,7 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
         sum(r^2)
     }
 
-    if(!user.gradient) {
+    if(!use_gradient) {
         gradD <- function(p)jacobian(all_coef,p)
         gr <- function(p)grad(fn0,p)
     }
@@ -711,7 +727,7 @@ prepmidas_r <- function(y,X,mt,Zenv,cl,args,start,Ofunction,user.gradient,lagsTa
          hessian=hess,
          gradD=gradD,
          Zenv=Zenv,
-         user.gradient=user.gradient,
+         use_gradient=use_gradient,
          nobs=nrow(X))   
 }
 
