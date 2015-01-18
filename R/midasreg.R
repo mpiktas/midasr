@@ -453,14 +453,14 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
                 )
     }
     
-    uterm <- function(name,k=1,lags) {
+    uterm <- function(name, k=1, lags, frequency) {
         force(k)
         list(weight=function(p)p,
              term_name=name,
              gradient=function(p)diag(k),
              start=rep(0,k),             
              weight_name="",
-             frequency = 1,
+             frequency = frequency,
              lag_structure = lags)
         
     }
@@ -483,13 +483,14 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
                               fmls = 0:lags,
                               dmls = 0:lags,
                               mls = lags
-                              )
+                                    )
+                freq <- eval(fr[[4]],Zenv)
                 nm <- as.character(fr[[2]])
-                uterm(nm,nol,lagstruct)
+                uterm(nm,nol,lagstruct,frequency=freq)
             }            
         }
         else {
-            uterm(term.labels[i],1,0)
+            uterm(term.labels[i],1,0,1)
         }
     }
    

@@ -1099,7 +1099,11 @@ split_data <- function(data,insample,outsample) {
 ##'                         type="fixed",                            
 ##'                         measures=c("MSE","MAPE","MASE"),
 ##'                         fweights=c("EW","BICW","MSFE","DMSFE"))
-average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recursive","rolling"),fweights=c("EW","BICW","MSFE","DMSFE"),measures=c("MSE","MAPE","MASE"),show_progress=TRUE) {
+average_forecast <- function(modlist,
+                             data, insample, outsample,
+                             type = c("fixed", "recursive"," rolling"),
+                             fweights = c("EW", "BICW", "MSFE", "DMSFE"),
+                             measures = c("MSE", "MAPE", "MASE"),show_progress=TRUE) {
 
     #if(length(modlist)==1)stop("Need more than 1 model to produce average forecasts")
     if(missing(data))stop("Data need to be supplied for forecasting")
@@ -1139,9 +1143,7 @@ average_forecast<- function(modlist,data,insample,outsample,type=c("fixed","recu
     bestm <- reeval(modlist,indata)
     
     inf <- lapply(bestm,function(mod) cbind(mod$model[,1],fitted(mod)))
-    
-   
-
+       
     if(type=="fixed") {
         outf <- lapply(bestm,function(mod)                  
                        cbind(outdata[[yname]],point_forecast.midas_r(mod,newdata=outdata,method="static"))

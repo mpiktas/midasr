@@ -454,7 +454,8 @@ point_forecast.midas_r <- function(object, newdata=NULL, method=c("static","dyna
     }
     else {
         res <- dynamic_forecast(object, h, insample[names(freqinfo)], outsample, freqinfo)        
-    }    
+    }
+    res
 }
 
 ##' @export
