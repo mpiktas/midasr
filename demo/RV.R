@@ -47,7 +47,7 @@ graph <- function(x,phi,j,h) {
     k <- length(cfur)
     sdval <- sqrt(diag(sandwich(x$unrestricted,meat=phi)))
     sdval <- sdval[grep("fmls",names(sdval))]
-    pv0hac <- hAhr.test(x,PHI=phi)$p.value
+    pv0hac <- hAhr_test(x,PHI=phi)$p.value
     plot(c(0:(k - 1)), c(cfur), col = "black", ylab = "Beta coefficients", xlab = "h")
     title(main = sprintf("k(H=%.0f,j=%.0f) = %.0f: p-val.(hAh_HAC) < %.2f", h, j, 
         k, max(pv0hac, 0.01)), cex.main = 1, font.main = 4, col.main = "black")

@@ -48,8 +48,9 @@ lapply(allk,function(x){
     sdval <- sdval[grep("fmls",names(sdval))]
 
     plot(0:(k-1),cfur,col="black",ylab="Beta coefficients",xlab="h")
-    title(main=sprintf("d = %.0f: p-val.(hAh_HAC) < %.2f", k, max(hAhr.test(x)$p.value, 0.01)), cex.main = 1, font.main = 4, col.main = "black")
+    title(main=sprintf("d = %.0f: p-val.(hAh_HAC) < %.2f", k, max(hAhr_test(x)$p.value, 0.01)), cex.main = 1, font.main = 4, col.main = "black")
     points(c(0:(k - 1)), cfre, type = "l", col = "blue")
     points(c(0:(k - 1)), cfur + 2 * sdval[1:k], type = "l", col = "red", lty = 2)
     points(c(0:(k - 1)), cfur - 2 * sdval[1:k], type = "l", col = "red", lty = 2)
 })
+

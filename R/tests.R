@@ -6,16 +6,16 @@
 ##' @return a \code{htest} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254
-##' @seealso hAhr.test
+##' @seealso hAhr_test
 ##' @examples
 ##' ##The parameter function
-##' theta.h0 <- function(p, dk, ...) {
+##' theta_h0 <- function(p, dk, ...) {
 ##'    i <- (1:dk-1)
 ##'    (p[1] + p[2]*i)*exp(p[3]*i + p[4]*i^2)
 ##' }
 ##'
 ##' ##Generate coefficients
-##' theta0 <- theta.h0(c(-0.1,0.1,-0.1,-0.001),4*12)
+##' theta0 <- theta_h0(c(-0.1,0.1,-0.1,-0.001),4*12)
 ##'
 ##' ##Plot the coefficients
 ##' plot(theta0)
@@ -30,30 +30,30 @@
 ##'
 ##' x <- window(xx, start=start(y))
 ##' ##Fit restricted model
-##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,list(y=y,x=x),
+##' mr <- midas_r(y~fmls(x,4*12-1,12,theta_h0)-1,list(y=y,x=x),
 ##'               start=list(x=c(-0.1,0.1,-0.1,-0.001)))
 ##'
 ##' ##Perform test (the expected result should be the acceptance of null)
 ##'
-##' hAh.test(mr)
+##' hAh_test(mr)
 ##' 
 ##' ##Fit using gradient function
 ##'
 ##' ##The gradient function
-##' theta.h0.gradient<-function(p, dk,...) {
+##' theta_h0_gradient<-function(p, dk,...) {
 ##'    i <- (1:dk-1)
 ##'    a <- exp(p[3]*i + p[4]*i^2)
 ##'    cbind(a, a*i, a*i*(p[1]+p[2]*i), a*i^2*(p[1]+p[2]*i))
 ##' }
 ##'
-##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,list(y=y,x=x),
+##' mr <- midas_r(y~fmls(x,4*12-1,12,theta_h0)-1,list(y=y,x=x),
 ##'               start=list(x=c(-0.1,0.1,-0.1,-0.001)),
 ##'               weight_gradients=list())
 ##'
 ##' ##The test will use an user supplied gradient of weight function. See the
 ##' ##help of midas_r on how to supply the gradient.
 ##' 
-##' hAh.test(mr)
+##' hAh_test(mr)
 ##'
 ##' 
 ##' @details  Given MIDAS regression:
@@ -66,7 +66,7 @@
 ##' where \eqn{h=0,...,(k+1)m}. 
 ##' @export
 ##' @import numDeriv
-hAh.test <- function(x) {
+hAh_test <- function(x) {
 
     prep <- prep_hAh(x)
     
@@ -94,16 +94,16 @@ hAh.test <- function(x) {
 ##' @return a \code{htest} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @references Kvedaras V., Zemlys, V. \emph{The statistical content and empirical testing of the MIDAS restrictions}
-##' @seealso hAh.test
+##' @seealso hAh_test
 ##' @examples
 ##'##The parameter function
-##' theta.h0 <- function(p, dk, ...) {
+##' theta_h0 <- function(p, dk, ...) {
 ##'    i <- (1:dk-1)
 ##'    (p[1] + p[2]*i)*exp(p[3]*i + p[4]*i^2)
 ##' }
 ##'
 ##' ##Generate coefficients
-##' theta0 <- theta.h0(c(-0.1,0.1,-0.1,-0.001),4*12)
+##' theta0 <- theta_h0(c(-0.1,0.1,-0.1,-0.001),4*12)
 ##'
 ##' ##Plot the coefficients
 ##' plot(theta0)
@@ -118,12 +118,12 @@ hAh.test <- function(x) {
 ##'
 ##' x <- window(xx, start=start(y))
 ##' ##Fit restricted model
-##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,
+##' mr <- midas_r(y~fmls(x,4*12-1,12,theta_h0)-1,
 ##'               list(y=y,x=x),
 ##'               start=list(x=c(-0.1,0.1,-0.1,-0.001)))
 ##' 
 ##' ##The gradient function
-##' theta.h0.gradient <-function(p, dk,...) {
+##' theta_h0_gradient <-function(p, dk,...) {
 ##'    i <- (1:dk-1)
 ##'    a <- exp(p[3]*i + p[4]*i^2)
 ##'    cbind(a, a*i, a*i*(p[1]+p[2]*i), a*i^2*(p[1]+p[2]*i))
@@ -131,15 +131,15 @@ hAh.test <- function(x) {
 ##'
 ##' ##Perform test (the expected result should be the acceptance of null)
 ##'
-##' hAhr.test(mr)
+##' hAhr_test(mr)
 ##' 
-##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,
+##' mr <- midas_r(y~fmls(x,4*12-1,12,theta_h0)-1,
 ##'               list(y=y,x=x),
 ##'               start=list(x=c(-0.1,0.1,-0.1,-0.001)),
 ##'               weight_gradients=list())
 ##'
 ##' ##Use exact gradient. Note the 
-##' hAhr.test(mr)
+##' hAhr_test(mr)
 ##' 
 ##' @details  Given MIDAS regression:
 ##'
@@ -152,7 +152,7 @@ hAh.test <- function(x) {
 ##' @export
 ##' @importFrom MASS ginv
 ##' @import sandwich
-hAhr.test <- function(x,PHI=vcovHAC(x$unrestricted,sandwich=FALSE)) {
+hAhr_test <- function(x,PHI=vcovHAC(x$unrestricted,sandwich=FALSE)) {
     prep <- prep_hAh(x)
     
     unrestricted <- x$unrestricted
@@ -176,13 +176,13 @@ hAhr.test <- function(x,PHI=vcovHAC(x$unrestricted,sandwich=FALSE)) {
 }
 
 
-##' Calculate data for \link{hAh.test} and \link{hAhr.test}
+##' Calculate data for \link{hAh_test} and \link{hAhr_test}
 ##'
-##' Workhorse function for calculating necessary matrices for \link{hAh.test} and \link{hAhr.test}. Takes the same parameters as \link{hAh.test}
+##' Workhorse function for calculating necessary matrices for \link{hAh_test} and \link{hAhr_test}. Takes the same parameters as \link{hAh_test}
 ##' @param x \code{midas_r} object
 ##' @return a list with necessary matrices
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
-##' @seealso hAh.test, hAhr.test
+##' @seealso hAh_test, hAhr_test
 prep_hAh <- function(x) {
 
     unrestricted <- x$unrestricted

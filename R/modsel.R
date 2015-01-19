@@ -34,7 +34,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables("X")
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-hf_lags_table<- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",weight_gradients=NULL,...) {
+hf_lags_table<- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hAh_test"),Ofunction="optim",weight_gradients=NULL,...) {
 
     if(!identical(names(from),names(to)))stop("The names of lag structure start and end should be identical")
     from <- as.list(from)
@@ -113,7 +113,7 @@ hf_lags_table<- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hA
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-lf_lags_table <- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",weight_gradients=NULL,...) {
+lf_lags_table <- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hAh_test"),Ofunction="optim",weight_gradients=NULL,...) {
 
     if(!identical(names(from),names(to)))stop("The names of lag structure start and end should be identical")
     from <- as.list(from)
@@ -280,7 +280,7 @@ modsel <- function(x,IC=x$IC[1],test=x$test[1],type=c("restricted","unrestricted
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",weight_gradients=NULL,...) {
+weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh_test"),Ofunction="optim",weight_gradients=NULL,...) {
     
     Zenv <- new.env(parent=environment(formula))
     cl <- match.call()
@@ -348,7 +348,7 @@ midas_r_ic_table <- function(formula,...) UseMethod("midas_r_ic_table")
 #' @rdname midas_r_ic_table
 #' @method midas_r_ic_table default
 #' @export
-midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",weight_gradients=NULL,show_progress=TRUE,...) {
+midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AIC","BIC"),test=c("hAh_test"),Ofunction="optim",weight_gradients=NULL,show_progress=TRUE,...) {
     
     Zenv <- new.env(parent=environment(formula))
     formula <- as.formula(formula)
@@ -778,7 +778,7 @@ expand_amidas <- function(weight,type=c("A","B","C"),from=0,to,m,start) {
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} and varying the weights of the last term of the given formula 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-amidas_table <- function(formula,data,weights,wstart,type,start=NULL,from,to,IC=c("AIC","BIC"),test=c("hAh.test"),Ofunction="optim",weight_gradients=NULL,...) {
+amidas_table <- function(formula,data,weights,wstart,type,start=NULL,from,to,IC=c("AIC","BIC"),test=c("hAh_test"),Ofunction="optim",weight_gradients=NULL,...) {
     Zenv <- new.env(parent=environment(formula))
     cl <- match.call()
     mf <- match.call(expand.dots = FALSE)
@@ -931,7 +931,7 @@ select_and_forecast<- function(formula,data,from,to,
                                weights,wstart,start=NULL,
                                IC="AIC",
                                seltype=c("restricted","unrestricted"),
-                               test="hAh.test",
+                               test="hAh_test",
                                ftype=c("fixed","recursive","rolling"),
                                measures=c("MSE","MAPE","MASE"),
                                fweights=c("EW","BICW","MSFE","DMSFE"),

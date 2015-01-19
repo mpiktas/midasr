@@ -101,7 +101,7 @@ midas_u <- function(formula, data ,...) {
 ##' The names of the list should coincide with the names of weights used in formula.
 ##' The default value is NULL, which means that the numeric approximation of weight function gradient is calculated. If the argument is not NULL, but the
 ##' name of the weight used in formula is not present, it is assumed that there exists an R function which has  
-##' the name of the weight function appended with \code{.gradient}. 
+##' the name of the weight function appended with \code{_gradient}. 
 ##' @param ... additional arguments supplied to optimisation function
 ##' @return a \code{midas_r} object which is the list with the following elements:
 ##' 
@@ -429,12 +429,12 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
              gmf <- mf
              weight_name <- as.character(fr[[5]])
              if(weight_name %in% names(weight_gradients)) {
-                 weight_gradient_name <- paste0(weight_name,"_tmp_gradient_fun")
+                 weight_gradient_name <- paste0(as.character(fr[[2]]),"_tmp_gradient_fun")
                  gmf[[1]] <- as.name(weight_gradient_name)
                  assign(weight_gradient_name,weight_gradients[[weight_name]],Zenv)
              } else {
-                 #warning("Gradient function for weight ", weight_name, " is not present, using function ",weight_name,".gradient for gradient")
-                 gmf[[1]] <- as.name(paste0(weight_name,".gradient"))
+                 #warning("Gradient function for weight ", weight_name, " is not present, using function ",weight_name,"_gradient for gradient")
+                 gmf[[1]] <- as.name(paste0(weight_name,"_gradient"))
              }
              grf <- function(p) {
                  gmf[[2]] <- p

@@ -7,7 +7,7 @@
 midas_r_ic_table(formula, ...)
 
 \method{midas_r_ic_table}{default}(formula, data = NULL, start = NULL,
-  table, IC = c("AIC", "BIC"), test = c("hAh.test"), Ofunction = "optim",
+  table, IC = c("AIC", "BIC"), test = c("hAh_test"), Ofunction = "optim",
   weight_gradients = NULL, show_progress = TRUE, ...)
 }
 \arguments{

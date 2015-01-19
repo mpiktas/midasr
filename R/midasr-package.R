@@ -1,6 +1,6 @@
 ##' Package for estimating and testing MIDAS regression.
 ##' 
-##' The main feature of this package is function \code{\link{hAh.test}}
+##' The main feature of this package is function \code{\link{hAh_test}}
 ##' which performs test whether coefficients of MIDAS regression have certain functional form
 ##' 
 ##' @name midasr-package

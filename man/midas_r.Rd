@@ -23,7 +23,7 @@ midas_r(x, ...)
 The names of the list should coincide with the names of weights used in formula.
 The default value is NULL, which means that the numeric approximation of weight function gradient is calculated. If the argument is not NULL, but the
 name of the weight used in formula is not present, it is assumed that there exists an R function which has
-the name of the weight function appended with \code{.gradient}.}
+the name of the weight function appended with \code{_gradient}.}
 
 \item{...}{additional arguments supplied to optimisation function}
 }

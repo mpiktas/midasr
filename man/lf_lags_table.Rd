@@ -4,7 +4,7 @@
 \title{Create a low frequency lag selection table for MIDAS regression model}
 \usage{
 lf_lags_table(formula, data, start, from, to, IC = c("AIC", "BIC"),
-  test = c("hAh.test"), Ofunction = "optim", weight_gradients = NULL, ...)
+  test = c("hAh_test"), Ofunction = "optim", weight_gradients = NULL, ...)
 }
 \arguments{
 \item{formula}{the formula for MIDAS regression, the lag selection is performed for the last MIDAS lag term in the formula}
