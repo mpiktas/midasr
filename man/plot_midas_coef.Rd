@@ -3,7 +3,8 @@
 \alias{plot_midas_coef}
 \title{Plot MIDAS coefficients}
 \usage{
-plot_midas_coef(x, term_name = NULL, title = NULL, vcov. = sandwich, ...)
+plot_midas_coef(x, term_name = NULL, title = NULL, vcov. = sandwich,
+  unrestricted = x$unrestricted, ...)
 }
 \arguments{
 \item{x}{\code{midas_r} object}
@@ -14,6 +15,8 @@ plot_midas_coef(x, term_name = NULL, title = NULL, vcov. = sandwich, ...)
 
 \item{vcov.}{the covariance matrix to calculate the standard deviation of the cofficients}
 
+\item{unrestricted}{the unrestricted model, the default is unrestricted model from the \code{x} object. Set NULL to plot only the weights.}
+
 \item{...}{additional arguments passed to \code{vcov.}}
 }
 \value{
@@ -21,7 +24,7 @@ a data frame with restricted MIDAS coefficients, unrestricted MIDAS coefficients
 frame is returned invisibly.
 }
 \description{
-Plots MIDAS coefficients of a restricted MIDAS regression for a selected term.
+Plots MIDAS coefficients of a MIDAS regression for a selected term.
 }
 \details{
 Plots MIDAS coefficients of a selected MIDAS regression term together with corresponding MIDAS coefficients and their confidence intervals

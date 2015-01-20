@@ -61,29 +61,57 @@ midas_r_np <- function(x,data,lambda=NULL) {
                               fmls = lags+1,
                               dmls = lags+1,
                               mls = length(lags)
-                              )
+                          )
+            lagstruct <- switch(fun,
+                                fmls = 0:lags,
+                                dmls = 0:lags,
+                                mls = lags
+                          )
+                                
             if(nol<3 & nm!=yname)stop("For nonparametric MIDAS you need at least 3 high frequency lags")          
            
             wlab <- ifelse(nm==yname,"",nm)
-            list(length=nol,name=nm,wlabel=wlab,weight=function(p)p)
+            list(weight=function(p)p,
+                 term_name = nm,
+                 gradient = NULL,
+                 start = NULL,
+                 weight_name = "non-parametric weight",
+                 frequency = eval(fr[[4]],Zenv),
+                 lag_structure = lagstruct
+                )
         } else {
-            list(length=1,name=term.labels[i],wlabel="",weight=function(p)p)
+            list(weight=function(p)p,
+                 term_name = term.labels[i],
+                 gradient = NULL,
+                 start = NULL,
+                 weight_name = "",
+                 frequency = 1,
+                 lag_structure = 0
+                 )
         }
     }
     
     if(attr(mt,"intercept")==1) {
-        rfd <- c(list(list(length=1,name="(Intercept)",wlabel="",weight=function(p)p)),rfd)
+        rfd <- c(list(list(weight = function(p)p,
+                           term_name ="(Intercept)",
+                           gradient = NULL,
+                           start = NULL,
+                           weight_name = "",
+                           frequency = 1,
+                           lag_structure = 0)),rfd)
     }
 
 
-    names(rfd) <- sapply(rfd,"[[","name")
-    rf <- lapply(rfd,"[[","weight")
-    names(rf) <- sapply(rfd,"[[","name")
-    
-    weight_names <- sapply(rfd,"[[","wlabel")
+    names(rfd) <- sapply(rfd,"[[","term_name")
+
+    ##Note this is a bit of misnomer. Variable weight_names is actualy a vector of term names which have MIDAS weights.
+    ##It *is not* the same as actual name of weight function. This is a left-over from the old code. Grabbed from prepmidas_r 
+
+    weight_names <- sapply(rfd,"[[","weight_name")
     weight_inds <- which(weight_names!="")
-    weight_names <- weight_names[weight_names!=""]
-    lengths <- sapply(rfd,"[[","length")
+    weight_names <- names(rfd)[weight_names!=""]
+
+    lengths <- sapply(lapply(rfd,"[[","lag_structure"),length)
     
     build_indices <- function(ci,nm) {
         inds <- cbind(c(1,ci[-length(ci)]+1),ci)
@@ -96,16 +124,17 @@ midas_r_np <- function(x,data,lambda=NULL) {
     pinds <- build_indices(cumsum(lengths),names(rfd))
         
     if(length(weight_names)>1)stop("Only one non-autoregressive mixed frequency term is currently supported")
-    
-    
+        
     resplace <- pinds[[weight_names]][1]     
-    rno <- rfd[[weight_names]]$length
-    
-   # args <- list(...)
+    rno <- length(rfd[[weight_names]]$lag_structure)
+       
     y <- model.response(mf, "numeric")
     X <- model.matrix(mt, mf)    
-    
+
     k <- ncol(X)
+    if(k < nrow(X)) {
+        unrestricted <- lm(y~.-1,data=data.frame(cbind(y,X),check.names=FALSE))
+    }else unrestricted <-  NULL
     
     D <- bandSparse(rno-2,k,resplace-1+c(0,1,2),diagonals=list(rep(1,rno-2),rep(-2,rno-2),rep(1,rno-2)))
   
@@ -117,16 +146,26 @@ midas_r_np <- function(x,data,lambda=NULL) {
     
     cf <- as.numeric(ol$beta)
     names(cf) <- names(unlist(pinds))
+
+    term_info <- rfd
+    names(term_info) <- sapply(term_info,"[[","term_name")
+    term_info <- mapply(function(term,pind,xind){
+        term$start <- NULL
+        term$coef_index <- pind
+        term$midas_coef_index <- pind
+        term
+    },term_info,pinds[names(term_info)],SIMPLIFY=FALSE)
+
     
     out <- list(coefficients=cf,
                 midas_coefficients=cf,
                 model=cbind(y,X),
+                unrestricted = unrestricted,
                 call=cl,        
                 terms=mt,
                 fitted.values=as.numeric(fit),
                 residuals=as.numeric(res),
-                param.map=pinds,
-                weights=rf[weight_inds],
+                term_info = term_info,
                 lambda=ol$lambda,
                 klambda=ol$klambda,
                 AIC=ol$AIC,

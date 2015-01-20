@@ -656,7 +656,9 @@ expand_weights_lags <- function(weights,from=0,to,m=1,start) {
 ##' @method print lws_table
 print.lws_table <- function(x,...) {
     if(is.null(names(x)))names(x) <- c("weights","lags","starts")
-    print(data.frame(weights=names(x$weights),lags=sapply(x$lags,deparse),starts=sapply(x$starts,deparse)))
+    p1 <- function(x)capture.output(cat(deparse(x)))
+    p2 <- function(x)capture.output(cat(deparse(round(x,4))))
+    print(data.frame(weights=names(x$weights),lags=sapply(x$lags,p1),starts=sapply(x$starts,p2)))
 }
 
 ##' Create table of weights, lags and starting values for Ghysels weight schema, see \link{amweights}

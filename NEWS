@@ -1,3 +1,25 @@
+midasr 0.4
+============
+* Remove unexported code
+
+* Remove confusing functions dedicated for working with various parameters of MIDAS regression. All of the parameters can now 
+be accessed with coef method. By default coef returns the parameters of NLS problem.  With option midas=TRUE, coef returns the 
+MIDAS weights.
+
+* Add function plot_midas_coef for graphical inspection of MIDAS weights.
+
+* Refactor simulation code, so it is more like arima.sim.
+
+* Make forecast return the object of class forecast. Add an option of calculating prediction intervals for forecasts. Currently 
+they are computed via simple bootstraping. This allows using print, summary and plot methods from package forecast.
+
+* Move to more consistent naming convention a la Hadley Wickham, this means that dot (.) is only used for S3 method dispatch. If there is 
+no S3 dispatch, the underscore (_) is used. This changes a lot of functions, such as hAhr.test -> hAh_test, all the gradient functions,
+so revisit your code for possible breakages.
+
+* Add ability to pass user defined weight gradients. See the documentation for weight_gradients option for midas_r function.
+
+
 midasr 0.3
 ============
 * Add experimental support for nonparametric MIDAS, see Breitung et al. http://www.ect.uni-bonn.de/mitarbeiter/joerg-breitung/npmidas

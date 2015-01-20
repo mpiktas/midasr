@@ -509,7 +509,8 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     rf <- lapply(rfd,"[[","weight")
     names(rf) <- sapply(rfd,"[[","term_name")
     
-
+    ##Note this is a bit of misnomer. Variable weight_names is actualy a vector of term names which have MIDAS weights.
+    ##It *is not* the same as actual name of weight function. This is a left-over from the old code. 
     weight_names <- sapply(rfd,"[[","weight_name")
     weight_inds <- which(weight_names!="")
     weight_names <- names(rf)[weight_names!=""]
