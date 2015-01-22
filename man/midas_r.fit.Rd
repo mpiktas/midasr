@@ -3,7 +3,7 @@
 \alias{midas_r.fit}
 \title{Fit restricted MIDAS regression}
 \usage{
-\method{midas_r}{fit}(x)
+midas_r.fit(x)
 }
 \arguments{
 \item{x}{\code{midas_r} object}

@@ -2,7 +2,7 @@
 ##'
 ##' Estimate restricted MIDAS regression using non-linear least squares, when the regressor is I(1)
 ##'
-##' @param x either formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function
+##' @param formula formula for restricted MIDAS regression. Formula must include \code{\link{fmls}} function
 ##' @param data a named list containing data with mixed frequencies
 ##' @param start the starting values for optimisation. Must be a list with named elements.
 ##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are the arguments passed to this function. The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
@@ -76,16 +76,11 @@
 ##' the MIDAS regression.
 ##' 
 ##' @export
-imidas_r <- function(x,...)UseMethod("imidas_r")
+imidas_r <- function(formula, data, start, Ofunction = "optim", weight_gradients = NULL,...) {
 
-##' @rdname imidas_r
-##' @method imidas_r default
-##' @export
-imidas_r.default <- function(x, data, start, Ofunction = "optim", weight_gradients = NULL,...) {
-
-    Zenv <- new.env(parent=environment(x))
+    Zenv <- new.env(parent=environment(formula))
     
-    mt <- terms(formula(x),specials="fmls")
+    mt <- terms(formula(formula),specials="fmls")
 
 
     if(missing(data)) {
@@ -131,7 +126,7 @@ imidas_r.default <- function(x, data, start, Ofunction = "optim", weight_gradien
         apply(r,2,cumsum)[1:d,]
     }
                               
-    formula <- expandfmls(formula(x),"pp",Zenv,0)    
+    formula <- expandfmls(formula(formula),"pp",Zenv,0)    
     cl <- match.call(expand.dots=TRUE)
     cl <- cl[names(cl)!="model"]
  
@@ -145,22 +140,10 @@ imidas_r.default <- function(x, data, start, Ofunction = "optim", weight_gradien
     class(res) <- c(class(res),"imidas_r")
     return(res)
 }
-##' Restricted MIDAS regression with I(1) regressors
-##'
-##' Reestimate the MIDAS regression with I(1) regressors with different starting values
-##' 
-##' @param x \code{imidas_r} object 
-##' @param start the starting values
-##' @param Ofunction a character string of the optimisation function to use. The default value is to use the function of previous optimisation.
-##' @param ... further arguments to optimisation function. If none are supplied, the arguments of previous optimisation are used.
-##' @return \code{imidas_r} object
-##' @method imidas_r imidas_r
-##' @seealso imidas_r
-##' @author Virmantas Kvedaras, Vaidotas Zemlys
-##' @export
-imidas_r.imidas_r <- function(x,start=coef(x),Ofunction=x$argmap.opt$Ofunction,...) {
-    midas_r.midas_r(x,start=start,Ofunction=Ofunction,...)
-}
+
+## @method update imidas_r
+## @export
+#update.imidas_r <- update.midas_r
 
 ##Function for expanding the formula in I(1) case
 expandfmls <- function(expr,wfun,Zenv,diff=0,truncate=FALSE) {

@@ -4,7 +4,7 @@
 \title{Average forecasts of MIDAS models}
 \usage{
 average_forecast(modlist, data, insample, outsample, type = c("fixed",
-  "recursive", " rolling"), fweights = c("EW", "BICW", "MSFE", "DMSFE"),
+  "recursive", "rolling"), fweights = c("EW", "BICW", "MSFE", "DMSFE"),
   measures = c("MSE", "MAPE", "MASE"), show_progress = TRUE)
 }
 \arguments{

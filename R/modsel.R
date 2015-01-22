@@ -341,14 +341,8 @@ weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh_
 ##'
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} and varying the weights of the last term of the given formula 
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
-##' @rdname midas_r_ic_table
 ##' @export
-midas_r_ic_table <- function(formula,...) UseMethod("midas_r_ic_table")
-
-#' @rdname midas_r_ic_table
-#' @method midas_r_ic_table default
-#' @export
-midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AIC","BIC"),test=c("hAh_test"),Ofunction="optim",weight_gradients=NULL,show_progress=TRUE,...) {
+midas_r_ic_table <- function(formula,data=NULL,start=NULL,table,IC=c("AIC","BIC"),test=c("hAh_test"),Ofunction="optim",weight_gradients=NULL,show_progress=TRUE,...) {
     
     Zenv <- new.env(parent=environment(formula))
     formula <- as.formula(formula)
@@ -425,7 +419,11 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
     })
        
     mrm <- lapply(modellist,function(mm) {
-        res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cl,args,mm$start,Ofunction,weight_gradients,mm$itr$lagsTable)
+        cll <- cl[c(1,2,3)]
+        names(cll) <- c("midas_r","","start")
+        cll[[2]] <- formula(mm$mt)
+        cll[[3]] <- mm$start
+        res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cll,args,mm$start,Ofunction,weight_gradients,mm$itr$lagsTable)
         class(res) <- "midas_r"
         res
     })
@@ -436,7 +434,7 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
     }
     candlist <- mapply(function(l,i){
        if(show_progress) setTxtProgressBar(pb, i)
-        out <- try(midas_r(l),silent=TRUE)
+        out <- try(midas_r.fit(l),silent=TRUE)
         out        
     },mrm,1:length(mrm),SIMPLIFY=FALSE)
     if(show_progress)close(pb)   
@@ -457,10 +455,10 @@ midas_r_ic_table.default <- function(formula,data=NULL,start=NULL,table,IC=c("AI
     make_ic_table(candl,IC,test)
 }
 
-##' @method midas_r_ic_table midas_r_ic_table
+##' @method update midas_r_ic_table
 ##' @export
-midas_r_ic_table.midas_r_ic_table <- function(formula,...) {
-    do.call("make_ic_table",formula[-1])
+update.midas_r_ic_table <- function(object,...) {
+    do.call("make_ic_table",object[-1])
 }
 
 make_ic_table <- function(candlist,IC,test,...) {
@@ -1103,9 +1101,10 @@ split_data <- function(data,insample,outsample) {
 ##'                         fweights=c("EW","BICW","MSFE","DMSFE"))
 average_forecast <- function(modlist,
                              data, insample, outsample,
-                             type = c("fixed", "recursive"," rolling"),
+                             type = c("fixed", "recursive", "rolling"),
                              fweights = c("EW", "BICW", "MSFE", "DMSFE"),
-                             measures = c("MSE", "MAPE", "MASE"),show_progress=TRUE) {
+                             measures = c("MSE", "MAPE", "MASE"),
+                             show_progress=TRUE) {
 
     #if(length(modlist)==1)stop("Need more than 1 model to produce average forecasts")
     if(missing(data))stop("Data need to be supplied for forecasting")
@@ -1134,10 +1133,13 @@ average_forecast <- function(modlist,
             if(inherits(mod,"midas_r_np")) {
                 do.call("midas_r_np",list(formula(mod),data=redata),envir=mod$Zenv)
             } else {             
-                out <- do.call("midas_r",list(formula(mod),data=redata,start=mod$start.list,Ofunction="optim",method="BFGS",control=list(maxit=0)),envir=mod$Zenv)
-            ##Run optimisation with the original model settings
-                out$argmap.opt <- mod$argmap.opt
-                do.call("midas_r",list(out,start=coef(mod)),envir=out$Zenv)
+                out <- update(mod, data = redata) #do.call("midas_r",list(formula(mod),data=redata,start=mod$start.list,Ofunction="optim",method="BFGS",control=list(maxit=0)),envir=mod$Zenv)
+#            ##Run optimisation with the original model settings
+#                out$argmap.opt <- mod$argmap.opt
+#                out$start.opt <- coef(mod)
+#                do.call("midas_r",list(out,start=coef(mod)),envir=out$Zenv)
+                                        #                midas_r.fit(out)
+                out
             }
         })
     }

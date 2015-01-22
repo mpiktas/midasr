@@ -92,7 +92,7 @@ midas_u <- function(formula, data ,...) {
 ##'
 ##' Estimate restricted MIDAS regression using non-linear least squares.
 ##'
-##' @param x either formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function
+##' @param formula formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function
 ##' @param data a named list containing data with mixed frequencies
 ##' @param start the starting values for optimisation. Must be a list with named elements.
 ##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
@@ -199,14 +199,9 @@ midas_u <- function(formula, data ,...) {
 ##' the MIDAS regression.
 ##' 
 ##' @export
-midas_r <- function(x,...)UseMethod("midas_r")
+midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NULL,...) {
 
-#' @rdname midas_r
-#' @method midas_r default
-#' @export
-midas_r.default <- function(x, data, start, Ofunction="optim", weight_gradients=NULL,...) {
-
-    Zenv <- new.env(parent=environment(x))
+    Zenv <- new.env(parent=environment(formula))
 
     if(missing(data)) {
         ee <- NULL
@@ -217,11 +212,11 @@ midas_r.default <- function(x, data, start, Ofunction="optim", weight_gradients=
     }
     
     assign("ee",ee,Zenv)
-    x <- as.formula(x)
+    formula <- as.formula(formula)
     cl <- match.call()    
     mf <- match.call(expand.dots = FALSE)
-    mf$x <- x
-    m <- match(c("x", "data"), names(mf), 0L)
+    mf$formula <- formula
+    m <- match(c("formula", "data"), names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf[[1L]] <- as.name("model.frame")
     mf[[3L]] <- as.name("ee")   
@@ -244,58 +239,80 @@ midas_r.default <- function(x, data, start, Ofunction="optim", weight_gradients=
     midas_r.fit(prepmd)    
 }
 
-##' Restricted MIDAS regression
-##'
-##' Reestimate the MIDAS regression with different starting values
-##' 
-##' @param x \code{midas_r} object 
-##' @param start the starting values
-##' @param Ofunction a character string of the optimisation function to use. The default value is to use the function of previous optimisation.
-##' @param ... further arguments to optimisation function. If none are supplied, the arguments of previous optimisation are used.
-##' @return \code{midas_r} object
-##' @method midas_r midas_r
-##' @seealso midas_r
-##' @author Vaidotas Zemlys
+##' @method update midas_r
 ##' @export
-midas_r.midas_r <- function(x,start=coef(x),Ofunction=x$argmap.opt$Ofunction,...) {
-   
-    oarg <- list(...)
-    cl <- match.call()
-    dotargnm <- names(oarg)
-    
-    ##Perform check whether arguments are ok and eval them
-    if(length(dotargnm)>0) {
-        offending <- dotargnm[!dotargnm %in% names(formals(Ofunction))]
-        if(length(offending)>0)  {
-            stop(paste("The function ",Ofunction," does not have the following arguments: ", paste(offending,collapse=", "),sep=""))
-        }
-    }
-    else {
-        oarg <- NULL
+update.midas_r <- function(object, formula.,..., evaluate = TRUE) {
+    if (is.null(call <- getCall(object))) 
+        stop("need an object with call component")
+    extras <- match.call(expand.dots = FALSE)$...
+    if (!missing(formula.)) 
+        call$formula <- update.formula(formula(object), formula.)
+          
+    if (length(extras)) {
+        existing <- !is.na(match(names(extras), names(call))) 
+        for (a in names(extras)[existing]) call[[a]] <- extras[[a]]
+        if (any(!existing)) {
+            call <- c(as.list(call), extras[!existing])
+            call <- as.call(call)
+        }        
     }
 
-    if(Ofunction!=x$argmap.opt$Ofunction) {
-        argmap <- c(list(Ofunction=Ofunction),oarg)
-    }              
-    else {
-         argmap <- x$argmap.opt
-         argmap$Ofunction <- NULL
-         argnm <- union(names(argmap),names(oarg))
-         marg <- vector("list",length(argnm))
-         names(marg) <- argnm
-         ##New supplied arguments override the old ones
-         marg[names(oarg)] <- oarg
-         ##Already set arguments are left intact
-         oldarg <- setdiff(names(argmap),names(oarg))
-         marg[oldarg] <- argmap[oldarg]
-         argmap <- c(list(Ofunction=Ofunction),marg)
-    }
+    ##1. If no start is supplied update the start from the call
+    ##2. If start is supplied intersect it with already fitted values.
+   
+    cf <- coef(object)
+    ustart <- lapply(object$term_info,function(x)cf[x[["coef_index"]]])
     
-    x$start.opt <- start
-    x$argmap.opt <- argmap
-    x$call <- cl
-    midas_r.fit(x)
+    if(is.null(extras$start)) {        
+        call$start <- ustart
+        object$start.opt <- cf
+    } else {
+        cstart <- eval(call$start,object$Zenv)
+        ustart[names(cstart)] <- call$start
+        call$start <- ustart
+        object$start.opt <- unlist(ustart)
+    }        
+    if (evaluate) {
+        if(!missing(formula.) || !is.null(extras$data) || !is.null(extras$weight_gradients)) {
+            eval(call, parent.frame())
+        } else {
+            if(!is.null(extras$Ofunction)) {
+                Ofunction <- eval(extras$Ofunction)
+                extras$Ofunction <- NULL
+            } else Ofunction <- object$argmap.opt$Ofunction            
+            dotargnm <- names(extras)
+            if (length(dotargnm) > 0) {
+                offending <- dotargnm[!dotargnm %in% names(formals(Ofunction))]
+                if (length(offending) > 0) {
+                    stop(paste("The function ", Ofunction, " does not have the following arguments: ", 
+                               paste(offending, collapse = ", "), sep = ""))
+                }
+            }
+            else {
+                extras <- NULL
+            }
+            if (Ofunction != object$argmap.opt$Ofunction) {
+                argmap <- c(list(Ofunction = Ofunction), extras)
+            }
+            else {
+                argmap <- object$argmap.opt
+                argmap$Ofunction <- NULL
+                argnm <- union(names(argmap), names(extras))
+                marg <- vector("list", length(argnm))
+                names(marg) <- argnm
+                marg[names(extras)] <- extras
+                oldarg <- setdiff(names(argmap), names(extras))
+                marg[oldarg] <- argmap[oldarg]
+                argmap <- c(list(Ofunction = Ofunction), marg)
+            }
+            object$call <- call
+            object$argmap.opt <- argmap
+            midas_r.fit(object)
+        }
+    }
+    else call
 }
+
 
 ##' Fit restricted MIDAS regression
 ##'
@@ -394,7 +411,11 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     
     if(is.null(weight_gradients)) use_gradient <- FALSE
     else use_gradient=TRUE
-    
+
+    if(!is.null(args$guess_start)) {
+        guess_start <- args$guess_start
+        args$guess_start <- NULL
+    }    
     terms.lhs <- as.list(attr(mt,"variables"))[-2:-1]
     term.labels <- attr(mt,"term.labels") 
 
@@ -526,10 +547,7 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     }
     
     start_default[names(start)] <- start
-
-    
-    #restr.no <- sum(sapply(start_default[weight_names], length))
-    
+            
     np <- cumsum(sapply(start_default,length))
 
     build_indices <- function(ci,nm) {
@@ -693,8 +711,15 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     
     hess <- function(x)numDeriv::hessian(fn0,x)
       
-    if(is.null(unrestricted)) {
-        if(ncol(X)<nrow(X)) unrestricted <- lm(y~.-1,data=data.frame(cbind(y,X),check.names=FALSE))
+    if(is.null(unrestricted)) {        
+        if(ncol(X)<nrow(X)) {
+            if(attr(mt,"intercept")==1) {
+                unrestricted <- lm(y~.,data=data.frame(cbind(y,X[,-1]),check.names=FALSE))
+            } else {
+                unrestricted <- lm(y~.-1,data=data.frame(cbind(y,X),check.names=FALSE))
+            }
+            
+        }
     }
 
     control <- c(list(Ofunction=Ofunction),args)

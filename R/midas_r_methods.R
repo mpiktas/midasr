@@ -92,8 +92,23 @@ summary.midas_r <- function(object, vcov.=vcovHAC, df=NULL, prewhite=TRUE, ...) 
     R <- qr.R(qr(XD))
     XDtXDinv <- chol2inv(R)
     dimnames(XDtXDinv) <- list(pnames,pnames)
-
+        
     se <- sqrt(diag(XDtXDinv)*resvar)
+
+    f <- as.vector(object$fitted.values)
+    mss <- if (attr(object$terms, "intercept")) 
+        sum((f - mean(f))^2)
+    else sum(f^2)
+    rss <- sum(r^2)
+
+    n <- length(r)
+    p <- length(coef(object))
+    rdf <- n-p
+    df.int <- if (attr(object$terms, "intercept")) 1L
+    else 0L
+
+    r_squared <- mss/(mss + rss)
+    adj_r_squared <- 1 - (1 - r_squared) * ((n - df.int)/rdf)
     
     if(!is.null(vcov.)) {
         set <- try(sqrt(diag(vcov.(object,prewhite=prewhite,...))))
@@ -123,7 +138,8 @@ summary.midas_r <- function(object, vcov.=vcovHAC, df=NULL, prewhite=TRUE, ...) 
         "t value", "Pr(>|t|)"))
     ans <- list(formula=formula(object$terms),residuals=r,sigma=sqrt(resvar),
                 df=c(p,rdf), cov.unscaled=XDtXDinv, call=object$call,
-                coefficients=param,midas_coefficients=coef(object, midas = TRUE))
+                coefficients=param,midas_coefficients=coef(object, midas = TRUE),
+                r_squared = r_squared, adj_r_squared = adj_r_squared)
     class(ans) <- "summary.midas_r"
     ans
 }
@@ -137,6 +153,8 @@ print.summary.midas_r <- function(x, digits=max(3, getOption("digits") - 3 ), si
     cat("\n Parameters:\n")
     printCoefmat(x$coefficients,digits=digits,signif.stars=signif.stars,...)
     cat("\n Residual standard error:", format(signif(x$sigma,digits)), "on", rdf , "degrees of freedom\n")
+ #   cat(" Multiple R-squared: ", formatC(x$r_squared, digits = digits))
+ #   cat(",\tAdjusted R-squared: ", formatC(x$adj_r_squared, digits = digits),"\n")
     invisible(x)
 }
 
@@ -610,4 +628,5 @@ plot_midas_coef <- function(x, term_name=NULL, title = NULL, vcov. = sandwich, u
     }
     invisible(pd)
 }
+
 
