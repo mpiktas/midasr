@@ -417,12 +417,15 @@ midas_r_ic_table <- function(formula,data=NULL,start=NULL,table,IC=c("AIC","BIC"
         mm$X <- mm$X[ind,]
         mm
     })
-       
+
+    new_cl <- cl
+    m <- match(c("table","IC","test","show_progress"),names(new_cl))
+    new_cl[m] <- NULL
     mrm <- lapply(modellist,function(mm) {
-        cll <- cl[c(1,2,3)]
-        names(cll) <- c("midas_r","","start")
-        cll[[2]] <- formula(mm$mt)
-        cll[[3]] <- mm$start
+        cll <- new_cl
+        cll[[1]] <- as.name("midas_r")
+        cll$formula <- formula(mm$mt)
+        cll$start <- mm$start
         res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cll,args,mm$start,Ofunction,weight_gradients,mm$itr$lagsTable)
         class(res) <- "midas_r"
         res
