@@ -12,7 +12,7 @@ allh <- lapply(c(5,10,20,40),function(h){
     rvh <- filter(c(rep(0,h),y),c(rep(1,h),rep(0,h+1)))
     rvh <- rvh[-h:-1]
     y <- y[1:length(rvh)]
-    midas_r(midas_r(rvh~fmls(y,70-1,1,nealmon),start=list(y=rep(0,3))),Ofunction="nls")
+    update(midas_r(rvh~fmls(y,70-1,1,nealmon),start=list(y=rep(0,3))),Ofunction="nls")
 })
 
 ####Compute the derivative test                
@@ -43,7 +43,7 @@ mapply(hAhr.test,allh,PHI,SIMPLIFY=FALSE)
 graph <- function(x,phi,j,h) {
     cfur <- coef(x$unrestricted)
     cfur <- cfur[grep("fmls",names(cfur))]
-    cfre <- weight_coef(x)
+    cfre <- coef(x, midas = TRUE)
     k <- length(cfur)
     sdval <- sqrt(diag(sandwich(x$unrestricted,meat=phi)))
     sdval <- sdval[grep("fmls",names(sdval))]

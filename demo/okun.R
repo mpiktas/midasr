@@ -11,7 +11,7 @@ x <- window(diff(USunempr),start=1949)
 trend <- 1:length(y)
 
 allk <- lapply(c(12,15,18,24)-1, function(k) {
-  midas_r(midas_r(y~trend+fmls(x,k,12,nealmon),start=list(x=rep(0,3))),Ofunction="nls")
+  update(midas_r(y~trend+fmls(x,k,12,nealmon),start=list(x=rep(0,3))),Ofunction="nls")
 })
                                                 
 ####Compute the derivative test                
@@ -27,10 +27,10 @@ sapply(dtest,with,second)
 sapply(dtest,with,min(eigenval))
 
 ###Apply hAh test
-lapply(allk,hAh.test)
+lapply(allk,hAh_test)
 
 ###Apply robust hAh test
-lapply(allk,hAhr.test)
+lapply(allk,hAhr_test)
 
 ###View summaries
 lapply(allk,summary)
@@ -42,7 +42,7 @@ par(mfrow=c(2,2))
 lapply(allk,function(x){
     cfur <- coef(x$unrestricted)
     cfur <- cfur[grep("fmls",names(cfur))]
-    cfre <- weight_coef(x)
+    cfre <- coef(x, midas = TRUE)
     k <- length(cfur)
     sdval <- sqrt(diag(vcovHAC(x$unrestricted)))
     sdval <- sdval[grep("fmls",names(sdval))]

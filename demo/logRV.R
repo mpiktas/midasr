@@ -26,7 +26,7 @@ rvhk <- function(h,k){
     y <- y[1:length(rvh)]
     mu <- midas_u(rvh~fmls(y,k,1))
     cfur <- coef(mu)[grep("fmls",names(coef(mu)))]
-    midas_r(midas_r(rvh~fmls(y,k,1,nlmn),start=list(y=prestart(c(0.2,-1,1),cfur,k+1))),Ofunction="nls")   
+    update(midas_r(rvh~fmls(y,k,1,nlmn),start=list(y=prestart(c(0.2,-1,1),cfur,k+1))),Ofunction="nls")   
 }
 
 allh <- lapply(c(5,10,20,40),rvhk,k=69)
@@ -47,10 +47,10 @@ lapply(allh,summary)
 PHI <- lapply(allh,function(x)meatHAC(x$unrestricted,prewhite=TRUE,weights=weightsAndrews))
 
 ###Apply hAh test
-lapply(allh,hAh.test)
+lapply(allh,hAh_test)
 
 ##Apply robust hAh test with precomputed PHI
-mapply(hAhr.test,allh,PHI,SIMPLIFY=FALSE)
+mapply(hAhr_test,allh,PHI,SIMPLIFY=FALSE)
 
 ##Parameter j is superfluous, j=0 means no logarithm transformation was
 ##applied, j=1 means that logarithm transformation was applied. The graph
@@ -59,7 +59,7 @@ mapply(hAhr.test,allh,PHI,SIMPLIFY=FALSE)
 graph <- function(x,phi,j,h) {
     cfur <- coef(x$unrestricted)
     cfur <- cfur[grep("fmls",names(cfur))]
-    cfre <- weight_coef(x)
+    cfre <- coef(x, midas = TRUE)
     k <- length(cfur)
     sdval <- sqrt(diag(sandwich(x$unrestricted,meat=phi)))
     sdval <- sdval[grep("fmls",names(sdval))]
