@@ -268,8 +268,8 @@ update.midas_r <- function(object, formula.,..., evaluate = TRUE) {
     ustart <- lapply(object$term_info,function(x)cf[x[["coef_index"]]])
 
     redo <- FALSE
-    if(!exists("start",as.list(extras))) {        
-        if(!(exists("start", as.list(call)) && is.null(call$start))) {
+    if(!("start" %in% names(extras))) {        
+        if(!("start" %in% names(call) && is.null(call$start))) {
             call$start <- ustart
             object$start.opt <- cf
         }
@@ -280,7 +280,7 @@ update.midas_r <- function(object, formula.,..., evaluate = TRUE) {
             redo <- TRUE
         } else {
             cstart <- eval(call$start,object$Zenv)
-            ustart[names(cstart)] <- call$start
+            ustart[names(cstart)] <- cstart
             call$start <- ustart
             object$start.opt <- unlist(ustart)
         }
@@ -422,7 +422,8 @@ midas_r.fit <- function(x) {
 ##' @param guess_start if TRUE, get the initial values for non-MIDAS terms via OLS, if FALSE, initialize them with zero.
 ##' @author Vaidotas Zemlys
 prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradients, lagsTable, unrestricted = NULL, guess_start = TRUE) {
-    
+
+    start <- start[!sapply(start,is.null)]
     if(is.null(weight_gradients)) use_gradient <- FALSE
     else use_gradient=TRUE
 
@@ -560,25 +561,10 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     ##If there are no weight functions, we have unrestricted MIDAS model.
     if(length(weight_names)==0)Ofunction <- "lm"
     else {
-        if(is.null(start)) {
+        if(is.null(start)) {            
+            cl$formula <- update_weights(cl$formula,setNames(lapply(1:length(weight_names), function(x)""), weight_names))
             warning("Since the start = NULL, it is assumed that U-MIDAS model is fitted")
-            ##We need to redo the term parsing for offending weights
-            Ofunction <- "lm"
-            for(i in weight_inds) {
-                fr <- terms.lhs[[i-1]]
-                fun <- as.character(fr)[1] 
-                rfd[[i]] <- wuterm(fr,fun)
-            }
-            rf <- lapply(rfd,"[[","weight")
-            names(rf) <- sapply(rfd,"[[","term_name")
-
-            weight_names <- sapply(rfd,"[[","weight_name")
-            weight_inds <- which(weight_names!="")
-            weight_names <- names(rf)[weight_names!=""]
-                        
-            start_default <- lapply(rfd,"[[","start")
-            names(start_default) <- names(rf)
-            
+            return(eval(cl,Zenv))            
         } else {
             if(any(!weight_names%in% names(start)))stop("Starting values for weight parameters must be supplied")
         }
@@ -597,7 +583,7 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     }
     
     pinds <- build_indices(np,names(start_default))
-    
+
     for(i in 1:length(start_default))names(start_default[[i]]) <- NULL
 
     initial_midas_coef <- mapply(function(fun,st)fun(st),rf,start_default,SIMPLIFY=FALSE)
