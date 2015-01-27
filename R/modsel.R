@@ -593,7 +593,7 @@ prepare_model_frame <- function(data,Zenv,cl,mf,pf) {
     mtt <- attr(mtf,"terms")
 
     #We need only response to get the number of low frequency observations.
-    resf <- mf$formula
+    resf <- eval(mf$formula,Zenv)
     resf[[3]] <- 1
     mf$formula <- resf
 

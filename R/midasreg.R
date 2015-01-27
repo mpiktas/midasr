@@ -266,14 +266,18 @@ update.midas_r <- function(object, formula.,..., evaluate = TRUE) {
    
     cf <- coef(object)
     ustart <- lapply(object$term_info,function(x)cf[x[["coef_index"]]])
-    
+
+    redo <- FALSE
     if(!exists("start",as.list(extras))) {        
-        call$start <- ustart
-        object$start.opt <- cf
+        if(!(exists("start", as.list(call)) && is.null(call$start))) {
+            call$start <- ustart
+            object$start.opt <- cf
+        }
     } else {
         if(is.null(extras$start)) {
-            ##If start is null, we want to fit unrestricted midas model
-            call$start <- list(NULL)
+            ##If start is null, we want to fit unrestricted midas model, this means that we need to call midas_r
+            call["start"] <- list(NULL)                        
+            redo <- TRUE
         } else {
             cstart <- eval(call$start,object$Zenv)
             ustart[names(cstart)] <- call$start
@@ -282,9 +286,10 @@ update.midas_r <- function(object, formula.,..., evaluate = TRUE) {
         }
     }        
     if (evaluate) {
-        if(!missing(formula.) || exists("data", as.list(extras)) || exists("weight_gradients", as.list(extras))) {
+        if(!missing(formula.) || exists("data", as.list(extras)) || exists("weight_gradients", as.list(extras)) || redo) {
             eval(call, parent.frame())
         } else {
+            ##If we got here, we assume that we do not need to reevaluate terms.
             if(!is.null(extras$Ofunction)) {
                 Ofunction <- eval(extras$Ofunction)
                 extras$Ofunction <- NULL
@@ -894,6 +899,38 @@ midas_r_simple <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method=
          fitted.values=fitted.values,
          residuals=as.vector(y-fitted.values))
              
+}
+##' Updates weights in a expression with MIDAS term
+##'
+##' For a MIDAS term \code{fmls(x, 6, 1, nealmon)} change weight \code{nealmon} to another weight.
+##' @title Updates weights in MIDAS regression formula
+##' @param expr expression with MIDAS term
+##' @param tb a named list with redefined weights
+##' @return an expression with changed weights
+##' @author Vaidotas Zemlys
+##' @export
+##' @examples
+##'
+##' update_weights(y~trend+mls(x,0:7,4,nealmon)+mls(z,0:16,12,nealmon),list(x = "nbeta", z = ""))
+##' 
+update_weights <- function(expr,tb) {
+    if(length(expr)==3) {
+        expr[[2]] <- update_weights(expr[[2]],tb)
+        expr[[3]] <- update_weights(expr[[3]],tb)
+    }
+    if(length(expr)==5) {
+        fun <- as.character(expr[[1]])
+        if(fun[[1]] %in% c("fmls","mls","dmls")) {
+            term_name <- as.character(expr[[2]])
+            if(term_name %in% names(tb)) {
+                if(is.null(tb[[term_name]])|| tb[[term_name]] == "") {
+                    expr <- expr[1:4]
+                } else expr[[5]] <- as.name(tb[[term_name]])                    
+            }
+        }
+        else return(expr)
+    }
+    return(expr)
 }
 
 ##' Check whether the MIDAS model is MIDAS-AR* model
