@@ -210,6 +210,10 @@ midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NU
         ee <- data_to_env(data)
         parent.env(ee) <- parent.frame()
     }
+
+    if(missing(start)) {
+        stop("Please supply starting values.")
+    } 
     
     assign("ee",ee,Zenv)
     formula <- as.formula(formula)
@@ -263,17 +267,22 @@ update.midas_r <- function(object, formula.,..., evaluate = TRUE) {
     cf <- coef(object)
     ustart <- lapply(object$term_info,function(x)cf[x[["coef_index"]]])
     
-    if(is.null(extras$start)) {        
+    if(!exists("start",as.list(extras))) {        
         call$start <- ustart
         object$start.opt <- cf
     } else {
-        cstart <- eval(call$start,object$Zenv)
-        ustart[names(cstart)] <- call$start
-        call$start <- ustart
-        object$start.opt <- unlist(ustart)
+        if(is.null(extras$start)) {
+            ##If start is null, we want to fit unrestricted midas model
+            call$start <- list(NULL)
+        } else {
+            cstart <- eval(call$start,object$Zenv)
+            ustart[names(cstart)] <- call$start
+            call$start <- ustart
+            object$start.opt <- unlist(ustart)
+        }
     }        
     if (evaluate) {
-        if(!missing(formula.) || !is.null(extras$data) || !is.null(extras$weight_gradients)) {
+        if(!missing(formula.) || exists("data", as.list(extras)) || exists("weight_gradients", as.list(extras))) {
             eval(call, parent.frame())
         } else {
             if(!is.null(extras$Ofunction)) {
@@ -486,6 +495,22 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
         
     }
 
+    wuterm <- function(fr, fun) {
+        lags <- eval(fr[[3]],Zenv)
+        nol <- switch(fun,
+                      fmls = lags+1,
+                      dmls = lags+1,
+                      mls = length(lags)
+                      )
+        lagstruct <- switch(fun,
+                            fmls = 0:lags,
+                            dmls = 0:lags,
+                            mls = lags
+                            )
+        freq <- eval(fr[[4]],Zenv)
+        nm <- as.character(fr[[2]])
+        uterm(nm,nol,lagstruct,frequency=freq)
+    }
     
     for(i in 1:length(rfd)) {
         fr <- terms.lhs[[i]]
@@ -494,21 +519,8 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
             if(length(fr)>=5 && fr[[5]] != "*") {
                 wterm(fr,fun)
             } else {
-                lags <- eval(fr[[3]],Zenv)
-                nol <- switch(fun,
-                              fmls = lags+1,
-                              dmls = lags+1,
-                              mls = length(lags)
-                              )
-                lagstruct <- switch(fun,
-                              fmls = 0:lags,
-                              dmls = 0:lags,
-                              mls = lags
-                                    )
-                freq <- eval(fr[[4]],Zenv)
-                nm <- as.character(fr[[2]])
-                uterm(nm,nol,lagstruct,frequency=freq)
-            }            
+                wuterm(fr,fun)
+            }                         
         }
         else {
             uterm(term.labels[i],1,0,1)
@@ -543,7 +555,28 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     ##If there are no weight functions, we have unrestricted MIDAS model.
     if(length(weight_names)==0)Ofunction <- "lm"
     else {
-        if(any(!weight_names%in% names(start)))stop("Starting values for weight hyperparameters must be supplied")
+        if(is.null(start)) {
+            warning("Since the start = NULL, it is assumed that U-MIDAS model is fitted")
+            ##We need to redo the term parsing for offending weights
+            Ofunction <- "lm"
+            for(i in weight_inds) {
+                fr <- terms.lhs[[i-1]]
+                fun <- as.character(fr)[1] 
+                rfd[[i]] <- wuterm(fr,fun)
+            }
+            rf <- lapply(rfd,"[[","weight")
+            names(rf) <- sapply(rfd,"[[","term_name")
+
+            weight_names <- sapply(rfd,"[[","weight_name")
+            weight_inds <- which(weight_names!="")
+            weight_names <- names(rf)[weight_names!=""]
+                        
+            start_default <- lapply(rfd,"[[","start")
+            names(start_default) <- names(rf)
+            
+        } else {
+            if(any(!weight_names%in% names(start)))stop("Starting values for weight parameters must be supplied")
+        }
     }
     
     start_default[names(start)] <- start
