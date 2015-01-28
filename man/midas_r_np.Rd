@@ -3,10 +3,10 @@
 \alias{midas_r_np}
 \title{Estimate non-parametric MIDAS regression}
 \usage{
-midas_r_np(x, data, lambda = NULL)
+midas_r_np(formula, data, lambda = NULL)
 }
 \arguments{
-\item{x}{formula specifying MIDAS regression}
+\item{formula}{formula specifying MIDAS regression}
 
 \item{data}{a named list containing data with mixed frequencies}
 

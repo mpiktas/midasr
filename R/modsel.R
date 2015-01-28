@@ -26,8 +26,9 @@ if(getRversion() >= "2.15.1")  utils::globalVariables("X")
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
 ##' 
-##' mlr <- hf_lags_table(y~trend+fmls(x,12,12,nealmon),
-##'                      start=list(x=rep(0,3)),
+##' mlr <- hf_lags_table(y ~ trend + fmls(x, 12, 12,nealmon),
+##'                      start = list(x=rep(0,3)),
+##'                      data = list(y = y, x = x, trend = trend),
 ##'                      from=c(x=0),to=list(x=c(4,4)))
 ##' mlr
 ##'
@@ -1029,7 +1030,7 @@ MAPE <- function(o,p) {
 }
 
 MASE <- function(o,p) {
-    mean(abs(o-p)/mean(abs(diff(o))))
+    mean(abs(o-p)/mean(abs(diff(o))))    
 }
 ##' Splits mixed frequency data into in-sample and out-of-sample datasets given the indexes of the low frequency data
 ##'
@@ -1135,21 +1136,8 @@ average_forecast <- function(modlist,
 
     outy <- outdata[[yname]]
     
-    reeval <- function(candlist,redata) {
-        lapply(candlist,function(mod) {
-            ##Setup all the necessary info
-            if(inherits(mod,"midas_r_np")) {
-                do.call("midas_r_np",list(formula(mod),data=redata),envir=mod$Zenv)
-            } else {             
-                out <- update(mod, data = redata) #do.call("midas_r",list(formula(mod),data=redata,start=mod$start.list,Ofunction="optim",method="BFGS",control=list(maxit=0)),envir=mod$Zenv)
-#            ##Run optimisation with the original model settings
-#                out$argmap.opt <- mod$argmap.opt
-#                out$start.opt <- coef(mod)
-#                do.call("midas_r",list(out,start=coef(mod)),envir=out$Zenv)
-                                        #                midas_r.fit(out)
-                out
-            }
-        })
+    reeval <- function(candlist, redata) {
+        lapply(candlist, update, data = redata) 
     }
 
     bestm <- reeval(modlist,indata)
@@ -1257,6 +1245,10 @@ average_forecast <- function(modlist,
          avgforecast=sapply(outc,function(m)m[,2]),
          accuracy=list(
              individual=tabfh,
-             average=tabh))
+             average=tabh),
+         type = type,
+         x = indata[[yname]],
+         xout = outdata[[yname]]
+         )
 }
 

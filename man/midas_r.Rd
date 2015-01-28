@@ -36,9 +36,9 @@ a \code{midas_r} object which is the list with the following elements:
 \item{rhs}{the function which evaluates the right-hand side of the MIDAS regression}
 \item{gen_midas_coef}{the function which generates the MIDAS coefficients of MIDAS regression}
 \item{opt}{the output of optimisation procedure}
-\item{argmap.opt}{the list containing the name of optimisation function together with arguments for optimisation function}
-\item{start.opt}{the starting values used in optimisation}
-\item{start.list}{the starting values as a list}
+\item{argmap_opt}{the list containing the name of optimisation function together with arguments for optimisation function}
+\item{start_opt}{the starting values used in optimisation}
+\item{start_list}{the starting values as a list}
 \item{call}{the call to the function}
 \item{terms}{terms object}
 \item{gradient}{gradient of NLS objective function}
@@ -57,14 +57,15 @@ Estimate restricted MIDAS regression using non-linear least squares.
 \details{
 Given MIDAS regression:
 
-\deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+\mathbf{z_t}\beta+u_t}
+\deqn{y_t = \sum_{j=1}^p\alpha_jy_{t-j} +\sum_{i=0}^{k}\sum_{j=0}^{l_i}\beta_{j}^{(i)}x_{tm_i-j}^{(i)} + u_t,}
 
 estimate the parameters of the restriction
 
-\deqn{\theta_h=g(h,\lambda),}
-where \eqn{h=0,...,(k+1)m}, together with coefficients \eqn{\beta} corresponding to additional low frequency regressors.
+\deqn{\beta_j^{(i)}=g^{(i)}(j,\lambda).}
 
-MIDAS regression involves times series with different frequencies.
+Such model is called ADL-MIDAS regression. It is not required that all the coefficients should be restricted, i.e the function \eqn{g^{(i)}}
+might be an identity function. Model with no restrictions is called U-MIDAS model. The regressors \eqn{x_\tau^{(i)}} must be of higher
+(or of the same) frequency as the dependent variable \eqn{y_t}.
 
 MIDAS-AR* (a model with a common factor, see (Clements and Galvao, 2008)) can be estimated by specifying additional argument, see an example.
 
@@ -73,14 +74,14 @@ the MIDAS regression.
 }
 \examples{
 ##The parameter function
-theta.h0 <- function(p, dk, ...) {
+theta_h0 <- function(p, dk, ...) {
    i <- (1:dk-1)/100
    pol <- p[3]*i + p[4]*i^2
    (p[1] + p[2]*i)*exp(pol)
 }
 
 ##Generate coefficients
-theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
+theta0 <- theta_h0(c(-0.1,10,-10,-10),4*12)
 
 ##Plot the coefficients
 plot(theta0)
@@ -94,12 +95,12 @@ y <- midas_sim(500, xx, theta0)
 x <- window(xx, start=start(y))
 
 ##Fit restricted model
-mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,
+mr <- midas_r(y~fmls(x,4*12-1,12,theta_h0)-1,
               list(y=y,x=x),
               start=list(x=c(-0.1,10,-10,-10)))
 
 ##Include intercept and trend in regression
-mr.it <- midas_r(y~fmls(x,4*12-1,12,theta.h0)+trend,
+mr_it <- midas_r(y~fmls(x,4*12-1,12,theta_h0)+trend,
                  list(data.frame(y=y,trend=1:500),x=x),
                  start=list(x=c(-0.1,10,-10,-10)))
 
@@ -111,12 +112,12 @@ xx <- window(diff(USunempr), start = 1949)
 trend <- 1:length(y.ar)
 
 ##Fit AR(1) model
-mr.ar <- midas_r(y.ar ~ trend + mls(y.ar, 1, 1) +
+mr_ar <- midas_r(y.ar ~ trend + mls(y.ar, 1, 1) +
                  fmls(xx, 11, 12, nealmon),
                  start = list(xx = rep(0, 3)))
 
 ##First order MIDAS-AR* restricted model
-mr.arstar <-  midas_r(y.ar ~ trend + mls(y.ar, 1, 1, "*")
+mr_arstar <-  midas_r(y.ar ~ trend + mls(y.ar, 1, 1, "*")
                      + fmls(xx, 11, 12, nealmon),
                      start = list(xx = rep(0, 3)))
 }

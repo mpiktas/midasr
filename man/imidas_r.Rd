@@ -36,9 +36,9 @@ a \code{midas_r} object which is the list with the following elements:
 \item{rhs}{the function which evaluates the right-hand side of the MIDAS regression}
 \item{gen_midas_coef}{the function which generates the MIDAS coefficients of MIDAS regression}
 \item{opt}{the output of optimisation procedure}
-\item{argmap.opt}{the list containing the name of optimisation function together with arguments for optimisation function}
-\item{start.opt}{the starting values used in optimisation}
-\item{start.list}{the starting values as a list}
+\item{argmap_opt}{the list containing the name of optimisation function together with arguments for optimisation function}
+\item{start_opt}{the starting values used in optimisation}
+\item{start_list}{the starting values as a list}
 \item{call}{the call to the function}
 \item{terms}{terms object}
 \item{gradient}{gradient of NLS objective function}

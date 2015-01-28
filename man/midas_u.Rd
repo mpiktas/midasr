@@ -21,28 +21,21 @@ Estimate unrestricted MIDAS regression using OLS. This function is a wrapper for
 \details{
 MIDAS regression has the following form:
 
-\deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+\mathbf{z_t}\mathbf{\beta}+u_t}
+\deqn{y_t = \sum_{j=1}^p\alpha_jy_{t-j} +\sum_{i=0}^{k}\sum_{j=0}^{l_i}\beta_{j}^{(i)}x_{tm_i-j}^{(i)} + u_t,}
 
-or alternatively
-
-\deqn{y_t=\sum_{h=0}^{(k+1)m}\theta_hx_{tm-h}+\mathbf{z_t}\mathbf{\beta}+u_t,}
-where \eqn{m} is the frequency ratio and
-\eqn{k} is the number of lags included in the regression.
-
+where \eqn{x_\tau^{(i)}}, \eqn{i=0,...k} are regressors of higher (or similar) frequency than \eqn{y_t}.
 Given certain assumptions the coefficients can be estimated using usual OLS and they have the familiar properties associated with simple linear regression.
-
-MIDAS regression involves times series with different frequencies.
 }
 \examples{
 ##The parameter function
-theta.h0 <- function(p, dk, ...) {
+theta_h0 <- function(p, dk, ...) {
    i <- (1:dk-1)/100
    pol <- p[3]*i + p[4]*i^2
    (p[1] + p[2]*i)*exp(pol)
 }
 
 ##Generate coefficients
-theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
+theta0 <- theta_h0(c(-0.1,10,-10,-10),4*12)
 
 ##Plot the coefficients
 ##Do not run
@@ -68,11 +61,11 @@ mu <- midas_u(y~fmls(x,2,12)-1, list(ldt, hdt))
 
 ##Include intercept and trend in regression
 
-mu.it <- midas_u(y~fmls(x,2,12)+trend, list(ldt, hdt))
+mu_it <- midas_u(y~fmls(x,2,12)+trend, list(ldt, hdt))
 
 ##Pass data as partialy named list
 
-mu.it <- midas_u(y~fmls(x,2,12)+trend, list(ldt, x=hdt$x))
+mu_it <- midas_u(y~fmls(x,2,12)+trend, list(ldt, x=hdt$x))
 }
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys

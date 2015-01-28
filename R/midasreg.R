@@ -10,14 +10,14 @@
 ##' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254 
 ##' @examples
 ##' ##The parameter function
-##' theta.h0 <- function(p, dk, ...) {
+##' theta_h0 <- function(p, dk, ...) {
 ##'    i <- (1:dk-1)/100
 ##'    pol <- p[3]*i + p[4]*i^2
 ##'    (p[1] + p[2]*i)*exp(pol)
 ##' }
 ##'
 ##' ##Generate coefficients
-##' theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
+##' theta0 <- theta_h0(c(-0.1,10,-10,-10),4*12)
 ##'
 ##' ##Plot the coefficients
 ##' ##Do not run
@@ -43,26 +43,19 @@
 ##'
 ##' ##Include intercept and trend in regression
 ##'
-##' mu.it <- midas_u(y~fmls(x,2,12)+trend, list(ldt, hdt))
+##' mu_it <- midas_u(y~fmls(x,2,12)+trend, list(ldt, hdt))
 ##'
 ##' ##Pass data as partialy named list
 ##'
-##' mu.it <- midas_u(y~fmls(x,2,12)+trend, list(ldt, x=hdt$x))
+##' mu_it <- midas_u(y~fmls(x,2,12)+trend, list(ldt, x=hdt$x))
 ##' 
 ##' @details MIDAS regression has the following form:
 ##' 
-##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+\mathbf{z_t}\mathbf{\beta}+u_t}
+##' \deqn{y_t = \sum_{j=1}^p\alpha_jy_{t-j} +\sum_{i=0}^{k}\sum_{j=0}^{l_i}\beta_{j}^{(i)}x_{tm_i-j}^{(i)} + u_t,}
 ##'
-##' or alternatively
-##'
-##' \deqn{y_t=\sum_{h=0}^{(k+1)m}\theta_hx_{tm-h}+\mathbf{z_t}\mathbf{\beta}+u_t,}
-##' where \eqn{m} is the frequency ratio and
-##' \eqn{k} is the number of lags included in the regression. 
-##'
+##' where \eqn{x_\tau^{(i)}}, \eqn{i=0,...k} are regressors of higher (or similar) frequency than \eqn{y_t}. 
 ##' Given certain assumptions the coefficients can be estimated using usual OLS and they have the familiar properties associated with simple linear regression.
 ##'
-##' MIDAS regression involves times series with different frequencies.
-##' 
 ##' @export
 midas_u <- function(formula, data ,...) {
     Zenv <- new.env(parent=environment(formula))
@@ -114,9 +107,9 @@ midas_u <- function(formula, data ,...) {
 ##' \item{rhs}{the function which evaluates the right-hand side of the MIDAS regression}
 ##' \item{gen_midas_coef}{the function which generates the MIDAS coefficients of MIDAS regression}
 ##' \item{opt}{the output of optimisation procedure}
-##' \item{argmap.opt}{the list containing the name of optimisation function together with arguments for optimisation function}
-##' \item{start.opt}{the starting values used in optimisation}
-##' \item{start.list}{the starting values as a list}
+##' \item{argmap_opt}{the list containing the name of optimisation function together with arguments for optimisation function}
+##' \item{start_opt}{the starting values used in optimisation}
+##' \item{start_list}{the starting values as a list}
 ##' \item{call}{the call to the function}
 ##' \item{terms}{terms object}
 ##' \item{gradient}{gradient of NLS objective function}
@@ -135,14 +128,14 @@ midas_u <- function(formula, data ,...) {
 ##' @seealso midas_r.midas_r
 ##' @examples
 ##' ##The parameter function
-##' theta.h0 <- function(p, dk, ...) {
+##' theta_h0 <- function(p, dk, ...) {
 ##'    i <- (1:dk-1)/100
 ##'    pol <- p[3]*i + p[4]*i^2
 ##'    (p[1] + p[2]*i)*exp(pol)
 ##' }
 ##'
 ##' ##Generate coefficients
-##' theta0 <- theta.h0(c(-0.1,10,-10,-10),4*12)
+##' theta0 <- theta_h0(c(-0.1,10,-10,-10),4*12)
 ##'
 ##' ##Plot the coefficients
 ##' plot(theta0)
@@ -156,12 +149,12 @@ midas_u <- function(formula, data ,...) {
 ##' x <- window(xx, start=start(y))
 ##' 
 ##' ##Fit restricted model
-##' mr <- midas_r(y~fmls(x,4*12-1,12,theta.h0)-1,
+##' mr <- midas_r(y~fmls(x,4*12-1,12,theta_h0)-1,
 ##'               list(y=y,x=x),
 ##'               start=list(x=c(-0.1,10,-10,-10)))
 ##'
 ##' ##Include intercept and trend in regression
-##' mr.it <- midas_r(y~fmls(x,4*12-1,12,theta.h0)+trend,
+##' mr_it <- midas_r(y~fmls(x,4*12-1,12,theta_h0)+trend,
 ##'                  list(data.frame(y=y,trend=1:500),x=x),
 ##'                  start=list(x=c(-0.1,10,-10,-10)))
 ##' 
@@ -173,25 +166,26 @@ midas_u <- function(formula, data ,...) {
 ##' trend <- 1:length(y.ar)
 ##' 
 ##' ##Fit AR(1) model
-##' mr.ar <- midas_r(y.ar ~ trend + mls(y.ar, 1, 1) +
+##' mr_ar <- midas_r(y.ar ~ trend + mls(y.ar, 1, 1) +
 ##'                  fmls(xx, 11, 12, nealmon),
 ##'                  start = list(xx = rep(0, 3)))
 ##' 
 ##' ##First order MIDAS-AR* restricted model 
-##' mr.arstar <-  midas_r(y.ar ~ trend + mls(y.ar, 1, 1, "*")
+##' mr_arstar <-  midas_r(y.ar ~ trend + mls(y.ar, 1, 1, "*")
 ##'                      + fmls(xx, 11, 12, nealmon),
 ##'                      start = list(xx = rep(0, 3)))
 ##'
 ##' @details Given MIDAS regression:
 ##'
-##' \deqn{y_t=\sum_{j=0}^k\sum_{i=0}^{m-1}\theta_{jm+i} x_{(t-j)m-i}+\mathbf{z_t}\beta+u_t}
-##'
+##' \deqn{y_t = \sum_{j=1}^p\alpha_jy_{t-j} +\sum_{i=0}^{k}\sum_{j=0}^{l_i}\beta_{j}^{(i)}x_{tm_i-j}^{(i)} + u_t,}
+##' 
 ##' estimate the parameters of the restriction
 ##'
-##' \deqn{\theta_h=g(h,\lambda),}
-##' where \eqn{h=0,...,(k+1)m}, together with coefficients \eqn{\beta} corresponding to additional low frequency regressors.
+##' \deqn{\beta_j^{(i)}=g^{(i)}(j,\lambda).}
 ##'
-##' MIDAS regression involves times series with different frequencies. 
+##' Such model is called ADL-MIDAS regression. It is not required that all the coefficients should be restricted, i.e the function \eqn{g^{(i)}}
+##' might be an identity function. Model with no restrictions is called U-MIDAS model. The regressors \eqn{x_\tau^{(i)}} must be of higher
+##' (or of the same) frequency as the dependent variable \eqn{y_t}. 
 ##'
 ##' MIDAS-AR* (a model with a common factor, see (Clements and Galvao, 2008)) can be estimated by specifying additional argument, see an example.
 ##'
@@ -271,7 +265,7 @@ update.midas_r <- function(object, formula.,..., evaluate = TRUE) {
     if(!("start" %in% names(extras))) {        
         if(!("start" %in% names(call) && is.null(call$start))) {
             call$start <- ustart
-            object$start.opt <- cf
+            object$start_opt <- cf
         }
     } else {
         if(is.null(extras$start)) {
@@ -282,18 +276,18 @@ update.midas_r <- function(object, formula.,..., evaluate = TRUE) {
             cstart <- eval(call$start,object$Zenv)
             ustart[names(cstart)] <- cstart
             call$start <- ustart
-            object$start.opt <- unlist(ustart)
+            object$start_opt <- unlist(ustart)
         }
     }        
     if (evaluate) {
-        if(!missing(formula.) || exists("data", as.list(extras)) || exists("weight_gradients", as.list(extras)) || redo) {
+        if(!missing(formula.) || "data" %in% names(extras)  || "weight_gradients" %in% names(extras) || redo) {
             eval(call, parent.frame())
         } else {
             ##If we got here, we assume that we do not need to reevaluate terms.
             if(!is.null(extras$Ofunction)) {
                 Ofunction <- eval(extras$Ofunction)
                 extras$Ofunction <- NULL
-            } else Ofunction <- object$argmap.opt$Ofunction            
+            } else Ofunction <- object$argmap_opt$Ofunction            
             dotargnm <- names(extras)
             if (length(dotargnm) > 0) {
                 offending <- dotargnm[!dotargnm %in% names(formals(Ofunction))]
@@ -305,11 +299,11 @@ update.midas_r <- function(object, formula.,..., evaluate = TRUE) {
             else {
                 extras <- NULL
             }
-            if (Ofunction != object$argmap.opt$Ofunction) {
+            if (Ofunction != object$argmap_opt$Ofunction) {
                 argmap <- c(list(Ofunction = Ofunction), extras)
             }
             else {
-                argmap <- object$argmap.opt
+                argmap <- object$argmap_opt
                 argmap$Ofunction <- NULL
                 argnm <- union(names(argmap), names(extras))
                 marg <- vector("list", length(argnm))
@@ -320,7 +314,7 @@ update.midas_r <- function(object, formula.,..., evaluate = TRUE) {
                 argmap <- c(list(Ofunction = Ofunction), marg)
             }
             object$call <- call
-            object$argmap.opt <- argmap
+            object$argmap_opt <- argmap
             midas_r.fit(object)
         }
     }
@@ -336,11 +330,11 @@ update.midas_r <- function(object, formula.,..., evaluate = TRUE) {
 ##' @return \code{\link{midas_r}} object
 ##' @author Vaidotas Zemlys
 midas_r.fit <- function(x) {
-    args <- x$argmap.opt
+    args <- x$argmap_opt
     function.opt <- args$Ofunction
     args$Ofunction <- NULL
     if(function.opt=="optim" | function.opt=="spg") {  
-        args$par <- x$start.opt
+        args$par <- x$start_opt
         args$fn <- x$fn0
         if(x$use_gradient) {
             args$gr <- x$gradient
@@ -354,7 +348,7 @@ midas_r.fit <- function(x) {
         x$convergence <- opt$convergence
     }
     if(function.opt=="optimx") {  
-        args$par <- x$start.opt
+        args$par <- x$start_opt
         args$fn <- x$fn0
         if(x$use_gradient) {
             args$gr <- x$gradient
@@ -387,7 +381,7 @@ midas_r.fit <- function(x) {
         }
         y <- x$model[,1]
         args$formula <- formula(y~rhs(p))
-        args$start <- list(p=x$start.opt)
+        args$start <- list(p=x$start_opt)
         opt <- try(do.call("nls",args),silent=TRUE)
         if(inherits(opt,"try-error")) {
             stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
@@ -769,9 +763,9 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
          rhs=mdsrhs,
          gen_midas_coef = all_coef,
          opt=NULL,
-         argmap.opt=control,
-         start.opt=starto,
-         start.list=start,
+         argmap_opt=control,
+         start_opt=starto,
+         start_list=start,
          call=cl,
          terms=mt,
          gradient=gr,

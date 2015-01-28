@@ -3,7 +3,7 @@
 ##' Estimates non-parametric MIDAS regression accodring Breitung et al.
 ##' 
 ##' @title Estimate non-parametric MIDAS regression
-##' @param x formula specifying MIDAS regression 
+##' @param formula formula specifying MIDAS regression 
 ##' @param data a named list containing data with mixed frequencies
 ##' @param lambda smoothing parameter, defaults to \code{NULL}, which means that it is chosen by minimising AIC.
 ##' @return a \code{midas_r_np} object
@@ -18,9 +18,9 @@
 ##' x <- window(diff(USunempr),start=1949)
 ##' trend <- 1:length(y)
 ##' midas_r_np(y~trend+fmls(x,12,12))
-midas_r_np <- function(x,data,lambda=NULL) {
-    Zenv <- new.env(parent=environment(x))
-
+midas_r_np <- function(formula, data, lambda=NULL) {
+    Zenv <- new.env(parent=environment(formula))
+   
     if(missing(data)) {
         ee <- NULL
     }
@@ -30,11 +30,11 @@ midas_r_np <- function(x,data,lambda=NULL) {
     }
     
     assign("ee",ee,Zenv)
-    x <- as.formula(x)
+    formula <- as.formula(formula)
     cl <- match.call()    
     mf <- match.call(expand.dots = FALSE)
-    mf$x <- x
-    m <- match(c("x", "data"), names(mf), 0L)
+    mf$formula <- formula
+    m <- match(c("formula", "data"), names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf[[1L]] <- as.name("model.frame")
     mf[[3L]] <- as.name("ee")   

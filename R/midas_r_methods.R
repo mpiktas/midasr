@@ -165,7 +165,7 @@ print.midas_r <- function(x, digits=max(3,getOption("digits")-3),...) {
     cat(" model:", deparse(formula(x)),"\n")
     print(coef(x),digits = digits, ...)
     cat("\n")
-    cat("Function", x$argmap.opt$Ofunction, "was used for fitting\n")
+    cat("Function", x$argmap_opt$Ofunction, "was used for fitting\n")
     invisible(x)
 }
 
