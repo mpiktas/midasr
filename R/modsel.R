@@ -35,7 +35,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables("X")
 ##' @details This function estimates models sequentially increasing the midas lag from \code{kmin} to \code{kmax} of the last term of the given formula
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
-hf_lags_table<- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hAh_test"),Ofunction="optim",weight_gradients=NULL,...) {
+hf_lags_table<- function(formula,data,start,from,to,IC=c("AIC","BIC"),test=c("hAh_test"),Ofunction="optim",weight_gradients=NULL, ...) {
 
     if(!identical(names(from),names(to)))stop("The names of lag structure start and end should be identical")
     from <- as.list(from)
@@ -303,7 +303,7 @@ weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh_
     if(length(start)==0)start <- NULL
     midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,weight_gradients=weight_gradients,...)
 }
-
+s
 
 ##' Create a weight and lag selection table for MIDAS regression model
 ##'
@@ -431,6 +431,7 @@ midas_r_ic_table <- function(formula,data=NULL,start=NULL,table,IC=c("AIC","BIC"
         cll <- new_cl
         cll[[1]] <- as.name("midas_r")
         cll$formula <- formula(mm$mt)
+        environment(cll$formula) <- Zenv
         cll$start <- mm$start
         res <- prepmidas_r(mm$y,mm$X,mm$mt,Zenv,cll,args,mm$start,Ofunction,weight_gradients,mm$itr$lagsTable)
         class(res) <- "midas_r"
