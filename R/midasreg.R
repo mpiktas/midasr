@@ -183,7 +183,7 @@ midas_u <- function(formula, data ,...) {
 ##'
 ##' \deqn{\beta_j^{(i)}=g^{(i)}(j,\lambda).}
 ##'
-##' Such model is called ADL-MIDAS regression. It is not required that all the coefficients should be restricted, i.e the function \eqn{g^{(i)}}
+##' Such model is a generalisation of so called ADL-MIDAS regression. It is not required that all the coefficients should be restricted, i.e the function \eqn{g^{(i)}}
 ##' might be an identity function. Model with no restrictions is called U-MIDAS model. The regressors \eqn{x_\tau^{(i)}} must be of higher
 ##' (or of the same) frequency as the dependent variable \eqn{y_t}. 
 ##'
