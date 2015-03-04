@@ -7,7 +7,7 @@
 \method{forecast}{midas_r}(object, newdata = NULL, se = FALSE,
   level = c(80, 95), fan = FALSE, npaths = 999, method = c("static",
   "dynamic"), insample = get_estimation_sample(object),
-  show_progress = TRUE, ...)
+  show_progress = TRUE, add_ts_info = FALSE, ...)
 }
 \arguments{
 \item{object}{midas_r object}
@@ -27,6 +27,8 @@
 \item{insample}{a list containing the historic mixed frequency data}
 
 \item{show_progress}{logical, if \code{TRUE}, the progress bar is shown if \code{se = TRUE}}
+
+\item{add_ts_info}{logical, if \code{TRUE}, the forecast is cast as \code{ts} object. Some attempts are made to guess the correct start, by assuming that the response variable is a \code{ts} object of \code{frequency} 1. If \code{FALSE}, then the result is simply a numeric vector.}
 
 \item{...}{additional arguments to \code{simulate.midas_r}}
 }

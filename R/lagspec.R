@@ -35,8 +35,6 @@ nealmon <- function(p,d,m) {
 }
 
 
-##Improve the following documentation                                      
-
 ##' Produces weights for aggregates based MIDAS regression
 ##'
 ##' Suppose a weight function \eqn{w(\beta,\theta)} satisfies the following equation:

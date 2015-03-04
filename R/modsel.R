@@ -303,7 +303,6 @@ weights_table <- function(formula,data,start=NULL,IC=c("AIC","BIC"),test=c("hAh_
     if(length(start)==0)start <- NULL
     midas_r_ic_table(formula,data,start=start,table=table,IC=IC,test=test,Ofunction=Ofunction,weight_gradients=weight_gradients,...)
 }
-s
 
 ##' Create a weight and lag selection table for MIDAS regression model
 ##'

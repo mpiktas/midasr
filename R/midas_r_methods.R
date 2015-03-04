@@ -355,6 +355,7 @@ static_forecast <- function(object, h, insample, outsample, yname) {
 ##' @param method the forecasting method, either \code{"static"} or \code{"dynamic"}
 ##' @param insample a list containing the historic mixed frequency data 
 ##' @param show_progress logical, if \code{TRUE}, the progress bar is shown if \code{se = TRUE}
+##' @param add_ts_info logical, if \code{TRUE}, the forecast is cast as \code{ts} object. Some attempts are made to guess the correct start, by assuming that the response variable is a \code{ts} object of \code{frequency} 1. If \code{FALSE}, then the result is simply a numeric vector.
 ##' @param ... additional arguments to \code{simulate.midas_r}
 ##' @return an object of class \code{"forecast"}, a list containing following elements:
 ##'
@@ -409,7 +410,9 @@ static_forecast <- function(object, h, insample, outsample, yname) {
 forecast.midas_r <- function(object, newdata=NULL, se = FALSE, level=c(80,95),
                              fan=FALSE, npaths=999,
                              method=c("static","dynamic"), insample=get_estimation_sample(object),
-                             show_progress = TRUE, ...) {
+                             show_progress = TRUE, add_ts_info = FALSE, ...) {
+    method <- match.arg(method)
+    
     pred <- point_forecast.midas_r(object, newdata = newdata, method = method, insample = insample)
     if(se) {
         sim <- simulate(object, nsim = npaths, future = TRUE, newdata = newdata, method = method, insample = insample, show_progress = show_progress, ...)
@@ -432,7 +435,16 @@ forecast.midas_r <- function(object, newdata=NULL, se = FALSE, level=c(80,95),
         lower <- NULL
         upper <- NULL
     }
-    
+    xout <- object$model[, 1]
+    if(add_ts_info) {
+        xstart <- 1
+        if(!is.null(rownames(object$model))) {
+            xstart <- as.numeric(rownames(object$model)[1])
+            if(is.na(xstart)) xstart <- 1
+            }
+        xout <- ts(xout, start = xstart, frequency = 1)
+        pred <- ts(pred, start = end(xout)+1, frequency = 1)
+        }
     return(structure(list(method = paste0("MIDAS regression forecast (",method,")"),
                           model = object,
                           level = level,
@@ -441,7 +453,7 @@ forecast.midas_r <- function(object, newdata=NULL, se = FALSE, level=c(80,95),
                           upper = upper,
                           fitted = predict(object),
                           residuals = residuals(object),                          
-                          x = object$model[, 1]
+                          x = xout
                           ), class = "forecast"))
 }
 
