@@ -1,6 +1,6 @@
 Package: midasr
 Title: Mixed Data Sampling Regression
-Description: Econometric methods for mixed frequency time series data analysis
+Description: Methods and tools for mixed frequency time series data analysis. Allows estimation, model selection and forecasting for MIDAS regressions.
 URL: http://mpiktas.github.io/midasr/
 Version: 0.4
 Maintainer: Vaidotas Zemlys <zemlys@gmail.com>
