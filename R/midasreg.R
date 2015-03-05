@@ -705,9 +705,9 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
                 } else if(j == dind) {
                   hfv <- !sapply(lagsTable, is.null)
                   for(k in which(hfv)) {
-                    for(cl in 1:ncol(mlv) + 1) {
+                    for(ccl in 1:ncol(mlv) + 1) {
                       ltb <- lagsTable[[k]]
-                      mlv[pindm[[k]]$row, cl - 1] <- mlv[ind$row, cl - 1] + rf[[k]](pp[[k]]) * ltb[rowSums(ltb) != 0, cl]
+                      mlv[pindm[[k]]$row, ccl - 1] <- mlv[ind$row, ccl - 1] + rf[[k]](pp[[k]]) * ltb[rowSums(ltb) != 0, ccl]
                     }
                   }
                 }

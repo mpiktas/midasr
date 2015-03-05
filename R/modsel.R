@@ -424,7 +424,7 @@ midas_r_ic_table <- function(formula,data=NULL,start=NULL,table,IC=c("AIC","BIC"
     
     if("Ofunction" %in% names(new_cl)) new_cl$Ofunction<- eval(new_cl$Ofunction)
     if("weight_gradients" %in% names(new_cl)) new_cl$weight_gradients <- eval(new_cl$weight_gradients)
-    if(is.null(eval(new_cl$data))) new_cl$data <- NULL
+    if(is.null(eval(new_cl$data,parent.frame()))) new_cl$data <- NULL
     
     mrm <- lapply(modellist,function(mm) {
         cll <- new_cl
