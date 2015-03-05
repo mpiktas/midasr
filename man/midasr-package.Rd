@@ -4,13 +4,12 @@
 \name{midasr-package}
 \alias{midasr}
 \alias{midasr-package}
-\title{Estimating and testing MIDAS regression}
+\title{Mixed Data Sampling Regression}
 \description{
-Package for estimating and testing MIDAS regression.
+Package for estimating, testing and forecasting MIDAS regression.
 }
 \details{
-The main feature of this package is function \code{\link{hAh_test}}
-which performs test whether coefficients of MIDAS regression have certain functional form
+Methods and tools for mixed frequency time series data analysis. Allows estimation, model selection and forecasting for MIDAS regressions.
 }
 \author{
 Virmantas Kvedaras \email{virmantas.kvedaras@mif.vu.lt}, Vaidotas Zemlys (maintainer) \email{zemlys@gmail.com}
