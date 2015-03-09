@@ -399,22 +399,21 @@ midas_r.fit <- function(x) {
     x
 }
 
-##' Prepare necessary objects for fitting of the MIDAS regression
-##'
-##' Prepare necessary objects for fitting of the MIDAS regression
-##' @param y the response
-##' @param X the model matrix
-##' @param mt the terms of the formula
-##' @param Zenv the environment to evaluate the formula
-##' @param cl call of the function
-##' @param args additional argument
-##' @param start starting values
-##' @param Ofunction the optimisation function
-##' @param weight_gradients a list of gradient functions for weights
-##' @param lagsTable the lagstable from \link{checkARstar}
-##' @param unrestricted the unrestricted model
-##' @param guess_start if TRUE, get the initial values for non-MIDAS terms via OLS, if FALSE, initialize them with zero.
-##' @author Vaidotas Zemlys
+## Prepare necessary objects for fitting of the MIDAS regression
+##
+## y the response
+## X the model matrix
+## mt the terms of the formula
+## Zenv the environment to evaluate the formula
+## cl call of the function
+## args additional argument
+## start starting values
+## Ofunction the optimisation function
+## weight_gradients a list of gradient functions for weights
+## lagsTable the lagstable from checkARstar
+## unrestricted the unrestricted model
+## guess_start if TRUE, get the initial values for non-MIDAS terms via OLS, if FALSE, initialize them with zero.
+## Vaidotas Zemlys
 prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradients, lagsTable, unrestricted = NULL, guess_start = TRUE) {
 
     start <- start[!sapply(start,is.null)]
@@ -913,11 +912,9 @@ update_weights <- function(expr,tb) {
     return(expr)
 }
 
-##' Check whether the MIDAS model is MIDAS-AR* model
-##'
-##' Checks whether the MIDAS model is MIDAS-AR* model and provides necessary modifications
-##' @param trms terms of the model formula
-##' @author Julius Vainora
+## Check whether the MIDAS model is MIDAS-AR* model
+##
+## authored by Julius Vainora
 checkARstar <- function(trms) {
   vars <- as.list(attr(trms, "variables"))[-2:-1]
   env <- environment(trms)
