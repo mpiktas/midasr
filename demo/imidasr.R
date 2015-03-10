@@ -14,7 +14,7 @@ x <- window(xx, start=start(y))
 
 dx <- c(NA,diff(x))
 
-pp1 <- function(p,d)cumsum(theta.h0(p,d))
+pp1 <- function(p,d)cumsum(theta_h0(p,d))
 
 ###Do the transformation by hand
 mr <- midas_r(y~fmls(dx,4*12-1,12,pp1)+mls(x,4*12,12)-1,start=list(dx=c(-0.1,10,-10,-10)))
