@@ -385,7 +385,7 @@ static_forecast <- function(object, h, insample, outsample, yname) {
 ##' ##Forecast horizon
 ##' h <- 3
 ##' ##Declining unemployment
-##' xn <- rep(-0.1, 12*3)
+##' xn <- rep(-0.1, 12*h)
 ##' ##New trend values
 ##' trendn <- length(y) + 1:h
 ##' 
@@ -443,7 +443,7 @@ forecast.midas_r <- function(object, newdata=NULL, se = FALSE, level=c(80,95),
             if(is.na(xstart)) xstart <- 1
             }
         xout <- ts(xout, start = xstart, frequency = 1)
-        pred <- ts(pred, start = end(xout)+1, frequency = 1)
+        pred <- ts(pred, start = end(xout)[1]+1, frequency = 1)
         }
     return(structure(list(method = paste0("MIDAS regression forecast (",method,")"),
                           model = object,
