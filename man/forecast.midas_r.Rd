@@ -67,7 +67,7 @@ mr <- midas_r(y ~ trend + fmls(x, 23, 12, nealmon), start = list(x = rep(0, 3)))
 ##Forecast horizon
 h <- 3
 ##Declining unemployment
-xn <- rep(-0.1, 12*3)
+xn <- rep(-0.1, 12*h)
 ##New trend values
 trendn <- length(y) + 1:h
 
