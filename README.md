@@ -1,3 +1,5 @@
+[![Coverage Status](https://img.shields.io/coveralls/mpiktas/midasr.svg)](https://coveralls.io/r/mpiktas/midasr?branch=master)
+
 # midasr
 
 The **midasr** R package provides econometric methods for working with mixed frequency data. The package provides tools for estimating time series MIDAS regression, where response and explanatory variables are of different frequency, e.g. quarterly vs monthly. The fitted regression model can be tested for adequacy and then used for forecasting. More specifically, the following main functions are available:
