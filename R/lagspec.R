@@ -385,7 +385,7 @@ harstep_gradient <- function(p,d,m) {
 #' 
 #' @title Generalized exponential MIDAS coefficients
 #' @param p a vector of parameters
-#' @param dk number of coefficients
+#' @param d number of coefficients
 #' @param m the frequency, currently ignored
 #'
 #' @return a vector of coefficients
@@ -407,7 +407,7 @@ genexp <- function(p, d, m) {
 #' 
 #' @title Gradient of feneralized exponential MIDAS coefficient generating function
 #' @param p a vector of parameters
-#' @param dk number of coefficients
+#' @param d number of coefficients
 #' @param m the frequency, currently ignored
 #'
 #' @return a vector of coefficients

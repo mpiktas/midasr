@@ -9,9 +9,9 @@ genexp_gradient(p, d, m)
 \arguments{
 \item{p}{a vector of parameters}
 
-\item{m}{the frequency, currently ignored}
+\item{d}{number of coefficients}
 
-\item{dk}{number of coefficients}
+\item{m}{the frequency, currently ignored}
 }
 \value{
 a vector of coefficients
