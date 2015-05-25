@@ -590,9 +590,9 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
         wi[weight_inds] <- TRUE
         Xstart <- mapply(function(fun,st,inds,iswhgt) {        
             if(iswhgt) {
-                X[,inds] %*% fun(st)
+                X[, inds, drop = FALSE] %*% fun(st)
             }
-            else X[,inds]
+            else X[, inds, drop = FALSE]
         }, rf,start_default,xinds,wi,SIMPLIFY=FALSE)
 
         npxx <- cumsum(sapply(Xstart,function(x) {
