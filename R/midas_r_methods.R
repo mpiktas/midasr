@@ -136,7 +136,7 @@ summary.midas_r <- function(object, vcov.=vcovHAC, df=NULL, prewhite=TRUE, ...) 
     param <- cbind(param,se,tval,pval)
     dimnames(param) <- list(pnames, c("Estimate", "Std. Error", 
         "t value", "Pr(>|t|)"))
-    ans <- list(formula=formula(object$terms),residuals=r,sigma=sqrt(resvar),
+    ans <- list(formula=formula(object$terms), residuals=r, sigma=sqrt(resvar),
                 df=c(p,rdf), cov.unscaled=XDtXDinv, call=object$call,
                 coefficients=param,midas_coefficients=coef(object, midas = TRUE),
                 r_squared = r_squared, adj_r_squared = adj_r_squared)
@@ -179,12 +179,6 @@ estfun.midas_r <- function(x,...) {
     rval
 }
 
-##' @export
-##' @method vcov midas_r
-vcov.midas_r <- function(x,...) {
-    sm <- summary(object)
-    sm$cov.unscaled * sm$sigma^2
-}
 
 ##' @export
 ##' @method bread midas_r
