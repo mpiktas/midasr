@@ -46,7 +46,7 @@ test_that("midas_r picks up data from main R environment",{
 
 test_that("NLS problem solution is close to the DGP", {
     a <- midas_r(y~trend+mls(x,0:7,4,nealmon)+mls(z,0:16,12,nealmon),start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)))
-    expect_that(sum(abs(coef(eq.r) - c(2,0.1,c(1,-0.5),c(2,0.5,-0.1)))), is_less_than(1))
+    expect_that(sum(abs(coef(a) - c(2,0.1,c(1,-0.5),c(2,0.5,-0.1)))), is_less_than(1))
     expect_that(sum(abs(coef(a,midas=TRUE)-c(2,0.1,fn_x,fn_z))), is_less_than(1))
 })
 
@@ -83,7 +83,7 @@ test_that("Gradient passing works", {
                      weight_gradients=list(nealmon = nealmon_gradient))
     
     dt <- deriv_tests(eq_r2)
-    expect_that(sum(abs(dt$gradient))/nrow(a$model), is_less_than(1e-3))
+    expect_that(sum(abs(dt$gradient))/nrow(eq_r2$model), is_less_than(1e-3))
     })
 
 test_that("Term info gathering works", {
