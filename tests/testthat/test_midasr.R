@@ -73,7 +73,7 @@ test_that("Term info gathering works", {
     a <- midas_r(y~trend+mls(x,0:7,4,nealmon)+mls(z,0:16,12,nealmon),start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)))
     expect_that(names(coef(a)), is_equivalent_to(c("(Intercept)", "trend", "x1", "x2", "z1", "z2", "z3")))         
     expect_that(length(coef(a)), equals(7))
-    expect_that(length(coef(a), midas = TRUE), equals(27))
+    expect_that(length(coef(a, midas = TRUE)), equals(27))
     expect_that(names(a$term_info), is_equivalent_to(c("(Intercept)", "trend", "x", "z")))
     
     lgs <- lapply(a$term_info,"[[","lag_structure")
