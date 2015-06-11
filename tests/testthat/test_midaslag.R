@@ -9,3 +9,19 @@ test_that("Embedding to low frequency works as expected",{
     expect_equivalent(fmls(x,2,2),x3)
     expect_equivalent(fmls(x,1,1),x4)
 })
+
+test_that("mls and fmls give the same results",{
+    set.seed(123)
+    e <- rnorm(100)
+    a <- mls(e, 0:10, 10)
+    b <- fmls(e, 10, 10)
+    expect_that(sum(abs(a - b), na.rm = TRUE), equals(0))
+})
+
+test_that("fmls and dmls give the same results",{
+    set.seed(123)
+    e <- rnorm(100)
+    a <- fmls(c(NA, diff(e)), 10, 10)
+    b <- dmls(e, 10, 10)
+    expect_that(sum(abs(a - b), na.rm = TRUE), equals(0))
+})
