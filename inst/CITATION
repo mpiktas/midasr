@@ -8,5 +8,5 @@ bibentry(bibtype="Article",
 	                person("Vaidotas", "Zemlys")),
 	     journal = "Journal of Statistical Software",        
 		 year = 2015, 
-		 note = vers
+		 note = note
 		 )
