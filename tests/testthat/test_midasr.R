@@ -13,9 +13,17 @@ test_that("midas_r with start=NULL is the same as lm",{
     
     eq_u2<-midas_r(y~trend+mls(x,0:7,4)+mls(z,0:16,12),start=NULL)
     
+    eq_u3<-midas_u(y~trend+mls(x,0:7,4)+mls(z,0:16,12))
+    
     expect_that(sum(abs(coef(eq_u1) - coef(eq_u2))), equals(0))
+    expect_that(sum(abs(coef(eq_u3) - coef(eq_u2))), equals(0))
+})
+
+test_that("midas_r without start throws an error",{
+    expect_that(midas_r(y~trend+mls(x,0:7,4)+mls(z,0:16,12)), throws_error())
     
 })
+
 
 test_that("midas_r picks up data from main R environment",{
     eq_u1<-midas_r(y~trend+mls(x,0:7,4)+mls(z,0:16,12),start=NULL)
