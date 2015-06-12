@@ -1,3 +1,4 @@
+context("Testing midas_r")
 set.seed(1001)
 n<-250
 trend<-c(1:n)
@@ -34,6 +35,16 @@ test_that("midas_r without start throws an error",{
 })
 
 
+test_that("midas_u picks up data from main R environment",{
+    eq_u1<-midas_u(y~trend+mls(x,0:7,4)+mls(z,0:16,12))
+    
+    eq_u2<-midas_u(y~trend+mls(x,0:7,4)+mls(z,0:16,12), 
+                   data = list(y = y, trend = trend, x = x, z = z))
+    
+    expect_that(sum(abs(coef(eq_u1) - coef(eq_u2))), equals(0))
+    
+})
+
 test_that("midas_r picks up data from main R environment",{
     eq_u1<-midas_r(y~trend+mls(x,0:7,4)+mls(z,0:16,12),start=NULL)
     
@@ -43,6 +54,7 @@ test_that("midas_r picks up data from main R environment",{
     expect_that(sum(abs(coef(eq_u1) - coef(eq_u2))), equals(0))
     
 })
+
 
 test_that("NLS problem solution is close to the DGP", {
     a <- midas_r(y~trend+mls(x,0:7,4,nealmon)+mls(z,0:16,12,nealmon),start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)))
@@ -76,6 +88,54 @@ test_that("Updating Ofunction works", {
     
 })
 
+test_that("Updating Ofunction arguments  works", {
+    a <- midas_r(y~trend+mls(x,0:7,4,nealmon)+mls(z,0:16,12,nealmon),start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)))
+    b <- update(a, method = "CG")
+    
+    expect_that(b$argmap_opt$method == "CG", is_true())
+    
+})
+
+
+test_that("update works with start=NULL",{
+    eq_u1<-midas_r(y~trend+mls(x,0:7,4)+mls(z,0:16,12),start=NULL)
+    
+    a <- midas_r(y~trend+mls(x,0:7,4,nealmon)+mls(z,0:16,12,nealmon),start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)))
+    eq_u2 <- update(a, start = NULL)
+    
+    expect_that(sum(abs(coef(eq_u1) - coef(eq_u2))), equals(0))
+})
+
+test_that("updating gradient works",{
+    
+    a <- midas_r(y~trend+mls(x,0:7,4,nealmon)+mls(z,0:16,12,nealmon),start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)))
+    b <- update(a, weight_gradients = list(nealmon = nealmon_gradient))
+    
+    expect_that(sum(abs(b$term_info$x$gradient(c(1,0.1,0.1)) - nealmon_gradient(c(1,0.1,0.1),8))), equals(0))
+})
+
+test_that("updating data and starting values works",{
+    dt <- list(y = y, x = x, z = z, trend = trend)
+    spd <- split_data(dt, insample = 1:200, outsample = 201:250)     
+    
+    a <- midas_r(y~trend+mls(x,0:7,4,nealmon)+mls(z,0:16,12,nealmon),
+                 start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)),
+                 data = dt    
+                 )
+    
+    c <- midas_r(y~trend+mls(x,0:7,4,nealmon)+mls(z,0:16,12,nealmon),
+                 start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)),
+                 data = spd$indata    
+    )
+    b <- update(a, data = spd$indata, start = list(x=c(1,-0.5),z=c(2,0.5,-0.1), 
+                                                   `(Intercept)`= c$start_opt["(Intercept)"],
+                                                   trend = c$start_opt["trend"]))
+    
+        
+    expect_that(sum(abs(coef(b) - coef(c))), equals(0))
+})
+        
+
 test_that("Gradient passing works", {
     eq_r2 <- midas_r(y ~ trend + mls(x, 0:7, 4, nealmon) + 
                          mls(z, 0:16, 12, nealmon),
@@ -85,6 +145,28 @@ test_that("Gradient passing works", {
     dt <- deriv_tests(eq_r2)
     expect_that(sum(abs(dt$gradient))/nrow(eq_r2$model), is_less_than(1e-3))
     })
+
+test_that("Gradient passing works for default gradients", {
+    eq_r2 <- midas_r(y ~ trend + mls(x, 0:7, 4, nealmon) + 
+                         mls(z, 0:16, 12, nealmon),
+                     start = list(x = c(1, -0.5), z = c(2, 0.5, -0.1)),
+                     weight_gradients=list())
+    
+    expect_that(sum(abs(eq_r2$term_info$x$gradient(c(1,0.1,0.1)) - nealmon_gradient(c(1,0.1,0.1),8))), equals(0))
+    
+})
+
+
+test_that("Gradient passing works for nls", {
+    eq_r2 <- midas_r(y ~ trend + mls(x, 0:7, 4, nealmon) + 
+                         mls(z, 0:16, 12, nealmon),
+                     start = list(x = c(1, -0.5), z = c(2, 0.5, -0.1)),
+                     weight_gradients=list(nealmon = nealmon_gradient), Ofunction = "nls")
+    
+    dt <- deriv_tests(eq_r2)
+    expect_that(sum(abs(dt$gradient))/nrow(eq_r2$model), is_less_than(1e-3))
+})
+
 
 test_that("Term info gathering works", {
     a <- midas_r(y~trend+mls(x,0:7,4,nealmon)+mls(z,0:16,12,nealmon),start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)))
@@ -106,3 +188,4 @@ test_that("Term info gathering works", {
                 is_equivalent_to(nealmon(coef(a, term_names = "z"), 17)))
     
 })
+
