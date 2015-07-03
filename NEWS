@@ -1,3 +1,17 @@
+midasr 0.5
+============
+A bug fix release
+
+* Adapt to new CRAN policy, where all the functions not belonging to base must
+be imported.
+
+* Add generalized exponential lag specification function
+
+* Fix a small bug in forecast.midas_r, now correct start is set when time series
+info is added.
+
+* Start using testthat for testing the code.
+
 midasr 0.4
 ============
 * Remove unexported code
