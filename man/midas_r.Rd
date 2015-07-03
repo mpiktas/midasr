@@ -128,7 +128,4 @@ Virmantas Kvedaras, Vaidotas Zemlys
 \references{
 Clements, M. and Galvao, A., \emph{Macroeconomic Forecasting With Mixed-Frequency Data: Forecasting Output Growth in the United States}, Journal of Business and Economic Statistics, Vol.26 (No.4), (2008) 546-554
 }
-\seealso{
-midas_r.midas_r
-}
 

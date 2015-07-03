@@ -1082,6 +1082,7 @@ split_data <- function(data,insample,outsample) {
 ##' @param show_progress logical, TRUE to show progress bar, FALSE for silent evaluation
 ##' @return a list containing forecasts and tables of accuracy measures
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @importFrom utils setTxtProgressBar txtProgressBar capture.output
 ##' @export
 ##' @examples
 ##' set.seed(1001)  

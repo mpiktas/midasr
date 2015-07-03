@@ -14,7 +14,10 @@ Imports:
     MASS,
     numDeriv,
     Matrix,
-    forecast
+    forecast,
+    stats,
+    graphics,
+    utils
 License: GPL-2 | MIT + file LICENCE
 BugReports: https://github.com/mpiktas/midasr/issues
 Suggests: testthat

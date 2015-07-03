@@ -66,6 +66,7 @@
 ##' where \eqn{h=0,...,(k+1)m}. 
 ##' @export
 ##' @import numDeriv
+##' @importFrom stats pchisq
 hAh_test <- function(x) {
 
     prep <- prep_hAh(x)

@@ -125,7 +125,6 @@ midas_u <- function(formula, data ,...) {
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @references Clements, M. and Galvao, A., \emph{Macroeconomic Forecasting With Mixed-Frequency Data: Forecasting Output Growth in the United States}, Journal of Business and Economic Statistics, Vol.26 (No.4), (2008) 546-554
 ##' @rdname midas_r
-##' @seealso midas_r.midas_r
 ##' @examples
 ##' ##The parameter function
 ##' theta_h0 <- function(p, dk, ...) {
@@ -191,7 +190,8 @@ midas_u <- function(formula, data ,...) {
 ##'
 ##' The restriction function must return the restricted coefficients of
 ##' the MIDAS regression.
-##' 
+##'
+##' @importFrom stats as.formula formula model.matrix model.response terms lsfit
 ##' @export
 midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NULL,...) {
 
@@ -238,6 +238,7 @@ midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NU
 }
 
 ##' @method update midas_r
+##' @importFrom stats getCall update.formula setNames
 ##' @export
 update.midas_r <- function(object, formula.,..., evaluate = TRUE) {
     if (is.null(call <- getCall(object))) 
@@ -791,6 +792,7 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @import numDeriv
 ##' @import optimx
+##' @importFrom stats na.omit
 ##' @examples
 ##' 
 ##' data("USunempr")

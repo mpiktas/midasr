@@ -68,6 +68,7 @@ midas_sim <- function(n, x, theta, rand_gen = rnorm, innov = rand_gen(n, ...), .
 ##' @param ... additional arguments to function \code{rand_gen}.
 ##' @return a \code{ts} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @importFrom stats filter frequency rnorm
 ##' @export
 ##' @examples
 ##' theta_h0 <- function(p, dk) {
@@ -152,7 +153,7 @@ midas_auto_sim <- function(n, alpha, x, theta, rand_gen = rnorm, innov = rand_ge
 ##' trendn <- length(y) + 1:h
 ##'
 ##' simulate(mr, nsim = 10, future = TRUE, newdata = list(trend = trendn, x = xn))
-##' 
+##' @importFrom stats runif
 ##' @export
 simulate.midas_r <- function(object, nsim = 999, seed = NULL, future=TRUE, newdata=NULL,
                              insample = NULL,

@@ -11,6 +11,7 @@
 ##' @references Breitung J, Roling C, Elengikal S (2013). \emph{Forecasting inflation rates using daily data: A nonparametric MIDAS approach} Working paper, URL http://www.ect.uni-bonn.de/mitarbeiter/joerg-breitung/npmidas.
 ##' @export
 ##' @import Matrix
+##' @importFrom stats optimize
 ##' @examples
 ##' data("USunempr")
 ##' data("USrealgdp")

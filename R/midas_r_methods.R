@@ -43,7 +43,7 @@ deviance.midas_r <- function(object,...) {
 ##' 
 ##' ##Historical values taken into account
 ##' forecast(mr, list(x = xn))
-##'
+##' @importFrom stats fitted delete.response
 ##' @export
 predict.midas_r <- function(object, newdata, na.action = na.omit, ... ) {
     Zenv <- new.env(parent=parent.frame())
@@ -79,6 +79,7 @@ predict.midas_r <- function(object, newdata, na.action = na.omit, ... ) {
 predict.midas_u <- predict.midas_r
 
 ##' @export
+##' @importFrom stats deviance pt pnorm residuals printCoefmat
 ##' @method summary midas_r
 summary.midas_r <- function(object, vcov.=vcovHAC, df=NULL, prewhite=TRUE, ...) {
     r <- as.vector(residuals(object))
@@ -399,7 +400,7 @@ static_forecast <- function(object, h, insample, outsample, yname) {
 ##' fmr
 ##' summary(fmr)
 ##' plot(fmr)
-##' 
+##' @importFrom stats na.pass predict ts end quantile
 ##' @export 
 forecast.midas_r <- function(object, newdata=NULL, se = FALSE, level=c(80,95),
                              fan=FALSE, npaths=999,
@@ -593,6 +594,7 @@ NULL
 ##' mr <- midas_r(y ~ trend + fmls(x, 23, 12, nealmon), start = list(x = rep(0, 3)))
 ##' 
 ##' plot_midas_coef(mr)
+##' @importFrom graphics plot points
 ##' @export
 plot_midas_coef <- function(x, term_name=NULL, title = NULL, vcov. = sandwich, unrestricted = x$unrestricted, ...) {
     if(is.null(term_name)) {
