@@ -43,7 +43,7 @@ deviance.midas_r <- function(object,...) {
 ##' 
 ##' ##Historical values taken into account
 ##' forecast(mr, list(x = xn))
-##' @importFrom stats fitted delete.response
+##' @importFrom stats fitted delete.response coef
 ##' @export
 predict.midas_r <- function(object, newdata, na.action = na.omit, ... ) {
     Zenv <- new.env(parent=parent.frame())
