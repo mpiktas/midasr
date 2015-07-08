@@ -189,13 +189,29 @@ test_that("Term info gathering works", {
     
 })
 
-#if(FALSE) {
-#test_that("AR* model works", {
-#    a <- midas_r(y ~ trend + mls(y, c(1,4), 1, "*") + mls(x, 0:7, 4, nealmon) 
-#                 + mls(z, 0:16, 12, nealmon), start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)))
-#    b <- midas_r(y ~ trend + mls(y, c(1,4), 1) + mls(x, 0:7, 4, nealmon) 
-#                 + mls(z, 0:16, 12, nealmon), start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)))
-#})}
+
+test_that("AR* model works", {
+    a <- midas_r(y ~ trend + mls(y, c(1,4), 1, "*") + mls(x, 0:7, 4, nealmon) 
+                 + mls(z, 0:16, 12, nealmon), start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)))
+    
+    cfx <- coef(a, term_names = "x")
+    cfb <- a$term_info$x$weight(cfx)
+    mcfx <- coef(a, midas = TRUE, term_names = "x")
+    cfy <- coef(a, midas = TRUE, term_names = "y")
+    expect_that(sum(abs(mcfx[1:4] - cfb[1:4])), equals(0))
+    expect_that(sum(abs(c(cfb[5:8],rep(0,4))-cfb*cfy[1]-mcfx[5:12])), equals(0))
+    expect_that(sum(abs(-cfb*cfy[2]-mcfx[13:20])), equals(0))
+})
+
+test_that("AR* model works with gradient", {
+    a <- midas_r(y ~ trend + mls(y, c(1,4), 1, "*") + mls(x, 0:7, 4, nealmon) 
+                 + mls(z, 0:16, 12, nealmon), start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)), weight_gradients = list())
+    b <- midas_r(y ~ trend + mls(y, c(1,4), 1, "*") + mls(x, 0:7, 4, nealmon) 
+                 + mls(z, 0:16, 12, nealmon), start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)))
+    
+    expect_that(sum(abs(b$gradD(coef(a)) - a$gradD(coef(a)))), is_less_than(1e-9))
+})
+
 
 test_that("Midas_r_simple works", {
     a <- midas_r(y~trend+mls(x,0:7,4,nealmon)+mls(z,0:16,12,nealmon),start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)), Ofunction = "optimx")

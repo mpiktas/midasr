@@ -608,17 +608,16 @@ plot_midas_coef <- function(x, term_name=NULL, title = NULL, vcov. = sandwich, u
     }
     ti <- x$term_info[[term_name]]
     mcoef <- coef(x, midas = TRUE)[ti$midas_coef_index]
-    k <- length(mcoef)
+    lag_struct <- ti$lag_structure
     
     if(is.null(unrestricted)) {
         pd <- data.frame(restricted = mcoef, unrestricted=NA, lower=NA,upper=NA)
-        plot(0:(k-1), pd$restricted, col = "blue", ylab = "MIDAS coefficients", xlab="High frequency lag", type="l")
+        plot(lag_struct, pd$restricted, col = "blue", ylab = "MIDAS coefficients", xlab="High frequency lag", type="l")
         if(is.null(title)) {
             title(main = paste0("MIDAS coefficients for term ",term_name,": ",ti$weight_name))
         } else title(main = title)     
     } else {
         ucoef <- coef(unrestricted)[ti$midas_coef_index]        
-        k <- length(mcoef)
         sdval <- sqrt(diag(vcov.(unrestricted, ...)))
         sdval <- sdval[ti$midas_coef_index]
         
@@ -626,13 +625,13 @@ plot_midas_coef <- function(x, term_name=NULL, title = NULL, vcov. = sandwich, u
     
         ylim <- range(c(pd[,1],pd[,2],pd[,3],pd[,4]))
     
-        plot(0:(k-1), pd$unrestricted, col="black", ylab="MIDAS coefficients", xlab="High frequency lag", ylim = ylim)
+        plot(lag_struct, pd$unrestricted, col="black", ylab="MIDAS coefficients", xlab="High frequency lag", ylim = ylim)
         if(is.null(title)) {
             title(main = paste0("MIDAS coefficients for term ",term_name,": ",ti$weight_name, " vs unrestricted"))
         } else title(main = title)
-        points(c(0:(k - 1)), pd$restricted, type = "l", col = "blue")    
-        points(c(0:(k - 1)), pd$lower, type = "l", col = "red", lty = 2)
-        points(c(0:(k - 1)), pd$upper, type = "l", col = "red", lty = 2)
+        points(lag_struct, pd$restricted, type = "l", col = "blue")    
+        points(lag_struct, pd$lower, type = "l", col = "red", lty = 2)
+        points(lag_struct, pd$upper, type = "l", col = "red", lty = 2)
     }
     invisible(pd)
 }

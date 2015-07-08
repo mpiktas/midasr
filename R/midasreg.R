@@ -426,117 +426,88 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
         args$guess_start <- NULL
     }    
     terms.lhs <- as.list(attr(mt,"variables"))[-2:-1]
-    term.labels <- attr(mt,"term.labels") 
-
-    rfd <- vector("list",length(terms.lhs))
-
-    wterm <- function(fr,type="fmls") {
-         mf <- fr[-5]
-         mf[[1]] <- fr[[5]]
-         noarg <- length(formals(eval(fr[[5]],Zenv)))
-         if(noarg<2)stop("The weight function must have at least two arguments")
-         freq <- mf[[4]]         
-         mf <- mf[1:min(length(mf),noarg+1)]
-         for(j in 3:length(mf)) {
-             mf[[j]] <- eval(mf[[j]],Zenv)
-         }
-         lagstruct <- switch(type,
-                              fmls = 0:mf[[3]],
-                              dmls = 0:mf[[3]],
-                              mls = mf[[3]]
-                              )
-        
-         mf[[3]] <- switch(type,
-                           fmls = mf[[3]]+1,
-                           dmls = mf[[3]]+1, 
-                           mls = length(mf[[3]]))
-         rf <- function(p) {
-             mf[[2]] <- p
-             eval(mf,Zenv)
-         }
-
-         if(use_gradient) {
-             gmf <- mf
-             weight_name <- as.character(fr[[5]])
-             if(weight_name %in% names(weight_gradients)) {
-                 weight_gradient_name <- paste0(as.character(fr[[2]]),"_tmp_gradient_fun")
-                 gmf[[1]] <- as.name(weight_gradient_name)
-                 assign(weight_gradient_name,weight_gradients[[weight_name]],Zenv)
-             } else {
-                 #warning("Gradient function for weight ", weight_name, " is not present, using function ",weight_name,"_gradient for gradient")
-                 gmf[[1]] <- as.name(paste0(weight_name,"_gradient"))
-             }
-             grf <- function(p) {
-                 gmf[[2]] <- p
-                 eval(gmf,Zenv)
-             }
-         } else grf <- NULL
-         return(list(weight=rf,
-                     term_name=as.character(fr[[2]]),
-                     gradient=grf,
-                     start=rep(0,mf[[3]]),                    
-                     weight_name=as.character(fr[[5]]),
-                     frequency=freq,
-                     lag_structure=lagstruct
-                     )
-                
-                )
-    }
     
-    uterm <- function(name, k=1, lags, frequency) {
-        force(k)
-        list(weight=function(p)p,
-             term_name=name,
-             gradient=function(p)diag(k),
-             start=rep(0,k),             
-             weight_name="",
-             frequency = frequency,
-             lag_structure = lags)
-        
-    }
-
-    wuterm <- function(fr, fun) {
-        lags <- eval(fr[[3]],Zenv)
-        nol <- switch(fun,
-                      fmls = lags+1,
-                      dmls = lags+1,
-                      mls = length(lags)
-                      )
-        lagstruct <- switch(fun,
-                            fmls = 0:lags,
-                            dmls = 0:lags,
-                            mls = lags
-                            )
-        freq <- eval(fr[[4]],Zenv)
-        nm <- as.character(fr[[2]])
-        uterm(nm,nol,lagstruct,frequency=freq)
-    }
-    
-    for(i in 1:length(rfd)) {
-        fr <- terms.lhs[[i]]
-        fun <- as.character(fr)[1] 
-        rfd[[i]] <- if(fun %in% c("fmls","mls","dmls")){
-            if(length(fr)>=5 && fr[[5]] != "*") {
-                wterm(fr,fun)
-            } else {
-                wuterm(fr,fun)
-            }                         
+    dterm <- function(fr, ltb = NULL) {
+        term_name <- as.character(fr)[1]
+        weight_name <- ""
+        rf <- function(p)p
+        grf <- function(p)diag(1)
+        start <- 0
+        freq <- 1
+        lagstruct <- 0
+        if(term_name %in% c("mls", "fmls", "dmls")) {
+            type <- term_name
+            term_name <- as.character(fr[[2]])
+            freq <- eval(fr[[4]], Zenv)
+            lags <- eval(fr[[3]], Zenv)
+            nol <- switch(type,
+                          fmls = lags+1,
+                          dmls = lags+1,
+                          mls = length(lags)
+            )
+            lagstruct <- switch(type,
+                                fmls = 0:lags,
+                                dmls = 0:lags,
+                                mls = lags
+            )
+            start <- rep(0, nol)
+            grf <- function(p)diag(nol)
+            if(length(fr) > 4 && fr[[5]] != "*") {
+                mf <- fr[-5]
+                mf[[1]] <- fr[[5]]
+                weight_name <- as.character(fr[[5]])            
+                noarg <- length(formals(eval(fr[[5]], Zenv)))
+                if(noarg<2)stop("The weight function must have at least two arguments")            
+                mf <- mf[1:min(length(mf), noarg + 1)]
+                if(length(mf)>3) {
+                    for(j in 4:length(mf)) {
+                        mf[[j]] <- eval(mf[[j]], Zenv)
+                    }
+                }
+                mf[[3]] <- ifelse(is.null(ltb), nol, sum(ltb[, 1]))
+                rf <- function(p) {
+                    mf[[2]] <- p
+                    eval(mf,Zenv)
+                }
+                if(use_gradient) {
+                    gmf <- mf
+                    if(weight_name %in% names(weight_gradients)) {
+                        weight_gradient_name <- paste0(as.character(fr[[2]]),"_tmp_gradient_fun")
+                        gmf[[1]] <- as.name(weight_gradient_name)
+                        assign(weight_gradient_name,weight_gradients[[weight_name]],Zenv)
+                    } else {                                        
+                        gmf[[1]] <- as.name(paste0(weight_name,"_gradient"))
+                    }
+                    grf <- function(p) {
+                        gmf[[2]] <- p
+                        eval(gmf,Zenv)
+                    }
+                } else grf <- NULL
+            }
         }
-        else {
-            uterm(term.labels[i],1,0,1)
+        list(weight = rf,
+             term_name = term_name,
+             gradient = grf,
+             start = start,                    
+             weight_name = weight_name,
+             frequency = freq,
+             lag_structure = lagstruct
+        )
+    }
+    if(is.null(lagsTable)){
+        ltb <- rep(list(NULL), length(terms.lhs))
+    } else {
+        ltb <- lagsTable
+        if(attr(mt,"intercept")==1) {
+            ltb <- ltb[-1]   
         }
     }
-   
+    rfd <- mapply(dterm, terms.lhs, ltb, SIMPLIFY = FALSE)
+    
     if (attr(mt,"intercept")==1)  {
-        rfd <- c(list(list(weight=function(p)p,
-                           term_name="(Intercept)",
-                           gradient=function(p)return(matrix(1)),
-                           start=0,
-                           weight_name="",
-                           frequency = 1,
-                           lag_structure = 0
-                           )),rfd)
-        term.labels <- c("(Intercept)",term.labels)
+        intc <- dterm(expression(1))
+        intc$term_name <- "(Intercept)"
+        rfd <- c(list(intc), rfd)
     }
     
     rf <- lapply(rfd,"[[","weight")
@@ -553,7 +524,7 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     names(start_default) <- names(rf)
 
     ##If there are no weight functions, we have unrestricted MIDAS model.
-    if(length(weight_names)==0)Ofunction <- "lm"
+    if(length(weight_names) == 0)Ofunction <- "lm"
     else {
         if(is.null(start)) {            
             cl$formula <- update_weights(cl$formula,setNames(lapply(1:length(weight_names), function(x)""), weight_names))
@@ -580,7 +551,39 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
 
     for(i in 1:length(start_default))names(start_default[[i]]) <- NULL
 
-    initial_midas_coef <- mapply(function(fun,st)fun(st),rf,start_default,SIMPLIFY=FALSE)
+    
+    if(!is.null(lagsTable)) {
+        inones <- function(ones, intro) {
+            ones[ones == 1] <- intro
+            ones
+        }
+        yname <- all.vars(mt[[2]])
+        nms <- names(pinds)
+        all_coef2 <- function(p) {
+            pp <- lapply(pinds, function(x) p[x])
+            cr <- c(1, -p[pinds[[yname]]])
+            res <- mapply(function(fun, cf, tb) {
+                restr <- fun(cf)
+                if(is.null(tb)) {
+                    restr
+                } else {
+                    mltp <- rowSums(apply(tb, 2, inones, restr) %*% diag(cr))
+                    mltp[rowSums(tb)!= 0]
+                }
+            }, rf, pp, lagsTable, SIMPLIFY = FALSE)
+            return(res)
+        }
+    } else {    
+        all_coef2 <- function(p) {              
+            pp <- lapply(pinds,function(x)p[x])     
+            res <- mapply(function(fun,param)fun(param),rf,pp,SIMPLIFY=FALSE)
+            return(res)
+        }
+    }
+    
+    
+    initial_midas_coef <- all_coef2(unlist(start_default)) 
+
     if(sum(is.na(unlist(initial_midas_coef)))>0) stop("Check your starting values, NA in midas coefficients") 
     
     npx <- cumsum(sapply(initial_midas_coef,length))
@@ -589,12 +592,12 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     if(length(weight_names)>0 && guess_start) {
         wi <- rep(FALSE,length(rf))
         wi[weight_inds] <- TRUE
-        Xstart <- mapply(function(fun,st,inds,iswhgt) {        
+        Xstart <- mapply(function(cf,inds,iswhgt) {        
             if(iswhgt) {
-                X[, inds, drop = FALSE] %*% fun(st)
+                X[, inds, drop = FALSE] %*% cf
             }
             else X[, inds, drop = FALSE]
-        }, rf,start_default,xinds,wi,SIMPLIFY=FALSE)
+        }, initial_midas_coef, xinds,wi,SIMPLIFY=FALSE)
 
         npxx <- cumsum(sapply(Xstart,function(x) {
             ifelse(is.null(dim(x)),1,ncol(x))
@@ -614,32 +617,8 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     }
     
     starto <- unlist(start_default)
-   
-    if(!is.null(lagsTable)) {
-        yname <- all.vars(mt[[2]])
-        nms <- names(pinds)
-      all_coef <- function(p) {
-        pp <- lapply(pinds, function(x) p[x])
-        cr <- c(1, -p[pinds[[yname]]])
-        res <- mapply(function(fun, param) {
-          if(!is.null(lagsTable[[param]])) {
-            mltp <- rowSums(lagsTable[[param]] %*% diag(cr))
-            mltp <- mltp[rowSums(lagsTable[[param]]) != 0]
-          } else {
-            mltp <- 1
-          }
-          fun(pp[[param]]) * mltp
-        }, rf, 1:length(pp), SIMPLIFY = FALSE)
-        unlist(res)
-      }
-    } else {    
-      all_coef <- function(p) {              
-          pp <- lapply(pinds,function(x)p[x])     
-          res <- mapply(function(fun,param)fun(param),rf,pp,SIMPLIFY=FALSE)
-          unlist(res)
-      }
-    }
-    
+    ##This is workaround for AR* model
+    all_coef <- function(p) unlist(all_coef2(p)) 
     mdsrhs <- function(p) {       
         coefs <- all_coef(p)
         X%*%coefs
@@ -686,38 +665,59 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
             res
           }
         } else {
-          gradD <- function(p) {
-              dind <- which(names(pinds)==yname)
-            cr <- c(1, -p[pinds[[dind]]])
-            pp <- lapply(pinds, function(x) p[x])
-            grmat <- mapply(function(fun, param) fun(param), grf, pp, SIMPLIFY = FALSE)
-            if(length(grmat) == 1) {
-              res <- grmat[[1]]
-            } else {
-              res <- matrix(0, nrow = sum(rownos), ncol = sum(colnos))
-              mlv <- matrix(0, nrow = sum(rownos), ncol = length(pinds[[dind]]))
-              for(j in 1:length(grmat)) {
-                ind <- pindm[[j]]
-                mltp <- 1
-                if(!is.null(lagsTable[[j]])) {
-                  mltp <- rowSums(lagsTable[[j]] %*% diag(cr))
-                  mltp <- mltp[rowSums(lagsTable[[j]]) != 0]
-                } else if(j == dind) {
-                  hfv <- !sapply(lagsTable, is.null)
-                  for(k in which(hfv)) {
-                    for(ccl in 1:ncol(mlv) + 1) {
-                      ltb <- lagsTable[[k]]
-                      mlv[pindm[[k]]$row, ccl - 1] <- mlv[ind$row, ccl - 1] + rf[[k]](pp[[k]]) * ltb[rowSums(ltb) != 0, ccl]
-                    }
-                  }
-                }
-                res[ind$row,ind$col] <- grmat[[j]] * mltp
-                if(j == dind) 
-                  res[, ind$col] <- res[, ind$col] - mlv %*% grmat[[dind]]
-              }
+            expandD <- function(grm, ltb, cr) {
+                if(is.null(ltb)) {
+                    return(grm)
+                } else {        
+                    el <- lapply(data.frame(ltb), inones2, grm)
+                    mltp <- Reduce("+", mapply(`*`, el, cr, SIMPLIFY = FALSE))
+                    return(mltp[rowSums(ltb)!= 0, ])
+                } 
             }
-            res
-          }
+            
+            inones2 <- function(ones, intro) {
+                m <- matrix(0, nrow = length(ones), ncol = ncol(intro))
+                if(sum(ones) != nrow(intro)) stop("Wrong gradient for AR* term")
+                m[ones == 1, ] <- intro
+                m
+            }
+            
+            expandD2 <- function(fun, param, ltb, nparam = 1){
+                cf <- fun(param)
+                if(is.null(ltb)) return(matrix(0, nrow = length(cf), ncol = nparam))
+                else {
+                    mltp <- -apply(ltb, 2, inones, cf) 
+                    return(mltp[rowSums(ltb) != 0, -1, drop = FALSE])
+                }    
+            }
+            dind <- which(names(pinds)==yname)
+            cr <- c(1, -starto[pinds[[dind]]])
+            pp <- lapply(pinds, function(x) starto[x])
+            grmat1 <- mapply(function(fun, param) fun(param), grf, pp, SIMPLIFY = FALSE)
+            egrmat1 <- mapply(expandD, grmat1, lagsTable, SIMPLIFY = FALSE, MoreArgs = list(cr))
+            colnos <- sapply(egrmat1,ncol)
+            rownos <- sapply(egrmat1,nrow)
+            np <- length(colnos)
+            ccol <- cumsum(colnos)
+            rrow <- cumsum(rownos)
+            pindm <- cbind(c(1,rrow[-np]+1),rrow,
+                           c(1,ccol[-np]+1),ccol)
+            pindm <- apply(pindm,1,function(x)list(row=x[1]:x[2],col=x[3]:x[4]))
+            
+            gradD <- function(p) {   
+                cr <- c(1, -p[pinds[[dind]]])
+                pp <- lapply(pinds, function(x) p[x])
+                grmat <- mapply(function(fun, param) fun(param), grf, pp, SIMPLIFY = FALSE)
+                egrmat <- mapply(expandD, grmat, lagsTable, SIMPLIFY = FALSE, MoreArgs = list(cr))
+                res <- matrix(0,nrow=sum(rownos),ncol=sum(colnos))
+                gr_star <- do.call("rbind",mapply(expandD2, rf, pp , lagsTable, SIMPLIFY = FALSE, MoreArgs = list(length(pinds[[dind]]))))
+                res[, pinds[[dind]]] <- gr_star
+                for(j in 1:length(egrmat)) {
+                    ind <- pindm[[j]]
+                    res[ind$row,ind$col] <- egrmat[[j]]
+                }
+                res 
+            }
         }
         gr <- function(p) {
              XD <- X%*%gradD(p)
@@ -726,7 +726,6 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
         }
         ##Seems to work
     }
-    
     hess <- function(x)numDeriv::hessian(fn0,x)
       
     if(is.null(unrestricted)) {        
