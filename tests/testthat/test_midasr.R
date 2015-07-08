@@ -189,3 +189,49 @@ test_that("Term info gathering works", {
     
 })
 
+#if(FALSE) {
+#test_that("AR* model works", {
+#    a <- midas_r(y ~ trend + mls(y, c(1,4), 1, "*") + mls(x, 0:7, 4, nealmon) 
+#                 + mls(z, 0:16, 12, nealmon), start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)))
+#    b <- midas_r(y ~ trend + mls(y, c(1,4), 1) + mls(x, 0:7, 4, nealmon) 
+#                 + mls(z, 0:16, 12, nealmon), start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)))
+#})}
+
+test_that("Midas_r_simple works", {
+    a <- midas_r(y~trend+mls(x,0:7,4,nealmon)+mls(z,0:16,12,nealmon),start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)), Ofunction = "optimx")
+    fn_a <- function(p, d) {
+            c(nealmon(p[1:2],d=8),nealmon(p[3:5], d=17))
+            }
+    s <- midas_r_simple(y,cbind(mls(x, 0:7, 4), mls(z, 0:16, 12)), cbind(1, trend), fn_a, 
+                            startx = c(1, -0.5, 2, 0.5, -0.1), startz = a$start_opt[1:2])
+    
+    expect_that(sum(abs(coef(s)[c(6:7,1:5)]-coef(a)))
+, is_less_than(1e-11))
+})
+
+test_that("Midas_r_simple gradient works", {
+    a <- midas_r(y~trend+mls(x,0:7,4,nealmon)+mls(z,0:16,12,nealmon),start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)), Ofunction = "optimx", weight_gradients = list())
+    fn_a <- function(p, d) {
+        c(nealmon(p[1:2],d=8),nealmon(p[3:5], d=17))
+    }
+    gr_fn_a <- function(p, d) {
+        gr1 <- nealmon_gradient(p[1:2], d=8)
+        gr2 <- nealmon_gradient(p[3:5], d=17)
+        cbind(rbind(gr1, matrix(0, nrow = 17, ncol = 2)),
+            rbind(matrix(0, nrow = 8, ncol = 3), gr2))
+    }
+    
+    s <- midas_r_simple(y,cbind(mls(x, 0:7, 4), mls(z, 0:16, 12)), cbind(1, trend), fn_a, 
+                        startx = c(1, -0.5, 2, 0.5, -0.1), startz = a$start_opt[1:2], 
+                        grw = gr_fn_a)
+    
+    expect_that(sum(abs(coef(s)[c(6:7,1:5)]-coef(a)))
+                , is_less_than(1e-11))
+    expect_that(sum(abs(s$gradient(coef(s))[c(6:7,1:5)]-a$gradient(coef(s)[c(6:7,1:5)]))),
+                is_less_than(1e-10))
+    expect_that(sum(abs(s$gradD(coef(s))[c(26:27,1:25),c(6:7,1:5)]-a$gradD(coef(s)[c(6:7,1:5)]))),
+                equals(0))
+    
+})
+
+
