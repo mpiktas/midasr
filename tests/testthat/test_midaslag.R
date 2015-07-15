@@ -1,3 +1,4 @@
+context("Testing mls")
 test_that("Embedding to low frequency works as expected",{
     x <- 1:24
     x1 <- matrix(2*(1:12),ncol=1)

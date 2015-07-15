@@ -248,7 +248,7 @@ midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NU
         }
         ysave <- yy[y_index]
         class(ysave) <- class(yy)
-        attr(ysave, "tsp") <- c(time(yy)[range(y_index)], frequency(y_index))
+        attr(ysave, "tsp") <- c(time(yy)[range(y_index)], frequency(yy))
     } else {
         ysave <- yy
     }
