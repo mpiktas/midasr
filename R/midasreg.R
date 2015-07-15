@@ -231,9 +231,34 @@ midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NU
     y <- model.response(mf, "numeric")
     X <- model.matrix(mt, mf)
     
+    #Save ts information
+    if(is.null(ee)) { 
+        yy <- eval(formula[[2]], Zenv)
+    }else {
+        yy <- eval(formula[[2]], ee)
+    }
+    
+    if(inherits(yy, "ts")) {
+        y_index <- 1:length(yy) 
+        if(!is.null(attr(mf, "na.action"))) {
+            y_index <- y_index[-attr(mf, "na.action")]
+        }
+        if(length(y_index)>1) {
+            if(sum(abs(diff(y_index) - 1))>0) warning("There are NAs in the middle of the time series")                
+        }
+        ysave <- yy[y_index]
+        class(ysave) <- class(yy)
+        attr(ysave, "tsp") <- c(time(yy)[range(y_index)], frequency(y_index))
+    } else {
+        ysave <- yy
+    }
+        
     prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,weight_gradients,itr$lagsTable)
     
+    prepmd <- c(prepmd, list(lhs = ysave))
+    
     class(prepmd) <- "midas_r"
+    
     midas_r.fit(prepmd)    
 }
 

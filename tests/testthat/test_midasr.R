@@ -20,7 +20,7 @@ test_that("midas_r with start=NULL is the same as lm",{
     expect_that(sum(abs(coef(eq_u3) - coef(eq_u2))), equals(0))
 })
 
-test_that("midas_r without weights gives the same summary as",{
+test_that("midas_r without weights gives the same summary as midas_u",{
     a <-summary(lm(y~trend+mls(x,k=0:7,m=4)+mls(z,k=0:16,m=12)))
     
     b <-summary(midas_r(y~trend+mls(x,0:7,4)+mls(z,0:16,12),start=NULL), vcov = NULL)

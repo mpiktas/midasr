@@ -12,6 +12,8 @@ info is added.
 
 * Start using testthat for testing the code.
 
+* Do not lose time series information in forecast
+
 midasr 0.4
 ============
 * Remove unexported code

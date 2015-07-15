@@ -430,16 +430,22 @@ forecast.midas_r <- function(object, newdata=NULL, se = FALSE, level=c(80,95),
         lower <- NULL
         upper <- NULL
     }
-    xout <- object$model[, 1]
-    if(add_ts_info) {
-        xstart <- 1
-        if(!is.null(rownames(object$model))) {
-            xstart <- as.numeric(rownames(object$model)[1])
-            if(is.na(xstart)) xstart <- 1
-            }
-        xout <- ts(xout, start = xstart, frequency = 1)
-        pred <- ts(pred, start = end(xout)[1]+1, frequency = 1)
+    xout <- object$lhs
+    if(inherits(xout, "ts")) {
+        st <- tsp(as.ts(xout))[2L]
+        dt <- deltat(xout)
+        pred <- ts(pred, start = st + dt, frequency = frequency(xout))
+    } else {
+        if(add_ts_info) {
+            xstart <- 1
+            if(!is.null(rownames(object$model))) {
+                xstart <- as.numeric(rownames(object$model)[1])
+                if(is.na(xstart)) xstart <- 1
+                }
+            xout <- ts(xout, start = xstart, frequency = 1)
+            pred <- ts(pred, start = end(xout)[1]+1, frequency = 1)
         }
+    }
     return(structure(list(method = paste0("MIDAS regression forecast (",method,")"),
                           model = object,
                           level = level,

@@ -1,12 +1,10 @@
 
 note <- sprintf("R package version %s", meta$Version)
 
-bibentry(bibtype="Article", 
-		 title = "Mixed Frequency Data Sampling Regression Models: the R package midasr", 
+bibentry(bibtype="Manual", 
+		 title = "Mixed Frequency Data Sampling Regression Models: The R package midasr", 
 	     author = c(person("Eric", "Ghysels"),
 	                person("Virmantas", "Kvedaras"),
 	                person("Vaidotas", "Zemlys")),
-	     journal = "Journal of Statistical Software",        
-		 year = 2015, 
 		 note = note
 		 )
