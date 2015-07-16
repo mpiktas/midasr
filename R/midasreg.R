@@ -191,7 +191,7 @@ midas_u <- function(formula, data ,...) {
 ##' The restriction function must return the restricted coefficients of
 ##' the MIDAS regression.
 ##'
-##' @importFrom stats as.formula formula model.matrix model.response terms lsfit
+##' @importFrom stats as.formula formula model.matrix model.response terms lsfit time
 ##' @export
 midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NULL,...) {
 

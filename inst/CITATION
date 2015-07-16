@@ -6,5 +6,7 @@ bibentry(bibtype="Manual",
 	     author = c(person("Eric", "Ghysels"),
 	                person("Virmantas", "Kvedaras"),
 	                person("Vaidotas", "Zemlys")),
-		 note = note
+		 note = note,
+		 url = "http://CRAN.R-project.org/package=midasr",
+		 year = "2015"
 		 )

@@ -400,7 +400,7 @@ static_forecast <- function(object, h, insample, outsample, yname) {
 ##' fmr
 ##' summary(fmr)
 ##' plot(fmr)
-##' @importFrom stats na.pass predict ts end quantile
+##' @importFrom stats na.pass predict ts end quantile window as.ts deltat tsp
 ##' @export 
 forecast.midas_r <- function(object, newdata=NULL, se = FALSE, level=c(80,95),
                              fan=FALSE, npaths=999,
