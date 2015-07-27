@@ -277,8 +277,9 @@ get_frequency_info.midas_r <- function(object) {
     res[setdiff(names(res),"(Intercept)")]
 }
 
-get_frequency_info.default <- function (mt, Zenv) 
-{
+get_frequency_info.default <- function (object, ...) {
+    mt <- terms(object)
+    Zenv <- object$Zenv
     vars <- as.list(attr(mt, "variables"))[-1]
     res <- lapply(vars, function(l) {
         if (length(l) > 1) {

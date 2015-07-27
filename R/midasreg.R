@@ -74,10 +74,33 @@ midas_u <- function(formula, data ,...) {
     mf[[1L]] <- as.name("lm")
     mf[[3L]] <- as.name("ee")   
    
+    if(is.null(ee)) { 
+        yy <- eval(formula[[2]], Zenv)
+    }else {
+        yy <- eval(formula[[2]], ee)
+    }
+    
+    if(inherits(yy, "ts")) {
+        y_index <- 1:length(yy) 
+        if(!is.null(attr(mf, "na.action"))) {
+            y_index <- y_index[-attr(mf, "na.action")]
+        }
+        if(length(y_index)>1) {
+            if(sum(abs(diff(y_index) - 1))>0) warning("There are NAs in the middle of the time series")                
+        }
+        ysave <- yy[y_index]
+        class(ysave) <- class(yy)
+        attr(ysave, "tsp") <- c(time(yy)[range(y_index)], frequency(yy))
+    } else {
+        ysave <- yy
+    }
+    
     out <- eval(mf,Zenv)
     out$Zenv <- Zenv
     out$midas_coefficients <- out$coefficients
+    out$lhs <- ysave
     class(out) <- c("midas_u",class(out))
+    
     out
 }
 
