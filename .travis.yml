@@ -8,6 +8,14 @@ env:
  global:
    - CRAN: http://cran.rstudio.com
 
+r_binary_packages:
+  - forecast
+  - sandwich
+  - optimx
+  - MASS
+  - numDeriv
+  - Matrix
+
 notifications:
   email:
     on_success: change
