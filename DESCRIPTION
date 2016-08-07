@@ -3,7 +3,7 @@ Title: Mixed Data Sampling Regression
 Description: Methods and tools for mixed frequency time series data analysis.
     Allows estimation, model selection and forecasting for MIDAS regressions.
 URL: http://mpiktas.github.io/midasr/
-Version: 0.5.2
+Version: 0.6
 Maintainer: Vaidotas Zemlys <zemlys@gmail.com>
 Author: Virmantas Kvedaras <virmantas.kvedaras@mif.vu.lt>, Vaidotas Zemlys
     <vaidotas.zemlys@mif.vu.lt>

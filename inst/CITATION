@@ -1,12 +1,26 @@
+bibentry(bibtype = "Article",
+  title        = "Mixed Frequency Data Sampling Regression Models: The {R} Package {midasr}",
+  author       = c(person(given = "Eric",
+                          family = "Ghysels",
+                          email = "eghysels@unc.edu"),
+                   person(given = "Virmantas",
+                          family = "Kvedaras",
+                          email = "virmantas.kvedaras@mif.vu.lt"),
+                   person(given = "Vaidotas",
+                          family = "Zemlys",
+                          email = "vaidotas.zemlys@mif.vu.lt")),
+  journal      = "Journal of Statistical Software",
+  year         = "2016",
+  volume       = "72",
+  number       = "4",
+  pages        = "1--35",
+  doi          = "10.18637/jss.v072.i04",
 
-note <- sprintf("R package version %s", meta$Version)
+  header       = "To cite midasr in publications use:",
+  textVersion  =
+  paste("Eric Ghysels, Virmantas Kvedaras, Vaidotas Zemlys (2016).",
+        "Mixed Frequency Data Sampling Regression Models: The R Package midasr.",
+        "Journal of Statistical Software, 72(4), 1-35.",
+        "doi:10.18637/jss.v072.i04")
+)
 
-bibentry(bibtype="Manual", 
-		 title = "Mixed Frequency Data Sampling Regression Models: The R package midasr", 
-	     author = c(person("Eric", "Ghysels"),
-	                person("Virmantas", "Kvedaras"),
-	                person("Vaidotas", "Zemlys")),
-		 note = note,
-		 url = "http://CRAN.R-project.org/package=midasr",
-		 year = "2015"
-		 )
