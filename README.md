@@ -1,6 +1,7 @@
 [![Travis-CI Build Status](https://travis-ci.org/mpiktas/midasr.svg?branch=master)](https://travis-ci.org/mpiktas/midasr)
 [![codecov.io](https://codecov.io/github/mpiktas/midasr/coverage.svg?branch=master)](https://codecov.io/github/mpiktas/midasr?branch=master)
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/midasr)](http://cran.r-project.org/web/packages/midasr)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/midasr)](https://cran.r-project.org/package=midasr
+)
 [![Downloads](http://cranlogs.r-pkg.org/badges/midasr)](http://www.r-pkg.org/pkg/midasr)
 # midasr
 
