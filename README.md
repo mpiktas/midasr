@@ -3,7 +3,6 @@
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/midasr)](https://cran.r-project.org/package=midasr
 )
 [![Downloads](http://cranlogs.r-pkg.org/badges/midasr)](http://www.r-pkg.org/pkg/midasr)
-# midasr
 
 The **midasr** R package provides econometric methods for working with mixed frequency data. The package provides tools for estimating time series MIDAS regression, where response and explanatory variables are of different frequency, e.g. quarterly vs monthly. The fitted regression model can be tested for adequacy and then used for forecasting. More specifically, the following main functions are available:
 
