@@ -382,7 +382,10 @@ midas_r.fit <- function(x) {
     args <- x$argmap_opt
     function.opt <- args$Ofunction
     args$Ofunction <- NULL
-    if(function.opt=="optim" | function.opt=="spg") {  
+   
+    if(!(function.opt %in% c("optim","spg","optimx","lm","nls","dry_run"))) 
+        stop("The optimisation function is not in the supported functions list. Please see the midasr:::midas_r.fit code for the supported function list")
+    if(function.opt == "optim" | function.opt =="spg") {  
         args$par <- x$start_opt
         args$fn <- x$fn0
         if(x$use_gradient) {
@@ -439,6 +442,11 @@ midas_r.fit <- function(x) {
         names(par) <- names(coef(x))
         x$convergence <- opt$convInfo$stopCode
     }
+    if(function.opt == "dry_run") {
+        opt <- NULL
+        par <- x$start_opt
+    }
+    
     x$opt <- opt
     x$coefficients <- par
     names(par) <- NULL
@@ -463,7 +471,7 @@ midas_r.fit <- function(x) {
 ## unrestricted the unrestricted model
 ## guess_start if TRUE, get the initial values for non-MIDAS terms via OLS, if FALSE, initialize them with zero.
 ## Vaidotas Zemlys
-prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradients, lagsTable, unrestricted = NULL, guess_start = TRUE) {
+prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradients, lagsTable, unrestricted = NULL, guess_start = TRUE, tau = NULL) {
 
     start <- start[!sapply(start,is.null)]
     if(is.null(weight_gradients)) use_gradient <- FALSE
@@ -678,7 +686,13 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
         r <- y - mdsrhs(p)
         sum(r^2)
     }
-
+    if(!is.null(tau)) {
+        fn0 <- function(p,...) {
+            r <- y - mdsrhs(p)
+            sum(tau * pmax(r, 0) + (tau - 1) * pmin(r,0))
+        }
+    }
+    
     if(!use_gradient) {
         gradD <- function(p)jacobian(all_coef,p)
         gr <- function(p)grad(fn0,p)
