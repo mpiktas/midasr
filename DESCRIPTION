@@ -16,6 +16,7 @@ Imports:
     numDeriv,
     Matrix,
     forecast,
+    zoo,
     stats,
     graphics,
     utils

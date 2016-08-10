@@ -140,7 +140,7 @@ summary.midas_r <- function(object, vcov.=vcovHAC, df=NULL, prewhite=TRUE, ...) 
     ans <- list(formula=formula(object$terms), residuals=r, sigma=sqrt(resvar),
                 df=c(p,rdf), cov.unscaled=XDtXDinv, call=object$call,
                 coefficients=param,midas_coefficients=coef(object, midas = TRUE),
-                r_squared = r_squared, adj_r_squared = adj_r_squared)
+                r_squared = r_squared, adj_r_squared = adj_r_squared, lhs_start = object$lhs_start, lhs_end = object$lhs_end, class_lhs = class(object$lhs))
     class(ans) <- "summary.midas_r"
     ans
 }
@@ -148,6 +148,11 @@ summary.midas_r <- function(object, vcov.=vcovHAC, df=NULL, prewhite=TRUE, ...) 
 ##' @export
 ##' @method print summary.midas_r
 print.summary.midas_r <- function(x, digits=max(3, getOption("digits") - 3 ), signif.stars = getOption("show.signif.stars"), ...) {
+    cat(paste("\nMIDAS regression model with \"", x$class_lhs[1], 
+              "\" data:\n", sep = ""))
+    cat(paste("Start = ", x$lhs_start, 
+              ", End = ", x$lhs_end, 
+              "\n", sep = ""))
     cat("\n Formula", deparse(formula(x)),"\n")
     df <- x$df
     rdf <- df[2L]
@@ -162,7 +167,12 @@ print.summary.midas_r <- function(x, digits=max(3, getOption("digits") - 3 ), si
 ##' @export
 ##' @method print midas_r
 print.midas_r <- function(x, digits=max(3,getOption("digits")-3),...) {
-    cat("MIDAS regression model\n")
+    #Code adapted from dynln:::print.dynlm code
+    cat(paste("\nMIDAS regression model with \"", class(x$lhs)[1], 
+              "\" data:\n", sep = ""))
+    cat(paste("Start = ", x$lhs_start, 
+              ", End = ", x$lhs_end, 
+              "\n", sep = ""))
     cat(" model:", deparse(formula(x)),"\n")
     print(coef(x),digits = digits, ...)
     cat("\n")

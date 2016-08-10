@@ -11,6 +11,8 @@ y<-2+0.1*trend+mls(x,0:7,4)%*%fn_x+mls(z,0:16,12)%*%fn_z+rnorm(n)
 
 spd <- split_data(list(y = y, x = x, trend = trend, z = z), 1:200, 201:250 )
 
+##Add test for preserving zoo and other attributes. 
+##Add test for printing out the estimation sample start and end.
 
 
 test_that("midas_r preserves ts attribute",{

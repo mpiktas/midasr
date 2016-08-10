@@ -215,6 +215,7 @@ midas_u <- function(formula, data ,...) {
 ##' the MIDAS regression.
 ##'
 ##' @importFrom stats as.formula formula model.matrix model.response terms lsfit time
+##' @importFrom zoo index index2char frequency
 ##' @export
 midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NULL,...) {
 
@@ -261,24 +262,29 @@ midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NU
         yy <- eval(formula[[2]], ee)
     }
     
+    y_index <- 1:length(yy) 
+    if(!is.null(attr(mf, "na.action"))) {
+        y_index <- y_index[-attr(mf, "na.action")]
+    }
+    if(length(y_index)>1) {
+        if(sum(abs(diff(y_index) - 1))>0) warning("There are NAs in the middle of the time series")                
+    }
+    ysave <- yy[y_index]
+    
     if(inherits(yy, "ts")) {
-        y_index <- 1:length(yy) 
-        if(!is.null(attr(mf, "na.action"))) {
-            y_index <- y_index[-attr(mf, "na.action")]
-        }
-        if(length(y_index)>1) {
-            if(sum(abs(diff(y_index) - 1))>0) warning("There are NAs in the middle of the time series")                
-        }
-        ysave <- yy[y_index]
         class(ysave) <- class(yy)
         attr(ysave, "tsp") <- c(time(yy)[range(y_index)], frequency(yy))
+        y_start <- index2char(index(ysave)[1], frequency(ysave))
+        y_end <- index2char(index(ysave)[length(ysave)], frequency(ysave))
     } else {
-        ysave <- yy
+        y_start <- y_index[1]
+        y_end <- y_index[length(y_index)]
     }
-        
+    
+    
     prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,weight_gradients,itr$lagsTable)
     
-    prepmd <- c(prepmd, list(lhs = ysave))
+    prepmd <- c(prepmd, list(lhs = ysave, lhs_start = y_start, lhs_end = y_end))
     
     class(prepmd) <- "midas_r"
     
