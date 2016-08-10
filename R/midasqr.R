@@ -1,19 +1,71 @@
 
 midas_qr <- function(formula, data, tau = 0.5, start, Ofunction="nlrq", weight_gradients=NULL,...) {
-    mf <- match.call(expand.dots = TRUE)
+    Zenv <- new.env(parent=environment(formula))
     
-    mff <- mf
-    mff[[1]] <- as.name("midas_r")
-    mff[[match("tau",names(mff))]] <- NULL
-    mff$Ofunction <- "dry_run"
-    ##Do a nicer argument matching
+    if(missing(data)) {
+        ee <- NULL
+    }
+    else {
+        ee <- data_to_env(data)
+        parent.env(ee) <- parent.frame()
+    }
     
-    x <- eval(mff, envir=parent.frame())
-    x$argmap_opt$Ofunction <- Ofunction
-    x$tau <- tau
-    x$argmap_opt$tau <- NULL
-    class(x) <- "midas_qr"
-    midas_qr.fit(x)
+    if(missing(start)) {
+        stop("Please supply starting values.")
+    } 
+    
+    assign("ee",ee,Zenv)
+    formula <- as.formula(formula)
+    cl <- match.call()    
+    mf <- match.call(expand.dots = FALSE)
+    mf$formula <- formula
+    m <- match(c("formula", "data"), names(mf), 0L)
+    mf <- mf[c(1L, m)]
+    mf[[1L]] <- as.name("model.frame")
+    mf[[3L]] <- as.name("ee")   
+    mf[[4L]] <- as.name("na.omit")
+    names(mf)[c(2,3,4)] <- c("formula","data","na.action")
+    
+    ##Add check for dynamic terms. 
+    ##They are not supported as they do not make sense in quantile regression
+    itr <- checkARstar(terms(eval(mf[[2]], Zenv)))
+    if(!is.null(itr$lagsTable)) mf[[2]] <- itr$x
+    
+    mf <- eval(mf,Zenv)
+    mt <- attr(mf, "terms")
+    args <- list(...)
+    y <- model.response(mf, "numeric")
+    X <- model.matrix(mt, mf)
+    
+    #Save ts information
+    if(is.null(ee)) { 
+        yy <- eval(formula[[2]], Zenv)
+    }else {
+        yy <- eval(formula[[2]], ee)
+    }
+    
+    y_index <- 1:length(yy) 
+    if(!is.null(attr(mf, "na.action"))) {
+        y_index <- y_index[-attr(mf, "na.action")]
+    }
+    if(length(y_index)>1) {
+        if(sum(abs(diff(y_index) - 1))>0) warning("There are NAs in the middle of the time series")                
+    }
+    ysave <- yy[y_index]
+    
+    if(inherits(yy, "ts")) {
+        class(ysave) <- class(yy)
+        attr(ysave, "tsp") <- c(time(yy)[range(y_index)], frequency(yy))
+    }
+    
+    prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,weight_gradients,itr$lagsTable, guess_start = TRUE, tau = tau)
+    
+    prepmd <- c(prepmd, list(lhs = ysave, lhs_))
+    
+    class(prepmd) <- "midas_qr"
+    
+    midas_qr.fit(prepmd)    
+    
 }
 
 midas_qr.fit <- function(x) {
@@ -30,13 +82,12 @@ midas_qr.fit <- function(x) {
                 res
             }
         }
-        y <- x$model[,1]
-        args$formula <- formula(y~rhs(p))
+        z <- x$model[,1]
+        args$formula <- formula(z~rhs(p))
         args$start <- list(p=x$start_opt)
         args$tau <- x$tau
-        args$method <- NULL
-        browser()
-        opt <- try(do.call("nlrq",args),silent=TRUE)
+        nlrq(z~rhs(p),start=list(p=x$start_opt))
+        opt <- try(do.call("nlrq",args),silent = TRUE)
         if(inherits(opt,"try-error")) {
             stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
         }
