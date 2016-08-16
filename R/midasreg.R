@@ -215,7 +215,7 @@ midas_u <- function(formula, data ,...) {
 ##' the MIDAS regression.
 ##'
 ##' @importFrom stats as.formula formula model.matrix model.response terms lsfit time
-##' @importFrom zoo index index2char frequency
+##' @importFrom zoo index index2char
 ##' @export
 midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NULL,...) {
 
@@ -255,7 +255,7 @@ midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NU
     y <- model.response(mf, "numeric")
     X <- model.matrix(mt, mf)
     
-    #Save ts information
+    #Save ts/zoo information
     if(is.null(ee)) { 
         yy <- eval(formula[[2]], Zenv)
     }else {
@@ -269,18 +269,21 @@ midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NU
     if(length(y_index)>1) {
         if(sum(abs(diff(y_index) - 1))>0) warning("There are NAs in the middle of the time series")                
     }
+    
     ysave <- yy[y_index]
     
     if(inherits(yy, "ts")) {
         class(ysave) <- class(yy)
         attr(ysave, "tsp") <- c(time(yy)[range(y_index)], frequency(yy))
+    }
+        
+    if(inherits(yy,c("zoo","ts"))) {
         y_start <- index2char(index(ysave)[1], frequency(ysave))
         y_end <- index2char(index(ysave)[length(ysave)], frequency(ysave))
     } else {
         y_start <- y_index[1]
         y_end <- y_index[length(y_index)]
     }
-    
     
     prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,weight_gradients,itr$lagsTable)
     
@@ -517,7 +520,23 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
             if(length(fr) > 4 && fr[[5]] != "*") {
                 mf <- fr[-5]
                 mf[[1]] <- fr[[5]]
-                weight_name <- as.character(fr[[5]])            
+                weight_name <- as.character(fr[[5]])
+                
+                ##Since we allow stars and other stuff in mls, maybe allow to 
+                ##specify the multiplicative property in a call to mls?
+                multiplicative <- FALSE
+                if(weight_name %in% c("nealmon","nbeta","nbetaMT","gompertzp","nakagamip","lcauchyp")) {
+                    multiplicative <- TRUE
+                } else {
+                    mult_attr <- attr(eval(as.name(weight_name),Zenv),"multiplicative")
+                    
+                    if(is.null(mult_attr)) {
+                        multiplicative <- FALSE
+                    } else  {
+                        if(!is.logical(mult_attr)) stop("The attribute multiplicative of MIDAS weight function must be logical!")
+                        multiplicative <- mult_attr
+                    }
+                }
                 noarg <- length(formals(eval(fr[[5]], Zenv)))
                 if(noarg<2)stop("The weight function must have at least two arguments")            
                 mf <- mf[1:min(length(mf), noarg + 1)]
@@ -665,7 +684,6 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
             ifelse(is.null(dim(x)),1,ncol(x))
             }))
         xxinds <- build_indices(npxx,names(start_default))
-        
         XX <- do.call("cbind",Xstart)
         ###If the starting values for the weight restriction are all zeros, then the weighted explanatory variable is zero.
         ###In this case lsfit gives a warning about colinear matrix, which we can ignore.
@@ -676,6 +694,12 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
 
         nms <- !(names(start_default) %in% names(start))
         start_default[nms] <- lmstart[nms]
+        browser()
+        
+        #Figure out which weights are multiple or not
+        # for(nm in mult) {
+        #     start_default[[nm]][1] <- lmstart[nm]
+        # }
     }
     
     starto <- unlist(start_default)
@@ -820,7 +844,13 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
         term$midas_coef_index <- xind
         term
     },term_info,pinds[names(term_info)],xinds[names(term_info)],SIMPLIFY=FALSE)
-
+    
+    if(!is.null(tau))  {
+        ##At the moment do not calculate the gradient and hessian for 
+        ##quantile regression, as it does not make sense
+        gr <- NULL
+        hess <- NULL
+    }
     list(coefficients=starto,
          midas_coefficients=all_coef(starto),
          model=cbind(y,X),         

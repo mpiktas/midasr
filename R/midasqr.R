@@ -60,7 +60,7 @@ midas_qr <- function(formula, data, tau = 0.5, start, Ofunction="nlrq", weight_g
     
     prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,weight_gradients,itr$lagsTable, guess_start = TRUE, tau = tau)
     
-    prepmd <- c(prepmd, list(lhs = ysave, lhs_))
+    prepmd <- c(prepmd, list(lhs = ysave, lhs_start= y_start, lhs_end = y_end, ))
     
     class(prepmd) <- "midas_qr"
     
