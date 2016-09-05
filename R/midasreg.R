@@ -879,7 +879,8 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
          gradD=gradD,
          Zenv=Zenv,
          use_gradient=use_gradient,
-         nobs=nrow(X))   
+         nobs=nrow(X),
+         tau = tau)   
 }
 
 ##' Restricted MIDAS regression

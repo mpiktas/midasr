@@ -36,8 +36,7 @@ midas_qr <- function(formula, data, tau = 0.5, start, Ofunction="nlrq", weight_g
     args <- list(...)
     y <- model.response(mf, "numeric")
     X <- model.matrix(mt, mf)
-    
-    #Save ts information
+   
     if(is.null(ee)) { 
         yy <- eval(formula[[2]], Zenv)
     }else {
@@ -51,6 +50,7 @@ midas_qr <- function(formula, data, tau = 0.5, start, Ofunction="nlrq", weight_g
     if(length(y_index)>1) {
         if(sum(abs(diff(y_index) - 1))>0) warning("There are NAs in the middle of the time series")                
     }
+    
     ysave <- yy[y_index]
     
     if(inherits(yy, "ts")) {
@@ -58,9 +58,17 @@ midas_qr <- function(formula, data, tau = 0.5, start, Ofunction="nlrq", weight_g
         attr(ysave, "tsp") <- c(time(yy)[range(y_index)], frequency(yy))
     }
     
+    if(inherits(yy,c("zoo","ts"))) {
+        y_start <- index2char(index(ysave)[1], frequency(ysave))
+        y_end <- index2char(index(ysave)[length(ysave)], frequency(ysave))
+    } else {
+        y_start <- y_index[1]
+        y_end <- y_index[length(y_index)]
+    }
+    
     prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,weight_gradients,itr$lagsTable, guess_start = TRUE, tau = tau)
     
-    prepmd <- c(prepmd, list(lhs = ysave, lhs_start= y_start, lhs_end = y_end, ))
+    prepmd <- c(prepmd, list(lhs = ysave, lhs_start = y_start, lhs_end = y_end ))
     
     class(prepmd) <- "midas_qr"
     
@@ -86,7 +94,6 @@ midas_qr.fit <- function(x) {
         args$formula <- formula(z~rhs(p))
         args$start <- list(p=x$start_opt)
         args$tau <- x$tau
-        nlrq(z~rhs(p),start=list(p=x$start_opt))
         opt <- try(do.call("nlrq",args),silent = TRUE)
         if(inherits(opt,"try-error")) {
             stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
@@ -94,6 +101,10 @@ midas_qr.fit <- function(x) {
         par <- coef(opt)
         names(par) <- names(coef(x))
         x$convergence <- opt$convInfo$stopCode
+    }
+    if(function.opt == "dry_run") {
+        opt <- NULL
+        par <- x$start_opt
     }
     x$opt <- opt
     x$coefficients <- par
