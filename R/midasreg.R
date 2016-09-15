@@ -217,7 +217,7 @@ midas_u <- function(formula, data ,...) {
 ##' @importFrom stats as.formula formula model.matrix model.response terms lsfit time
 ##' @importFrom zoo index index2char
 ##' @export
-midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NULL,...) {
+midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NULL, ...) {
 
     Zenv <- new.env(parent=environment(formula))
 
@@ -500,7 +500,6 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
         start <- 0
         freq <- 1
         lagstruct <- 0
-        normalized <- FALSE
         if(term_name %in% c("mls", "fmls", "dmls")) {
             type <- term_name
             term_name <- as.character(fr[[2]])
@@ -527,17 +526,6 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
                 ##Since we allow stars and other stuff in mls, maybe allow to 
                 ##specify the multiplicative property in a call to mls?
                 
-                if(weight_name %in% c("nealmon","nbeta","nbetaMT","gompertzp","nakagamip","lcauchyp")) {
-                    normalized <- TRUE
-                } else {
-                    norm_attr <- attr(eval(as.name(weight_name),Zenv),"normalized")
-                    if(is.null(norm_attr)) {
-                        normalized <- FALSE
-                    } else  {
-                        if(!is.logical(norm_attr)) stop("The attribute normalized of MIDAS weight function must be logical!")
-                        normalized <- norm_attr
-                    }
-                }
                 noarg <- length(formals(eval(fr[[5]], Zenv)))
                 if(noarg<2)stop("The weight function must have at least two arguments")            
                 mf <- mf[1:min(length(mf), noarg + 1)]
@@ -573,8 +561,7 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
              start = start,                    
              weight_name = weight_name,
              frequency = freq,
-             lag_structure = lagstruct,
-             normalized = normalized
+             lag_structure = lagstruct
         )
     }
     if(is.null(lagsTable)){
@@ -619,7 +606,7 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     }
     
     start_default[names(start)] <- start
-            
+    
     np <- cumsum(sapply(start_default,length))
 
     build_indices <- function(ci,nm) {
@@ -697,18 +684,17 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
         nms <- !(names(start_default) %in% names(start))
         start_default[nms] <- lmstart[nms]
         
-        
-        term_norm_info <- sapply(rfd, "[[", "normalized")
-        names(term_norm_info) <- names(rf) 
-        if(sum(term_norm_info)>0) {
-            for(nm in names(term_norm_info)[term_norm_info]) {
-                if(abs(start_default[[nm]][1]-1)<1e-5) {
-                    start_default[[nm]][1] <- lmstart[nm]
-                } else {
-                    warning("For normalized weights please supply 1 as a first coefficient. Leaving the starting value unchanged.")
-                }
+        for(ww in which(wi)) {
+            normalized <- FALSE
+            if(rfd[[ww]]$weight_name %in% c("nealmon","nbeta","nbetaMT","gompertzp","nakagamip","lcauchyp")) normalized <- TRUE
+            else {
+                normalized <- is_weight_normalized(rf[[ww]], start_default[[ww]])
+            }
+            if(normalized) {
+                start_default[[ww]][1] <- lmstart[[ww]]
             }
         }
+       
     }
     
     starto <- unlist(start_default)
