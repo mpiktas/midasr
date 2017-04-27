@@ -330,6 +330,7 @@ lcauchyp <- function(p, d, m) {
 }
 
 ##' Gradient function for normalized log-Cauchy probability density function MIDAS weights specification
+##' 
 ##' Calculate gradient function for normalized log-Cauchy probability density function specification of MIDAS weights.
 ##' @param p parameters for normalized log-Cauchy probability density function
 ##' @param d number of coefficients
