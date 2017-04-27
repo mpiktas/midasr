@@ -249,6 +249,7 @@ polystep_gradient <- function(p,d,m,a) {
 }
     
 ##' Normalized Gompertz probability density function MIDAS weights specification
+##' 
 ##' Calculate MIDAS weights according to normalized Gompertz probability density function specification
 ##' @param p parameters for normalized Gompertz probability density function
 ##' @param d number of coefficients
@@ -263,6 +264,7 @@ gompertzp <- function(p, d, m) {
 }
 
 ##' Gradient function for normalized Gompertz probability density function MIDAS weights specification
+##'
 ##' Calculate gradient function for normalized Gompertz probability density function specification of MIDAS weights.
 ##' @param p parameters for normalized Gompertz probability density function
 ##' @param d number of coefficients
@@ -280,6 +282,7 @@ gompertzp_gradient <- function(p, d, m) {
 }
 
 ##' Normalized Nakagami probability density function MIDAS weights specification
+##' 
 ##' Calculate MIDAS weights according to normalized Nakagami probability density function specification
 ##' @param p parameters for normalized Nakagami probability density function
 ##' @param d number of coefficients
@@ -294,6 +297,7 @@ nakagamip <- function(p, d, m) {
 }
 
 ##' Gradient function for normalized Nakagami probability density function MIDAS weights specification
+##' 
 ##' Calculate gradient function for normalized Nakagami probability density function specification of MIDAS weights.
 ##' @param p parameters for normalized Nakagami probability density function
 ##' @param d number of coefficients
@@ -311,6 +315,7 @@ nakagamip_gradient <- function(p, d, m) {
 }
 
 ##' Normalized log-Cauchy probability density function MIDAS weights specification
+##' 
 ##' Calculate MIDAS weights according to normalized log-Cauchy probability density function specification
 ##' @param p parameters for normalized log-Cauchy probability density function
 ##' @param d number of coefficients
@@ -410,7 +415,7 @@ genexp <- function(p, d, m) {
 #' of the second order polynomial. This spefication was used by V. Kvedaras and 
 #' V. Zemlys (2012).
 #' 
-#' @title Gradient of feneralized exponential MIDAS coefficient generating function
+#' @title Gradient of generalized exponential MIDAS coefficient generating function
 #' @param p a vector of parameters
 #' @param d number of coefficients
 #' @param m the frequency, currently ignored

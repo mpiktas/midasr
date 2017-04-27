@@ -2,8 +2,7 @@
 % Please edit documentation in R/lagspec.R
 \name{gompertzp}
 \alias{gompertzp}
-\title{Normalized Gompertz probability density function MIDAS weights specification
-Calculate MIDAS weights according to normalized Gompertz probability density function specification}
+\title{Normalized Gompertz probability density function MIDAS weights specification}
 \usage{
 gompertzp(p, d, m)
 }
@@ -18,7 +17,6 @@ gompertzp(p, d, m)
 vector of coefficients
 }
 \description{
-Normalized Gompertz probability density function MIDAS weights specification
 Calculate MIDAS weights according to normalized Gompertz probability density function specification
 }
 \author{

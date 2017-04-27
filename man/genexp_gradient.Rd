@@ -2,7 +2,7 @@
 % Please edit documentation in R/lagspec.R
 \name{genexp_gradient}
 \alias{genexp_gradient}
-\title{Gradient of feneralized exponential MIDAS coefficient generating function}
+\title{Gradient of generalized exponential MIDAS coefficient generating function}
 \usage{
 genexp_gradient(p, d, m)
 }

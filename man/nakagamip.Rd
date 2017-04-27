@@ -2,8 +2,7 @@
 % Please edit documentation in R/lagspec.R
 \name{nakagamip}
 \alias{nakagamip}
-\title{Normalized Nakagami probability density function MIDAS weights specification
-Calculate MIDAS weights according to normalized Nakagami probability density function specification}
+\title{Normalized Nakagami probability density function MIDAS weights specification}
 \usage{
 nakagamip(p, d, m)
 }
@@ -18,7 +17,6 @@ nakagamip(p, d, m)
 vector of coefficients
 }
 \description{
-Normalized Nakagami probability density function MIDAS weights specification
 Calculate MIDAS weights according to normalized Nakagami probability density function specification
 }
 \author{
