@@ -1,26 +1,13 @@
 # Sample .travis.yml for R projects
 
 language: r
-warnings_are_errors: true
-sudo: required
+sudo: false
+cache: packages
 
-env:
- global:
-   - CRAN: http://cran.rstudio.com
-
-r_binary_packages:
-  - forecast
-  - sandwich
-  - optimx
-  - MASS
-  - numDeriv
-  - Matrix
-  - bitops
-  
-
-r_packages:
-  - covr
-
+include: 
+ - r: release
+ - r: devel
+ 
 notifications:
   email:
     on_success: change

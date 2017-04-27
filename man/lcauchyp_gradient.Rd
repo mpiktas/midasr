@@ -2,8 +2,7 @@
 % Please edit documentation in R/lagspec.R
 \name{lcauchyp_gradient}
 \alias{lcauchyp_gradient}
-\title{Gradient function for normalized log-Cauchy probability density function MIDAS weights specification
-Calculate gradient function for normalized log-Cauchy probability density function specification of MIDAS weights.}
+\title{Gradient function for normalized log-Cauchy probability density function MIDAS weights specification}
 \usage{
 lcauchyp_gradient(p, d, m)
 }
@@ -18,7 +17,6 @@ lcauchyp_gradient(p, d, m)
 vector of coefficients
 }
 \description{
-Gradient function for normalized log-Cauchy probability density function MIDAS weights specification
 Calculate gradient function for normalized log-Cauchy probability density function specification of MIDAS weights.
 }
 \author{
