@@ -2,8 +2,7 @@
 % Please edit documentation in R/lagspec.R
 \name{lcauchyp}
 \alias{lcauchyp}
-\title{Normalized log-Cauchy probability density function MIDAS weights specification
-Calculate MIDAS weights according to normalized log-Cauchy probability density function specification}
+\title{Normalized log-Cauchy probability density function MIDAS weights specification}
 \usage{
 lcauchyp(p, d, m)
 }
@@ -18,7 +17,6 @@ lcauchyp(p, d, m)
 vector of coefficients
 }
 \description{
-Normalized log-Cauchy probability density function MIDAS weights specification
 Calculate MIDAS weights according to normalized log-Cauchy probability density function specification
 }
 \author{

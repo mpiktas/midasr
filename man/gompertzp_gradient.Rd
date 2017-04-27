@@ -2,8 +2,7 @@
 % Please edit documentation in R/lagspec.R
 \name{gompertzp_gradient}
 \alias{gompertzp_gradient}
-\title{Gradient function for normalized Gompertz probability density function MIDAS weights specification
-Calculate gradient function for normalized Gompertz probability density function specification of MIDAS weights.}
+\title{Gradient function for normalized Gompertz probability density function MIDAS weights specification}
 \usage{
 gompertzp_gradient(p, d, m)
 }
@@ -18,7 +17,6 @@ gompertzp_gradient(p, d, m)
 vector of coefficients
 }
 \description{
-Gradient function for normalized Gompertz probability density function MIDAS weights specification
 Calculate gradient function for normalized Gompertz probability density function specification of MIDAS weights.
 }
 \author{

@@ -2,8 +2,7 @@
 % Please edit documentation in R/lagspec.R
 \name{nakagamip_gradient}
 \alias{nakagamip_gradient}
-\title{Gradient function for normalized Nakagami probability density function MIDAS weights specification
-Calculate gradient function for normalized Nakagami probability density function specification of MIDAS weights.}
+\title{Gradient function for normalized Nakagami probability density function MIDAS weights specification}
 \usage{
 nakagamip_gradient(p, d, m)
 }
@@ -18,7 +17,6 @@ nakagamip_gradient(p, d, m)
 vector of coefficients
 }
 \description{
-Gradient function for normalized Nakagami probability density function MIDAS weights specification
 Calculate gradient function for normalized Nakagami probability density function specification of MIDAS weights.
 }
 \author{
