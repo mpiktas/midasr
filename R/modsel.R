@@ -632,10 +632,16 @@ expand_weights_lags <- function(weights,from=0,to,m=1,start) {
     mkmin <- from
     chnm <- sapply(weights,is.character)
     names(weights)[chnm] <- unlist(weights[chnm])
-    if(is.null(names(start)))names(start) <- rep("",length(start))
-    if(!identical(names(weights),names(start)))stop("Mismatch between the  weight function names and the names of starting values")
+    #if(is.null(names(start)))names(start) <- rep("",length(start))
     
-    if(m>1) {
+    #We do not need starts for "" and "*" weights
+    wnm <- setdiff(names(weights),c("","*"))
+    if(length(wnm)>0) {
+        #We do need starts for "" and "*"
+        if(!identical(wnm,names(start)))stop("Mismatch between the  weight function names and the names of starting values")
+    }
+    
+    if(m > 1) {
         lags <- lapply(kmin:kmax,function(x)(mkmin):(x*m-1))
     }
     else {
@@ -649,7 +655,8 @@ expand_weights_lags <- function(weights,from=0,to,m=1,start) {
     normalize_starts <- function(x) {
         inds <- which(names(x$weights) %in% c("*",""))
         for (i in inds ) {
-            x$starts[[i]] <- rep(x$starts[[i]],length.out=length(x$lags[[i]]))
+            #We set the starts to zero for weights * and ""
+            x$starts[[i]] <- rep(0,length.out=length(x$lags[[i]]))
         }
         x
     }
@@ -987,7 +994,6 @@ select_and_forecast<- function(formula,data,from,to,
         }
         fhtab[[h]] <- res
     }
-
     modno <- sapply(fhtab,length)
     nmodno <- sum(modno)
     cat("\nModel selection progress:\n")    
