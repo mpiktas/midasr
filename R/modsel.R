@@ -1235,7 +1235,8 @@ average_forecast <- function(modlist,
     w4 <- DMSFE(outf)
 
     fc <- sapply(outf,function(m)m[,2])
-       
+    if(is.null(dim(fc))) fc <- matrix(fc, nrow = 1)
+    
     allwlist <- list(w1,w2,w3,w4)
     names(allwlist) <- c("EW","BICW","MSFE","DMSFE")
     wlist <- allwlist[fweights]
