@@ -203,7 +203,7 @@ term_info <- function(mt,term.name,Zenv) {
 ##' Select the model based on given information criteria
 ##'
 ##' Selects the model with minimum of given information criteria and model type
-##' @param x and output from iclagtab function
+##' @param x a \link{midas_r_ic_table} object
 ##' @param IC the name of information criteria to base the choosing of the model
 ##' @param test the name of the test for which to print out the p-value
 ##' @param type the type of MIDAS model, either restricted or unrestricted
