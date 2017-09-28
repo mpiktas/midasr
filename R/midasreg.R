@@ -856,7 +856,8 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
 midas_r_simple <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method=c("Nelder-Mead","BFGS"),...) {
     d <- ncol(X)
     nw <- length(startx)
-    if(!is.matrix(z))z <- matrix(z,ncol=1)
+   
+    if(!is.null(z) && !is.matrix(z)) z <- matrix(z,ncol=1)
     model <- na.omit(cbind(y,X,z))
     y <- model[,1]
     XX <- model[,-1]
