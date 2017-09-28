@@ -30,10 +30,9 @@ x <- window(diff(USunempr),start=1949)
 trend <- 1:length(y)
 midas_r_np(y~trend+fmls(x,12,12))
 }
-\author{
-Vaidotas Zemlys
-}
 \references{
 Breitung J, Roling C, Elengikal S (2013). \emph{Forecasting inflation rates using daily data: A nonparametric MIDAS approach} Working paper, URL http://www.ect.uni-bonn.de/mitarbeiter/joerg-breitung/npmidas.
 }
-
+\author{
+Vaidotas Zemlys
+}

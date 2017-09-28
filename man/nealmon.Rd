@@ -46,4 +46,3 @@ midas_r(y~t+fmls(x,11,12,nealmon),start=list(x=c(0,0,0)))
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

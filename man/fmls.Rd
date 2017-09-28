@@ -24,10 +24,9 @@ Create a matrix of MIDAS lags, including contemporaneous lag up to selected orde
 \details{
 This is a convenience function, it calls \code{link{msl}} to perform actual calculations.
 }
-\author{
-Virmantas Kvedaras, Vaidotas Zemlys
-}
 \seealso{
 mls
 }
-
+\author{
+Virmantas Kvedaras, Vaidotas Zemlys
+}

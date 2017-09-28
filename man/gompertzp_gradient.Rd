@@ -22,4 +22,3 @@ Calculate gradient function for normalized Gompertz probability density function
 \author{
 Julius Vainora
 }
-

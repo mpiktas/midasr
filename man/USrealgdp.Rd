@@ -12,4 +12,3 @@
 The annual gross domestic product in billions of chained 2005 dollars for US from 1948 to 2011.
 }
 \keyword{datasets}
-

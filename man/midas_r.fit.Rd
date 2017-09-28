@@ -18,4 +18,3 @@ Workhorse function for fitting restricted MIDAS regression
 \author{
 Vaidotas Zemlys
 }
-

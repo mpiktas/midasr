@@ -2,8 +2,8 @@
 % Please edit documentation in R/midasr-package.R
 \docType{package}
 \name{midasr-package}
-\alias{midasr}
 \alias{midasr-package}
+\alias{midasr}
 \title{Mixed Data Sampling Regression}
 \description{
 Package for estimating, testing and forecasting MIDAS regression.
@@ -15,4 +15,3 @@ Methods and tools for mixed frequency time series data analysis. Allows estimati
 Virmantas Kvedaras \email{virmantas.kvedaras@mif.vu.lt}, Vaidotas Zemlys (maintainer) \email{zemlys@gmail.com}
 }
 \keyword{package}
-

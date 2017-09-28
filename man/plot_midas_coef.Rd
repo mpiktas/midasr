@@ -47,4 +47,3 @@ plot_midas_coef(mr)
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

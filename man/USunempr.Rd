@@ -12,4 +12,3 @@
 The monthly unemployment rate for United States from 1948 to 2011.
 }
 \keyword{datasets}
-

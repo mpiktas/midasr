@@ -59,4 +59,3 @@ mlr
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

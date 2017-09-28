@@ -29,10 +29,9 @@ mr <- midas_r(y~t+fmls(x,11,12,nealmon),start=list(x=c(0,0,0)))
 agk.test(mr)
 
 }
-\author{
-Virmantas Kvedaras, Vaidotas Zemlys
-}
 \references{
 Andreou E., Ghysels E., Kourtellos A. \emph{Regression models with mixed sampling frequencies} Journal of Econometrics 158 (2010) 246-261
 }
-
+\author{
+Virmantas Kvedaras, Vaidotas Zemlys
+}

@@ -65,4 +65,3 @@ avgf <- average_forecast(list(mod1,mod2),
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

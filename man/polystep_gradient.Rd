@@ -24,4 +24,3 @@ Gradient of step function specification for MIDAS weights
 \author{
 Vaidotas Zemlys
 }
-

@@ -22,4 +22,3 @@ Calculate MIDAS weights according to normalized log-Cauchy probability density f
 \author{
 Julius Vainora
 }
-

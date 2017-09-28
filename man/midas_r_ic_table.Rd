@@ -63,4 +63,3 @@ mwlr
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

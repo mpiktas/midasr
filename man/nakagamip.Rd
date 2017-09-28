@@ -22,4 +22,3 @@ Calculate MIDAS weights according to normalized Nakagami probability density fun
 \author{
 Julius Vainora
 }
-

@@ -54,4 +54,3 @@ mwr
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

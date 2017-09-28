@@ -91,10 +91,9 @@ x <- window(xx, start=start(y))
 imr <- imidas_r(y~fmls(x,4*12-1,12,theta.h0)-1,start=list(x=c(-0.1,10,-10,-10)))
 
 }
-\author{
-Virmantas Kvedaras, Vaidotas Zemlys
-}
 \seealso{
 midas_r.midas_r
 }
-
+\author{
+Virmantas Kvedaras, Vaidotas Zemlys
+}

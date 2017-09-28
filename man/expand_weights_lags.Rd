@@ -37,4 +37,3 @@ nlmn+nbt
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

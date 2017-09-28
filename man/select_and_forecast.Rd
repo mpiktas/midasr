@@ -84,4 +84,3 @@ y<-2+0.1*trend+mls(x,0:7,4)\%*\%fn.x+mls(z,0:16,12)\%*\%fn.z+rnorm(n)
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

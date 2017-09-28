@@ -47,4 +47,3 @@ midas_r_simple(y,X,trend,weight=nealmon,startx=c(0,0,0))
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

@@ -43,4 +43,3 @@ The starting values \eqn{p} should be supplied then as follows:
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

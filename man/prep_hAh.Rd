@@ -15,10 +15,9 @@ a list with necessary matrices
 \description{
 Workhorse function for calculating necessary matrices for \link{hAh_test} and \link{hAhr_test}. Takes the same parameters as \link{hAh_test}
 }
-\author{
-Virmantas Kvedaras, Vaidotas Zemlys
-}
 \seealso{
 hAh_test, hAhr_test
 }
-
+\author{
+Virmantas Kvedaras, Vaidotas Zemlys
+}

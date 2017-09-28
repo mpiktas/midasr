@@ -21,4 +21,3 @@ The number of observations in higher frequency data elements should have a commo
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

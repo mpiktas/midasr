@@ -24,4 +24,3 @@ Calculate MIDAS weights according to normalized beta probability density functio
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

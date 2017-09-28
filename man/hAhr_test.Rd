@@ -74,13 +74,12 @@ mr <- midas_r(y~fmls(x,4*12-1,12,theta_h0)-1,
 hAhr_test(mr)
 
 }
-\author{
-Virmantas Kvedaras, Vaidotas Zemlys
-}
 \references{
 Kvedaras V., Zemlys, V. \emph{The statistical content and empirical testing of the MIDAS restrictions}
 }
 \seealso{
 hAh_test
 }
-
+\author{
+Virmantas Kvedaras, Vaidotas Zemlys
+}

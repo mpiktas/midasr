@@ -50,4 +50,3 @@ midas_r(y ~ mls(y, 1, 1) + fmls(x, 4*12-1, 12, theta_h0), start = list(x = c(-0.
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

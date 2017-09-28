@@ -22,4 +22,3 @@ Calculate MIDAS weights according to normalized Gompertz probability density fun
 \author{
 Julius Vainora
 }
-

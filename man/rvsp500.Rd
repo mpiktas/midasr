@@ -25,4 +25,3 @@ Realized volatility of S&P500(Live) index of the period 2000 01 03 - 2013 11 22
 Heber, Gerd and Lunde, Asger, and Shephard, Neil and Sheppard, Kevin \emph{Oxford-Man Institute's realized library}, Oxford-Man Institute, University of Oxford (2009)
 }
 \keyword{datasets}
-

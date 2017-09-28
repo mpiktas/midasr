@@ -18,4 +18,3 @@ United States total employment non-farms payroll, monthly, seasonally adjusted. 
 ## USpayems <- ts(getSymbols("PAYEMS",src="FRED",auto.assign=FALSE),start=c(1939,1),frequency=12)
 }
 \keyword{datasets}
-

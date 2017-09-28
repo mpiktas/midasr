@@ -22,4 +22,3 @@ Calculate Almon polynomial MIDAS weights
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

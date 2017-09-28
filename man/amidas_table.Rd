@@ -72,4 +72,3 @@ tb <- amidas_table(y~trend+fmls(x,12,12,nealmon),
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

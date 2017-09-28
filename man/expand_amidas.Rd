@@ -34,4 +34,3 @@ expand_amidas("nealmon","A",0,c(1,2),12,c(0,0,0))
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

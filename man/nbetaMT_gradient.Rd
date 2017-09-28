@@ -24,4 +24,3 @@ Calculate gradient function for normalized beta probability density function spe
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

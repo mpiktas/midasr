@@ -51,4 +51,3 @@ modsel(mlfr,"BIC","unrestricted")
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

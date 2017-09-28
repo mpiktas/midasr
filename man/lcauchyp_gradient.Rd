@@ -22,4 +22,3 @@ Calculate gradient function for normalized log-Cauchy probability density functi
 \author{
 Julius Vainora
 }
-

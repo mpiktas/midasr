@@ -75,13 +75,12 @@ hAh_test(mr)
 
 
 }
-\author{
-Virmantas Kvedaras, Vaidotas Zemlys
-}
 \references{
 Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254
 }
 \seealso{
 hAhr_test
 }
-
+\author{
+Virmantas Kvedaras, Vaidotas Zemlys
+}

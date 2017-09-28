@@ -22,4 +22,3 @@ Calculate gradient function for normalized Nakagami probability density function
 \author{
 Julius Vainora
 }
-

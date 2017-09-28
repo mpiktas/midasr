@@ -24,4 +24,3 @@ Prepares MIDAS lag structure for unit root processes
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

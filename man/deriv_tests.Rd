@@ -20,10 +20,9 @@ a list with gradient, hessian of optimisation function and convergence message
 \description{
 Computes the gradient and hessian of the optimisation function of restricted MIDAS regression and checks whether the conditions of local optimum are met. Numerical estimates are used.
 }
-\author{
-Vaidotas Zemlys
-}
 \seealso{
 midas_r
 }
-
+\author{
+Vaidotas Zemlys
+}

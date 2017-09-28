@@ -50,4 +50,3 @@ coef(eqr, midas = TRUE, term_names = "x")
 \author{
 Vaidotas Zemlys
 }
-

@@ -21,4 +21,3 @@ A helper function.
 \author{
 Vaidotas Zemlys
 }
-

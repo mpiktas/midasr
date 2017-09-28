@@ -24,4 +24,3 @@ Step function specification for MIDAS weights
 \author{
 Vaidotas Zemlys
 }
-

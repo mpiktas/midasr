@@ -35,4 +35,3 @@ split_data(list(y=y,x=x,z=z),insample=1,outsample=2)
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

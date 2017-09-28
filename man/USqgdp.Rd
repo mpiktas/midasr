@@ -17,4 +17,3 @@ United States gross domestic product, quarterly, seasonaly adjusted annual rate.
 ## USqgdp <- ts(getSymbols("GDP",src="FRED",auto.assign=FALSE),start=c(1947,1),frequency=4)
 }
 \keyword{datasets}
-

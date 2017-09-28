@@ -22,4 +22,3 @@ Calculate gradient for Almon polynomial MIDAS weights specification
 \author{
 Vaidotas Zemlys
 }
-

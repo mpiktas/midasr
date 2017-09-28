@@ -123,10 +123,9 @@ mr_arstar <-  midas_r(y.ar ~ trend + mls(y.ar, 1, 1, "*")
                      start = list(xx = rep(0, 3)))
 
 }
-\author{
-Virmantas Kvedaras, Vaidotas Zemlys
-}
 \references{
 Clements, M. and Galvao, A., \emph{Macroeconomic Forecasting With Mixed-Frequency Data: Forecasting Output Growth in the United States}, Journal of Business and Economic Statistics, Vol.26 (No.4), (2008) 546-554
 }
-
+\author{
+Virmantas Kvedaras, Vaidotas Zemlys
+}

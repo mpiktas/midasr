@@ -25,10 +25,9 @@ Almon lag. It is defined as a product of first order polynomial with exponent
 of the second order polynomial. This spefication was used by V. Kvedaras and 
 V. Zemlys (2012).
 }
-\author{
-Virmantas Kvedaras, Vaidotas Zemlys
-}
 \references{
 Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254
 }
-
+\author{
+Virmantas Kvedaras, Vaidotas Zemlys
+}

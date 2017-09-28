@@ -22,4 +22,3 @@ Gradient function for normalized exponential Almon lag weights
 \author{
 Vaidotas Zemlys
 }
-

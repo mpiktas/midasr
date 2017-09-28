@@ -46,4 +46,3 @@ forecast(mr, list(x = xn))
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys
 }
-

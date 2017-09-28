@@ -70,4 +70,3 @@ The code in the example generates the out-of-sample prediction precision data fo
 ## oos_prec$Type <- factor(oos_prec$Type,levels=c("Mean squared error","Distance from true values"))
 }
 \keyword{datasets}
-
