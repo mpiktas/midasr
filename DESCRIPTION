@@ -10,7 +10,8 @@ Author: Virmantas Kvedaras <virmantas.kvedaras@mif.vu.lt>, Vaidotas Zemlys
 Depends:
     R (>= 2.11.0),
     sandwich,
-    optimx
+    optimx,
+    quantreg
 Imports:
     MASS,
     numDeriv,
@@ -24,4 +25,4 @@ License: GPL-2 | MIT + file LICENCE
 BugReports: https://github.com/mpiktas/midasr/issues
 Suggests:
     testthat
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
