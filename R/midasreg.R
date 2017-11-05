@@ -215,8 +215,9 @@ midas_u <- function(formula, data ,...) {
 ##' the MIDAS regression.
 ##'
 ##' @importFrom stats as.formula formula model.matrix model.response terms lsfit time
+##' @importFrom zoo index index2char
 ##' @export
-midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NULL,...) {
+midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NULL, ...) {
 
     Zenv <- new.env(parent=environment(formula))
 
@@ -254,31 +255,39 @@ midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NU
     y <- model.response(mf, "numeric")
     X <- model.matrix(mt, mf)
     
-    #Save ts information
+    #Save ts/zoo information
     if(is.null(ee)) { 
         yy <- eval(formula[[2]], Zenv)
     }else {
         yy <- eval(formula[[2]], ee)
     }
     
+    y_index <- 1:length(yy) 
+    if(!is.null(attr(mf, "na.action"))) {
+        y_index <- y_index[-attr(mf, "na.action")]
+    }
+    if(length(y_index)>1) {
+        if(sum(abs(diff(y_index) - 1))>0) warning("There are NAs in the middle of the time series")                
+    }
+    
+    ysave <- yy[y_index]
+    
     if(inherits(yy, "ts")) {
-        y_index <- 1:length(yy) 
-        if(!is.null(attr(mf, "na.action"))) {
-            y_index <- y_index[-attr(mf, "na.action")]
-        }
-        if(length(y_index)>1) {
-            if(sum(abs(diff(y_index) - 1))>0) warning("There are NAs in the middle of the time series")                
-        }
-        ysave <- yy[y_index]
         class(ysave) <- class(yy)
         attr(ysave, "tsp") <- c(time(yy)[range(y_index)], frequency(yy))
-    } else {
-        ysave <- yy
     }
         
+    if(inherits(yy,c("zoo","ts"))) {
+        y_start <- index2char(index(ysave)[1], frequency(ysave))
+        y_end <- index2char(index(ysave)[length(ysave)], frequency(ysave))
+    } else {
+        y_start <- y_index[1]
+        y_end <- y_index[length(y_index)]
+    }
+    
     prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,weight_gradients,itr$lagsTable)
     
-    prepmd <- c(prepmd, list(lhs = ysave))
+    prepmd <- c(prepmd, list(lhs = ysave, lhs_start = y_start, lhs_end = y_end))
     
     class(prepmd) <- "midas_r"
     
@@ -382,7 +391,10 @@ midas_r.fit <- function(x) {
     args <- x$argmap_opt
     function.opt <- args$Ofunction
     args$Ofunction <- NULL
-    if(function.opt=="optim" | function.opt=="spg") {  
+   
+    if(!(function.opt %in% c("optim","spg","optimx","lm","nls","dry_run"))) 
+        stop("The optimisation function is not in the supported functions list. Please see the midasr:::midas_r.fit code for the supported function list")
+    if(function.opt == "optim" | function.opt =="spg") {  
         args$par <- x$start_opt
         args$fn <- x$fn0
         if(x$use_gradient) {
@@ -439,6 +451,11 @@ midas_r.fit <- function(x) {
         names(par) <- names(coef(x))
         x$convergence <- opt$convInfo$stopCode
     }
+    if(function.opt == "dry_run") {
+        opt <- NULL
+        par <- x$start_opt
+    }
+    
     x$opt <- opt
     x$coefficients <- par
     names(par) <- NULL
@@ -463,7 +480,7 @@ midas_r.fit <- function(x) {
 ## unrestricted the unrestricted model
 ## guess_start if TRUE, get the initial values for non-MIDAS terms via OLS, if FALSE, initialize them with zero.
 ## Vaidotas Zemlys
-prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradients, lagsTable, unrestricted = NULL, guess_start = TRUE) {
+prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradients, lagsTable, unrestricted = NULL, guess_start = TRUE, tau = NULL) {
 
     start <- start[!sapply(start,is.null)]
     if(is.null(weight_gradients)) use_gradient <- FALSE
@@ -486,6 +503,7 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
         if(term_name %in% c("mls", "fmls", "dmls")) {
             type <- term_name
             term_name <- as.character(fr[[2]])
+            
             freq <- eval(fr[[4]], Zenv)
             lags <- eval(fr[[3]], Zenv)
             nol <- switch(type,
@@ -503,7 +521,11 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
             if(length(fr) > 4 && fr[[5]] != "*") {
                 mf <- fr[-5]
                 mf[[1]] <- fr[[5]]
-                weight_name <- as.character(fr[[5]])            
+                weight_name <- as.character(fr[[5]])
+                
+                ##Since we allow stars and other stuff in mls, maybe allow to 
+                ##specify the multiplicative property in a call to mls?
+                
                 noarg <- length(formals(eval(fr[[5]], Zenv)))
                 if(noarg<2)stop("The weight function must have at least two arguments")            
                 mf <- mf[1:min(length(mf), noarg + 1)]
@@ -584,7 +606,7 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     }
     
     start_default[names(start)] <- start
-            
+    
     np <- cumsum(sapply(start_default,length))
 
     build_indices <- function(ci,nm) {
@@ -651,7 +673,6 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
             ifelse(is.null(dim(x)),1,ncol(x))
             }))
         xxinds <- build_indices(npxx,names(start_default))
-        
         XX <- do.call("cbind",Xstart)
         ###If the starting values for the weight restriction are all zeros, then the weighted explanatory variable is zero.
         ###In this case lsfit gives a warning about colinear matrix, which we can ignore.
@@ -662,6 +683,18 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
 
         nms <- !(names(start_default) %in% names(start))
         start_default[nms] <- lmstart[nms]
+        
+        for(ww in which(wi)) {
+            normalized <- FALSE
+            if(rfd[[ww]]$weight_name %in% c("nealmon","nbeta","nbetaMT","gompertzp","nakagamip","lcauchyp")) normalized <- TRUE
+            else {
+                normalized <- is_weight_normalized(rf[[ww]], start_default[[ww]])
+            }
+            if(normalized) {
+                start_default[[ww]][1] <- lmstart[[ww]]
+            }
+        }
+       
     }
     
     starto <- unlist(start_default)
@@ -678,7 +711,13 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
         r <- y - mdsrhs(p)
         sum(r^2)
     }
-
+    if(!is.null(tau)) {
+        fn0 <- function(p,...) {
+            r <- y - mdsrhs(p)
+            sum(tau * pmax(r, 0) + (tau - 1) * pmin(r,0))
+        }
+    }
+    
     if(!use_gradient) {
         gradD <- function(p)jacobian(all_coef,p)
         gr <- function(p)grad(fn0,p)
@@ -800,7 +839,13 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
         term$midas_coef_index <- xind
         term
     },term_info,pinds[names(term_info)],xinds[names(term_info)],SIMPLIFY=FALSE)
-
+    
+    if(!is.null(tau))  {
+        ##At the moment do not calculate the gradient and hessian for 
+        ##quantile regression, as it does not make sense
+        gr <- NULL
+        hess <- NULL
+    }
     list(coefficients=starto,
          midas_coefficients=all_coef(starto),
          model=cbind(y,X),         
@@ -820,7 +865,8 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
          gradD=gradD,
          Zenv=Zenv,
          use_gradient=use_gradient,
-         nobs=nrow(X))   
+         nobs=nrow(X),
+         tau = tau)   
 }
 
 ##' Restricted MIDAS regression
