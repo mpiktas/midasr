@@ -168,12 +168,15 @@ print.summary.midas_r <- function(x, digits=max(3, getOption("digits") - 3 ), si
 ##' @method print midas_r
 print.midas_r <- function(x, digits=max(3,getOption("digits")-3),...) {
     #Code adapted from dynln:::print.dynlm code
-    cat(paste("\nMIDAS regression model with \"", class(x$lhs)[1], 
+    model_string <-  "\nMIDAS regression model with \""
+    if(inherits(x, "midas_qr")) model_string <- "\nMIDAS quantile regression model with \""
+    cat(paste(model_string, class(x$lhs)[1], 
               "\" data:\n", sep = ""))
     cat(paste("Start = ", x$lhs_start, 
               ", End = ", x$lhs_end, 
               "\n", sep = ""))
     cat(" model:", deparse(formula(x)),"\n")
+    if(inherits(x,"midas_qr")) cat("   tau:", x$tau, "\n")
     print(coef(x),digits = digits, ...)
     cat("\n")
     cat("Function", x$argmap_opt$Ofunction, "was used for fitting\n")

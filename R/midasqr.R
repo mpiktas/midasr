@@ -115,7 +115,7 @@ midas_qr <- function(formula, data, tau = 0.5, start, Ofunction="nlrq", weight_g
     
     prepmd <- c(prepmd, list(lhs = ysave, lhs_start = y_start, lhs_end = y_end ))
     
-    class(prepmd) <- "midas_qr"
+    class(prepmd) <- c("midas_qr")
     
     midas_qr.fit(prepmd)    
     
