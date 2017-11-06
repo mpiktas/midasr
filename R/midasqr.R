@@ -40,6 +40,36 @@
 ##' \item{fitted.values}{the fitted values of MIDAS regression}
 ##' \item{residuals}{the residuals of MIDAS regression}
 ##' 
+##' @example 
+##' ##Take the same example as in midas_r
+##' 
+##' theta_h0 <- function(p, dk, ...) {
+##'    i <- (1:dk-1)/100
+##'    pol <- p[3]*i + p[4]*i^2
+##'    (p[1] + p[2]*i)*exp(pol)
+##' }
+##'
+##' ##Generate coefficients
+##' theta0 <- theta_h0(c(-0.1,10,-10,-10),4*12)
+##'
+##' ##Plot the coefficients
+##' plot(theta0)
+##'
+##' ##Generate the predictor variable
+##' xx <- ts(arima.sim(model = list(ar = 0.6), 600 * 12), frequency = 12)
+##'
+##' ##Simulate the response variable
+##' y <- midas_sim(500, xx, theta0)
+##'
+##' x <- window(xx, start=start(y))
+##' 
+##' ##Fit quantile regression. All the coefficients except intercept should be constant.
+##' ##Intercept coefficient should correspond to quantile function of regression errors.
+##' mr <- midas_qr(y~fmls(x,4*12-1,12,theta_h0), tau = c(0.1, 0.5, 0.9),
+##'               list(y=y,x=x),
+##'               start=list(x=c(-0.1,10,-10,-10)))
+##'               
+##' mr
 ##' @author Vaidotas Zemlys-Balevicius
 ##' @rdname midas_qr
 ##' @import quantreg
@@ -111,6 +141,15 @@ midas_qr <- function(formula, data, tau = 0.5, start, Ofunction="nlrq", weight_g
         y_end <- y_index[length(y_index)]
     }
     
+    eps <- .Machine$double.eps^(2/3)
+    if (any(tau < 0) || any(tau > 1)) 
+        stop("invalid tau:  taus should be >= 0 and <= 1")
+    
+    if (any(tau == 0)) 
+            tau[tau == 0] <- eps
+    if (any(tau == 1)) 
+            tau[tau == 1] <- 1 - eps
+    
     prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,weight_gradients,itr$lagsTable, guess_start = TRUE, tau = tau)
     
     prepmd <- c(prepmd, list(lhs = ysave, lhs_start = y_start, lhs_end = y_end ))
@@ -138,25 +177,41 @@ midas_qr.fit <- function(x) {
         z <- x$model[,1]
         args$formula <- formula(z~rhs(p))
         args$start <- list(p=x$start_opt)
-        args$tau <- x$tau
-        opt <- try(do.call("nlrq",args),silent = TRUE)
-        if(inherits(opt,"try-error")) {
-            stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
+        res <- vector(mode = "list", length = length(x$tau))
+        for(i in 1:length(x$tau)) {
+            args$tau <- x$tau[i]
+            opt <- try(do.call("nlrq",args),silent = TRUE)
+                if(inherits(opt,"try-error")) {
+                    stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
+                }
+            par <- coef(opt)
+            names(par) <- names(coef(x))
+            res[[i]] <- list(opt = opt, par = par, convergence = opt$convInfo$stopCode)
         }
-        par <- coef(opt)
-        names(par) <- names(coef(x))
-        x$convergence <- opt$convInfo$stopCode
     }
-    if(function.opt == "dry_run") {
+    if (function.opt == "dry_run") {
         opt <- NULL
         par <- x$start_opt
     }
-    x$opt <- opt
-    x$coefficients <- par
-    names(par) <- NULL
-    x$midas_coefficients <- x$gen_midas_coef(par)
-    x$fitted.values <- as.vector(x$model[,-1]%*%x$midas_coefficients)
-    x$residuals <- as.vector(x$model[,1]-x$fitted.values)
+    if (length(res) == 1) {
+        x$opt <- res[[1]]$opt
+        x$coefficients <- res[[1]]$par
+        names(res[[1]]$par) <- NULL
+        x$midas_coefficients <- x$gen_midas_coef(res[[1]]$par)
+        x$fitted.values <- as.vector(x$model[,-1]%*%x$midas_coefficients)
+        x$residuals <- as.vector(x$model[,1]-x$fitted.values)
+    } else {
+        x$opt <- lapply(res, "[[", "opt")
+        x$convergence <- sapply(res, "[[", "convergence")
+        x$coefficients <- sapply(res, "[[", "par")
+        colnames(x$coefficients) <- x$tau
+        par <- sapply(res, "[[", "par")
+        rownames(par) <- NULL
+        x$midas_coefficients <- apply(par,2,x$gen_midas_coef)
+        colnames(x$midas_coefficients) <- x$tau
+        x$fitted.values <- as.vector(x$model[,-1]%*%x$midas_coefficients)
+        x$residuals <- as.vector(x$model[,1]-x$fitted.values)
+    }
     x
     
 }
