@@ -209,8 +209,8 @@ midas_qr.fit <- function(x) {
         rownames(par) <- NULL
         x$midas_coefficients <- apply(par,2,x$gen_midas_coef)
         colnames(x$midas_coefficients) <- x$tau
-        x$fitted.values <- as.vector(x$model[,-1]%*%x$midas_coefficients)
-        x$residuals <- as.vector(x$model[,1]-x$fitted.values)
+        x$fitted.values <- x$model[,-1]%*%x$midas_coefficients
+        x$residuals <- x$model[,1]-x$fitted.values
     }
     x
     
