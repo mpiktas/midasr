@@ -99,3 +99,46 @@ check_mixfreq <- function(data) {
 
     sum(m>0)==0
 }
+
+#' MIDAS lag structure with dates
+#'
+#' @param x a vector
+#' @param k lags, a vector
+#' @param datex a vector of high frequency dates, if 
+#' @param datey low frequency dates
+#' @param ... further arguments used in fitting MIDAS regression
+#'
+#' @return a matrix containing the first differences and the lag k+1.
+#' @author Virmantas Kvedaras, Vaidotas Zemlys-Balevičius
+#' @export
+#'
+#' @examples
+mlsd <- function(x, k, datex, datey, ... ) {
+    x <- as.numeric(x)
+    if (length(x) != length(datex)) stop("The high frequency dates vector must be the same length as a data")
+ 
+    if (inherits(datex,"ts")) datex <- time(datex)
+    if (inherits(datex,"zoo") | inherits(datex, "xts")) datex <- index(datex)
+    
+    if (inherits(datey,"ts")) datey <- time(datey) - 0.001
+    if (inherits(datey,"zoo") | inherits(datey, "xts")) datey <- index(datey)
+    
+       
+    if (datey[1] > min(datex)) datey <- c(datey,min(datex))
+    if (datey[length(datey)] < max(datex)) datey <- c(datey, max(datex))
+    
+    ct <- cut(datex, datey, right = FALSE, labels = FALSE, include.lowest = TRUE)
+    
+    fhx <- function(h.x) {
+        id <- h.x - k 
+        id[id <= 0] <- NA
+        x[id]
+        
+    }
+    
+    XX <- lapply(cumsum(table(ct)), fhx)
+    X <- do.call("rbind", XX)
+    colnames(X) <- paste("X", k, sep = ".")
+    X
+    
+}

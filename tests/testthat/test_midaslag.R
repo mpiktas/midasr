@@ -26,3 +26,36 @@ test_that("fmls and dmls give the same results",{
     b <- dmls(e, 10, 10)
     expect_that(sum(abs(a - b), na.rm = TRUE), equals(0))
 })
+
+test_that("mlsd works the same as mls", {
+    x <- c(1:144)
+    y <- c(1:12)
+    datex <- x
+    datey <- (y-1)*12+1
+    m1 <- mlsd(x, 0:5, datex, datey)
+    m2 <- mls(x, 0:5, 12)
+    
+    expect_true(sum(abs(m1-m2)) < 1e-10)
+    
+})
+
+test_that("mlsd works for the ts objects", {
+    x <- ts(c(1:144), freq = 12)
+    y <- ts(c(1:48), freq = 4)
+    
+    m1 <- mlsd(x, 0:7, x, y)
+    m2 <- mls(x, 0:7, 3)
+    
+    expect_true(sum(abs(m1-m2), na.rm = TRUE) < 1e-10)
+})
+
+test_that("mlsd works for the xts objects", {
+    library(xts)
+    library(lubridate)
+    data(sample_matrix)
+    x <- as.xts(sample_matrix, descr='my new xts object')
+    y <- xts(1:6, order.by = unique(floor_date(index(sample.xts), unit = "month")))
+    
+    m1 <- mlsd(as.numeric(x[,1]), 0:42, x, y)
+    
+})
