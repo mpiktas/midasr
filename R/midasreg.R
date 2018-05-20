@@ -500,34 +500,50 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
         start <- 0
         freq <- 1
         lagstruct <- 0
-        if(term_name %in% c("mls", "fmls", "dmls")) {
+        if(term_name %in% c("mls", "fmls", "dmls","mlsd")) {
             type <- term_name
             term_name <- as.character(fr[[2]])
             
-            freq <- eval(fr[[4]], Zenv)
+            if(type == "mlsd") {
+                wpos <- 6
+                freq <- NA
+            } else {
+                wpos <- 5
+                freq <- eval(fr[[4]], Zenv)
+            }
+            
+            
             lags <- eval(fr[[3]], Zenv)
             nol <- switch(type,
                           fmls = lags+1,
                           dmls = lags+1,
-                          mls = length(lags)
+                          mls = length(lags),
+                          mlsd = length(lags)
             )
             lagstruct <- switch(type,
                                 fmls = 0:lags,
                                 dmls = 0:lags,
-                                mls = lags
+                                mls = lags,
+                                mlsd = lags
             )
             start <- rep(0, nol)
             grf <- function(p)diag(nol)
-            if(length(fr) > 4 && fr[[5]] != "*") {
-                mf <- fr[-5]
-                mf[[1]] <- fr[[5]]
-                weight_name <- as.character(fr[[5]])
+            if(length(fr) > wpos - 1 && fr[[wpos]] != "*") {
+                if(wpos == 6) {
+                   # We need to exclude date information here
+                   mf <- fr[-((wpos - 1):wpos)]
+                   mf[[4]] <- NA
+                } else {
+                    mf <- fr[-wpos]
+                }
+                mf[[1]] <- fr[[wpos]]
+                weight_name <- as.character(fr[[wpos]])
                 
                 ##Since we allow stars and other stuff in mls, maybe allow to 
                 ##specify the multiplicative property in a call to mls?
                 
-                noarg <- length(formals(eval(fr[[5]], Zenv)))
-                if(noarg<2)stop("The weight function must have at least two arguments")            
+                noarg <- length(formals(eval(fr[[wpos]], Zenv)))
+                if(noarg < 2) stop("The weight function must have at least two arguments")            
                 mf <- mf[1:min(length(mf), noarg + 1)]
                 if(length(mf)>3) {
                     for(j in 4:length(mf)) {

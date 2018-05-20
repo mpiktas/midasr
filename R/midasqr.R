@@ -40,7 +40,7 @@
 ##' \item{fitted.values}{the fitted values of MIDAS regression}
 ##' \item{residuals}{the residuals of MIDAS regression}
 ##' 
-##' @example 
+##' @examples
 ##' ##Take the same example as in midas_r
 ##' 
 ##' theta_h0 <- function(p, dk, ...) {

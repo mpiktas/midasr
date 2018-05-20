@@ -4,8 +4,8 @@ Description: Methods and tools for mixed frequency time series data analysis.
     Allows estimation, model selection and forecasting for MIDAS regressions.
 URL: http://mpiktas.github.io/midasr/
 Version: 0.6.4
-Maintainer: Vaidotas Zemlys <zemlys@gmail.com>
-Author: Virmantas Kvedaras <virmantas.kvedaras@mif.vu.lt>, Vaidotas Zemlys
+Maintainer: Vaidotas Zemlys-Balevičius <zemlys@gmail.com>
+Author: Virmantas Kvedaras <virmantas.kvedaras@mif.vu.lt>, Vaidotas Zemlys-Balevičius
     <vaidotas.zemlys@mif.vu.lt>
 Depends:
     R (>= 2.11.0),
@@ -24,5 +24,8 @@ Imports:
 License: GPL-2 | MIT + file LICENCE
 BugReports: https://github.com/mpiktas/midasr/issues
 Suggests:
-    testthat
+    testthat,
+    lubridate,
+    xts
 RoxygenNote: 6.0.1
+Encoding: UTF-8

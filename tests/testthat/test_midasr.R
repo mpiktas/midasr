@@ -1,12 +1,18 @@
 context("Testing midas_r")
 set.seed(1001)
-n<-250
-trend<-c(1:n)
-x<-rnorm(4*n)
-z<-rnorm(12*n)
-fn_x <- nealmon(p=c(1,-0.5),d=8)
-fn_z <- nealmon(p=c(2,0.5,-0.1),d=17)
-y<-2+0.1*trend+mls(x,0:7,4)%*%fn_x+mls(z,0:16,12)%*%fn_z+rnorm(n)
+
+n <- 250
+trend <- c(1:n)
+x <- rnorm(4*n)
+z <- rnorm(12*n)
+fn_x <- nealmon(p = c(1,-0.5),d = 8)
+fn_z <- nealmon(p = c(2,0.5,-0.1),d = 17)
+y <- 2 + 0.1*trend + mls(x, 0:7, 4) %*% fn_x + mls(z, 0:16, 12) %*% fn_z + rnorm(n)
+
+data_ts <- list(y = ts(as.numeric(y), frequency = 1),
+                x = ts(x, frequency = 4),
+                z = ts(z, frequency = 12),
+                trend = trend)
 
 
 test_that("midas_r with start=NULL is the same as lm",{
@@ -15,6 +21,31 @@ test_that("midas_r with start=NULL is the same as lm",{
     eq_u2<-midas_r(y~trend+mls(x,0:7,4)+mls(z,0:16,12),start=NULL)
     
     eq_u3<-midas_u(y~trend+mls(x,0:7,4)+mls(z,0:16,12))
+    
+    expect_that(sum(abs(coef(eq_u1) - coef(eq_u2))), equals(0))
+    expect_that(sum(abs(coef(eq_u3) - coef(eq_u2))), equals(0))
+})
+
+test_that("midas_r with start=NULL is the same as mls",{
+    eq_u1 <- midas_u(y~trend+mls(x,0:7,4)+mls(z,0:16,12), data= data_ts)
+    
+    eq_u2 <- midas_r(y~trend+mlsd(x, 0:7, x, y) + mlsd(z, 0:16, z, y), start = NULL, data = data_ts)
+    
+    eq_u3 <- midas_u(y~trend+mlsd(x, 0:7, x, y) + mlsd(z,0:16, z, y), data = data_ts)
+    
+    expect_that(sum(abs(coef(eq_u1) - coef(eq_u2))), equals(0))
+    expect_that(sum(abs(coef(eq_u3) - coef(eq_u2))), equals(0))
+})
+
+test_that("midas_r and midas_u picks data from the parent environment with mlsd", {
+    eq_u1 <- midas_u(y~trend+mls(x,0:7,4)+mls(z,0:16,12), data= data_ts)
+    xx <- data_ts$x
+    yy <- data_ts$y
+    zz <- data_ts$z
+    
+    eq_u2 <- midas_r(yy~trend+mlsd(xx, 0:7, xx, yy) + mlsd(zz, 0:16, zz, yy), start = NULL)
+    
+    eq_u3 <- midas_u(yy~trend+mlsd(xx, 0:7, xx, yy) + mlsd(zz,0:16, zz, yy))
     
     expect_that(sum(abs(coef(eq_u1) - coef(eq_u2))), equals(0))
     expect_that(sum(abs(coef(eq_u3) - coef(eq_u2))), equals(0))
