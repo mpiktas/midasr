@@ -57,6 +57,37 @@ a \code{midas_r} object which is the list with the following elements:
 \description{
 Estimate restricted MIDAS quantile regression using nonlinear quantile regression
 }
+\examples{
+##Take the same example as in midas_r
+
+theta_h0 <- function(p, dk, ...) {
+   i <- (1:dk-1)/100
+   pol <- p[3]*i + p[4]*i^2
+   (p[1] + p[2]*i)*exp(pol)
+}
+
+##Generate coefficients
+theta0 <- theta_h0(c(-0.1,10,-10,-10),4*12)
+
+##Plot the coefficients
+plot(theta0)
+
+##Generate the predictor variable
+xx <- ts(arima.sim(model = list(ar = 0.6), 600 * 12), frequency = 12)
+
+##Simulate the response variable
+y <- midas_sim(500, xx, theta0)
+
+x <- window(xx, start=start(y))
+
+##Fit quantile regression. All the coefficients except intercept should be constant.
+##Intercept coefficient should correspond to quantile function of regression errors.
+mr <- midas_qr(y~fmls(x,4*12-1,12,theta_h0), tau = c(0.1, 0.5, 0.9),
+              list(y=y,x=x),
+              start=list(x=c(-0.1,10,-10,-10)))
+              
+mr
+}
 \author{
 Vaidotas Zemlys-Balevicius
 }
