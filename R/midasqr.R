@@ -74,7 +74,7 @@
 ##' @rdname midas_qr
 ##' @import quantreg
 ##' @export
-midas_qr <- function(formula, data, tau = 0.5, start, Ofunction="nlrq", weight_gradients=NULL,...) {
+midas_qr <- function(formula, data, tau = 0.5, start, Ofunction="nlrq", weight_gradients=NULL, guess_start = TRUE, ...) {
     Zenv <- new.env(parent=environment(formula))
     
     if(missing(data)) {
@@ -150,7 +150,7 @@ midas_qr <- function(formula, data, tau = 0.5, start, Ofunction="nlrq", weight_g
     if (any(tau == 1)) 
             tau[tau == 1] <- 1 - eps
     
-    prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,weight_gradients,itr$lagsTable, guess_start = TRUE, tau = tau)
+    prepmd <- prepmidas_r(y,X,mt,Zenv,cl,args,start,Ofunction,weight_gradients,itr$lagsTable, guess_start = guess_start, tau = tau)
     
     prepmd <- c(prepmd, list(lhs = ysave, lhs_start = y_start, lhs_end = y_end ))
     
@@ -191,7 +191,12 @@ midas_qr.fit <- function(x) {
     }
     if (function.opt == "dry_run") {
         opt <- NULL
-        par <- x$start_opt
+        res_template <- list(opt = opt, par = x$start_opt, convergence = "Dry run, no optimisation done")
+        res <- vector(mode = "list", length = length(x$tau))
+        for(i in 1:length(x$tau)) {
+            res[[i]] <- res_template
+        }
+        
     }
     if (length(res) == 1) {
         x$opt <- res[[1]]$opt
