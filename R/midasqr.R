@@ -13,6 +13,7 @@
 ##' The default value is NULL, which means that the numeric approximation of weight function gradient is calculated. If the argument is not NULL, but the
 ##' name of the weight used in formula is not present, it is assumed that there exists an R function which has  
 ##' the name of the weight function appended with \code{_gradient}. 
+##' @param guess_start, logical, if TRUE tries certain strategy to improve starting values 
 ##' @param ... additional arguments supplied to optimisation function
 ##' @return a \code{midas_r} object which is the list with the following elements:
 ##' 
@@ -40,7 +41,7 @@
 ##' \item{fitted.values}{the fitted values of MIDAS regression}
 ##' \item{residuals}{the residuals of MIDAS regression}
 ##' 
-##' @example 
+##' @examples 
 ##' ##Take the same example as in midas_r
 ##' 
 ##' theta_h0 <- function(p, dk, ...) {
