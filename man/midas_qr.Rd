@@ -5,7 +5,7 @@
 \title{Restricted MIDAS quantile regression}
 \usage{
 midas_qr(formula, data, tau = 0.5, start, Ofunction = "nlrq",
-  weight_gradients = NULL, ...)
+  weight_gradients = NULL, guess_start = TRUE, ...)
 }
 \arguments{
 \item{formula}{formula for restricted MIDAS regression or \code{midas_qr} object. Formula must include \code{\link{mls}} function}
@@ -24,6 +24,8 @@ The names of the list should coincide with the names of weights used in formula.
 The default value is NULL, which means that the numeric approximation of weight function gradient is calculated. If the argument is not NULL, but the
 name of the weight used in formula is not present, it is assumed that there exists an R function which has  
 the name of the weight function appended with \code{_gradient}.}
+
+\item{guess_start, }{logical, if TRUE tries certain strategy to improve starting values}
 
 \item{...}{additional arguments supplied to optimisation function}
 }

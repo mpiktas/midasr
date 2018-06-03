@@ -6,7 +6,7 @@ URL: http://mpiktas.github.io/midasr/
 Version: 0.6.4
 Maintainer: Vaidotas Zemlys-Balevičius <zemlys@gmail.com>
 Author: Virmantas Kvedaras <virmantas.kvedaras@mif.vu.lt>, Vaidotas Zemlys-Balevičius
-    <vaidotas.zemlys@mif.vu.lt>
+   <vaidotas.zemlys@mif.vu.lt>
 Depends:
     R (>= 2.11.0),
     sandwich,

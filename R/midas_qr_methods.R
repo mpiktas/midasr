@@ -1,11 +1,11 @@
 ##' @export
-##' @method print midas_r
+##' @method print midas_qr
 print.midas_qr <- function(x, digits=max(3,getOption("digits") - 3), ...) {
     print.midas_r(x)
 }
 
 ##' @export
-##' @method coef midas_r
+##' @method coef midas_qr
 coef.midas_qr <- function(object, midas = FALSE, term_names = NULL, ...) {
     if (is.null(term_names)) coef.midas_r(object, midas, ...)
     else {
@@ -28,6 +28,7 @@ coef.midas_qr <- function(object, midas = FALSE, term_names = NULL, ...) {
 
 ## Code is borrowed from summary.nlrq in quantreg
 ##' @export
+##' @method summary midas_qr
 summary.midas_qr <- function(object, ... ) {
     y <- object$residuals
     tau <- object$tau
@@ -70,6 +71,7 @@ summary.midas_qr <- function(object, ... ) {
 }
 
 ##' @export
+##' @method print summary.midas_qr
 print.summary.midas_qr <- function(x, digits =max(3, getOption("digits") - 3 ), 
                                    signif.stars = getOption("show.signif.stars"), ...)  {
     

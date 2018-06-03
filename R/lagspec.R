@@ -110,7 +110,7 @@ nealmon_gradient <- function(p,d,m) {
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
 nbeta <- function(p,d,m) {
-    nbetaMT(c(p,0),d,m)
+    nbetaMT(c(p[1:3],0),d,m)
 }
 
 ##' Gradient function for normalized beta probability density function MIDAS weights specification
@@ -122,7 +122,7 @@ nbeta <- function(p,d,m) {
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
 nbeta_gradient <- function(p,d,m) {
-    nbetaMT_gradient(c(p,0),d,m)[,1:3]
+    nbetaMT_gradient(c(p[1:3],0),d,m)[,1:3]
 }
 
 
