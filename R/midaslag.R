@@ -113,6 +113,18 @@ check_mixfreq <- function(data) {
 #' @export
 #'
 #' @examples
+#' x <- c(1:144)
+#' y <- c(1:12)
+#' datex <- x
+#' datey <- (y-1)*12+1
+#' 
+#' #msld and mls should give the same results
+#' 
+#' m1 <- mlsd(x, 0:5, datex, datey)
+#' 
+#' m2 <- mls(x, 0:5, 12)
+#' 
+#' sum(abs(m1 - m2))
 mlsd <- function(x, k, datex, datey, ... ) {
     x <- as.numeric(x)
     if (length(x) != length(datex)) stop("The high frequency dates vector must be the same length as a data")
