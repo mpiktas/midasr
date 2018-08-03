@@ -23,6 +23,20 @@ a matrix containing the first differences and the lag k+1.
 \description{
 MIDAS lag structure with dates
 }
+\examples{
+x <- c(1:144)
+y <- c(1:12)
+datex <- x
+datey <- (y-1)*12+1
+
+#msld and mls should give the same results
+
+m1 <- mlsd(x, 0:5, datex, datey)
+
+m2 <- mls(x, 0:5, 12)
+
+sum(abs(m1 - m2))
+}
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys-Balevičius
 }

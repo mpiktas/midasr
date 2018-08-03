@@ -53,9 +53,9 @@ test_that("mlsd works for the xts objects", {
     library(xts)
     library(lubridate)
     data(sample_matrix)
-    x <- as.xts(sample_matrix, descr='my new xts object')
+    x <- as.xts(sample_matrix, descr = 'my new xts object')
     y <- xts(1:6, order.by = unique(floor_date(index(sample.xts), unit = "month")))
     
     m1 <- mlsd(as.numeric(x[,1]), 0:42, x, y)
-    
+    expect_true((abs(x[1, 1] - m1[1, 30]) < 1e-10) && (abs(x[30, 1] - m1[1,1]) < 1e-10))
 })

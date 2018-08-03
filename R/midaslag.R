@@ -127,13 +127,14 @@ check_mixfreq <- function(data) {
 #' sum(abs(m1 - m2))
 mlsd <- function(x, k, datex, datey, ... ) {
     x <- as.numeric(x)
-    if (length(x) != length(datex)) stop("The high frequency dates vector must be the same length as a data")
- 
+    
     if (inherits(datex,"ts")) datex <- time(datex)
     if (inherits(datex,"zoo") | inherits(datex, "xts")) datex <- index(datex)
     
     if (inherits(datey,"ts")) datey <- time(datey) - 0.001
     if (inherits(datey,"zoo") | inherits(datey, "xts")) datey <- index(datey)
+    
+    if (length(x) != length(datex)) stop("The date vector for high frequency data must be the same length as a data")
     
        
     if (datey[1] > min(datex)) datey <- c(datey,min(datex))
