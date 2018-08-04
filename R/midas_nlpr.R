@@ -532,14 +532,14 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
          nobs=nrow(X))   
 }
 
-##' Non-linear parametric  MIDAS regression
+##' LSTR  MIDAS regression
 ##'
-##' Function for fitting non-linear parametric MIDAS regression without the formula interface
+##' Function for fitting LSTR MIDAS regression without the formula interface
 ##' @param y model response
-##' @param X prepared matrix of high frequency variable lags
+##' @param Xlstr prepared matrix of high frequency variable lags for LSTR term
+##' @param Xmmm prepared matrix of high frequency variable lags for MMM term
 ##' @param z additional low frequency variables
 ##' @param weight the weight function
-##' @param grw the gradient of weight function
 ##' @param startx the starting values for weight function
 ##' @param startz the starting values for additional low frequency variables
 ##' @param method a method passed to \link{optimx}
@@ -552,62 +552,58 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
 ##'
 ##' @export
 ##' 
-midas_nlpr_simple <- function(y,X,z=NULL,weight,startx,startz=NULL,method=c("Nelder-Mead","BFGS"),...) {
+midas_lstr_simple <- function(y, X, z = NULL, weight, startlstr, startx, startz = NULL, method = c("Nelder-Mead", "BFGS"), ...) {
     d <- ncol(X)
-    nw <- length(startx)
+    nw <- length(start)
    
-    if(!is.null(z) && !is.matrix(z)) z <- matrix(z,ncol=1)
-    model <- na.omit(cbind(y,X,z))
+    if(!is.null(z) && !is.matrix(z)) z <- matrix(z, ncol=1)
+    
+    model <- cbind(y,X,z)
+    
     y <- model[,1]
-    XX <- model[,-1]
-    
-    if(is.null(z)) {        
-        all_coef <- function(p) {
-            weight(p,d)
-        }
-        start <- startx
+    X <- model[, 2:(ncol(X) + 1)]
+    if (is.null(z)) { 
+        z <- 0
+    } else {
+        z <- model[, (ncol(X) + 1):ncol(model)]
     }
-    else {
-        all_coef <- function(p) {
-            c(weight(p[1:nw],d),p[-nw:-1])
-        }        
-        nz <- ncol(z)
-        if(is.null(startz)) {            
-            ZZ <- model[,1+1:d]%*%weight(startx,d)
-            Z <- model[,(d+2):ncol(model)]
-            prec <- suppressWarnings(lsfit(cbind(Z,ZZ),y,intercept=FALSE))
-            startz <- coef(prec)[1:nz]
-        }
-        start <- c(startx,startz)
-    }
-   
     n <- nrow(model)
-    fn0 <- function(p) {
-        sum((y-XX%*%all_coef(p))^2)
+    
+    sx <- length(startx)
+    sd_x <- apply(X, 1, sd)
+    
+    rhs <- function(p) {
+        plstr <- p[1:4]
+        pr <- p[5:(5 + sx)]
+        if (is.null(z)) pz <- 0 else {
+            pz <- p[(6 + sx):length(p)]
+        }
+        xx <- X %*% weight(pr)
+        b <- -exp(plstr[3])*(xx - plstr[4])/sd_x
+        g <- 1/(1 + exp(b))
+        plstr[1]*xx*(1 + plstr[2]*g) + z*pz  
     }
-  
     
-    gradD <- function(p)jacobian(all_coef,p)
-    gr <- function(p)grad(fn0,p)
-    gr0 <- NULL
+    fn0 <- function(p) {
+        sum((y - rhs(p))^2)
+    }
     
-   
-    opt <- optimx(start,fn0,gr0,method=method,...)
+    start <- c(startlstr, startx, startz)
+    opt <- optimx(start, fn0, method = method,...)
     bmet <- which.min(opt$value)
     par <- as.numeric(opt[bmet, 1:length(start)])   
     call <- match.call()
-    fitted.values <- as.vector(XX%*%all_coef(par))
-    list(coefficients=par,
-         midas_coefficients=all_coef(par),
-         model=model,
-         weights=weight,
-         fn0=fn0,    
-         opt=opt,
-         call=call,
-         gradient=gr,
-         hessian=function(x)numDeriv::hessian(fn0,x),
-         gradD=gradD,
-         fitted.values=fitted.values,
-         residuals=as.vector(y-fitted.values))
+    fitted.values <- as.vector(y - rhs(par))
+    list(coefficients = par,
+         midas_coefficients = par[5:(5 + sx)],
+         lstr_coefficients = par[1:4],
+         model = model,
+         weights = weight,
+         fn0 = fn0,    
+         opt = opt,
+         call = call,
+         hessian = function(x)numDeriv::hessian(fn0,x),
+         fitted.values = fitted.values,
+         residuals = as.vector(y - fitted.values))
              
 }
