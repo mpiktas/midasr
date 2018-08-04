@@ -1011,12 +1011,14 @@ update_weights <- function(expr,tb) {
     }
     if(length(expr)==5) {
         fun <- as.character(expr[[1]])
-        if(fun[[1]] %in% c("fmls","mls","dmls")) {
+        if(fun[[1]] %in% c("fmls","mls","dmls","mlsd")) {
+            end <- 4
+            if(fun[1] == "mlsd") end <- 5
             term_name <- as.character(expr[[2]])
             if(term_name %in% names(tb)) {
                 if(is.null(tb[[term_name]])|| tb[[term_name]] == "") {
-                    expr <- expr[1:4]
-                } else expr[[5]] <- as.name(tb[[term_name]])                    
+                    expr <- expr[1:end]
+                } else expr[[end+1]] <- as.name(tb[[term_name]])                    
             }
         }
         else return(expr)
