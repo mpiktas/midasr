@@ -119,7 +119,7 @@ midas_nlpr <- function(formula, data, start, Ofunction="optim", ...) {
         y_end <- y_index[length(y_index)]
     }
     
-    prepmd <- prep_midas_nlpr(y,X,mt,Zenv,cl,args,start,Ofunction,weight_gradients,itr$lagsTable)
+    prepmd <- prep_midas_nlpr(y,X,mt,Zenv,cl,args,start,Ofunction)
     
     prepmd <- c(prepmd, list(lhs = ysave, lhs_start = y_start, lhs_end = y_end))
     
@@ -524,11 +524,8 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
          start_list=start,
          call=cl,
          terms=mt,
-         gradient=gr,
          hessian=hess,
-         gradD=gradD,
          Zenv=Zenv,
-         use_gradient=use_gradient,
          nobs=nrow(X))   
 }
 
@@ -536,19 +533,19 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
 ##'
 ##' Function for fitting LSTR MIDAS regression without the formula interface
 ##' @param y model response
-##' @param Xlstr prepared matrix of high frequency variable lags for LSTR term
-##' @param Xmmm prepared matrix of high frequency variable lags for MMM term
+##' @param X prepared matrix of high frequency variable lags for LSTR term
 ##' @param z additional low frequency variables
 ##' @param weight the weight function
-##' @param startx the starting values for weight function
-##' @param startz the starting values for additional low frequency variables
+##' @param start_lstr the starting values for lstr term
+##' @param start_x the starting values for weight function
+##' @param start_z the starting values for additional low frequency variables
 ##' @param method a method passed to \link{optimx}
 ##' @param ... additional parameters to \link{optimx}
 ##' @return an object similar to \code{midas_r} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @import numDeriv
 ##' @import optimx
-##' @importFrom stats na.omit
+##' @importFrom stats na.omit sd
 ##'
 ##' @export
 ##' 
@@ -598,11 +595,13 @@ midas_lstr_simple <- function(y, X, z = NULL, weight, start_lstr, start_x, start
          lstr_coefficients = par[1:4],
          model = model,
          weights = weight,
-         fn0 = fn0,    
+         fn0 = fn0,
+         rhs = rhs,
          opt = opt,
          call = call,
          hessian = function(x)numDeriv::hessian(fn0,x),
          fitted.values = fitted.values,
-         residuals = as.vector(y - fitted.values))
+         residuals = as.vector(y - fitted.values),
+         start = start)
              
 }

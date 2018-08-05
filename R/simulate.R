@@ -247,28 +247,46 @@ NULL
 
 #' Simulate LSTR MIDAS regression model
 #'
-#' @param x vector, high frequency variable 
+#' @param n number of observations to simulate.
 #' @param m integer, frequency ratio
 #' @param theta vector, restriction coefficients for high frequency variable
-#' @param linear vector of length 2, linear LSTR model parameters, intercept and the slope.
-#' @param lstr vector of length 3, LSTR parameters
-#' @param ar vector, parameters for AR part of the model
+#' @param intercept vector of length 1, intercept for the model.
+#' @param lstr vector of length 4, slope for the LSTR term and LSTR parameters 
+#' @param ar.x vector, AR parameters for simulating high frequency variable
+#' @param ar.y vector, AR parameters for AR part of the model
 #' @param rand.gen function, a function for generating the regression innovations, default is \code{rnorm}
 #' @param n.start integer, length of a 'burn-in' period. If NA, the default, a reasonable value is computed.
-#' @param ... 
+#' @param ... additional parameters to rand.gen
 #'
-#' @return
+#' @return a list
 #' @export
 #'
 #' @examples
-#' @importFrom stats filter
-midas_lstr_sim <- function(n, m, theta, linear, lstr, ar.x,  ar.y, 
+#' 
+#' nnbeta <- function(p, k) nbeta(c(1,p),k)
+#' 
+#' dgp <- midas_lstr_sim(250, m = 12, theta = nnbeta(c(2, 4), 24), 
+#'                            intercept = c(1), lstr = c(1.5, 1, log(1), 1), 
+#'                            ar.x = 0.9, ar.y = 0.5, n.start = 100)
+
+#' z <- cbind(1, mls(dgp$y, 1:2, 1))
+#' colnames(z) <- c("Intercept", "y1", "y2")
+#' X <- mls(dgp$x, 0:23, 12)
+#'
+#' lstr <- midas_lstr_simple(dgp$y, X, z, nnbeta, 
+#'                           start_lstr = c(1.5, 1, log(1), 1), 
+#'                           start_x = c(2, 4), start_z=c(1, 0.5, 0)) 
+#' 
+#' coef(lstr)
+#' 
+#' @importFrom stats filter sd
+midas_lstr_sim <- function(n, m, theta, intercept, lstr, ar.x,  ar.y, 
                            rand.gen = rnorm,  n.start = NA, ...) {
     
     minroots <- min(Mod(polyroot(c(1, -ar.y))))
     
     if (minroots <= 1) stop("'ar' part of model is not stationary")
-    if(is.na(n.start)) n.start <- length(ar) + ceiling(6/log(minroots))
+    if(is.na(n.start)) n.start <- length(ar.y) + ceiling(6/log(minroots))
     
     innov_x <- rand.gen(m*(n + n.start))
     
@@ -280,10 +298,10 @@ midas_lstr_sim <- function(n, m, theta, linear, lstr, ar.x,  ar.y,
      
     gh <- xx %*% theta
          
-    b <- -exp(lstr[2])*(gh - lstr[3])/sd_x
+    b <- -exp(lstr[3])*(gh - lstr[4])/sd_x
     G <- 1/(1 + exp(b))
      
-    g <- linear[1] + linear[2]*gh*(1 + lstr[1]*G)
+    g <- intercept + lstr[1]*gh*(1 + lstr[2]*G)
     
     g[is.na(g)] <- 0
     
@@ -295,5 +313,5 @@ midas_lstr_sim <- function(n, m, theta, linear, lstr, ar.x,  ar.y,
     y <- y[-seq_len(n.start)]
     x <- x[-seq_len(n.start*m)]
 
-    list(y = y, x = x, lstr = lstr, linear = linear, ar.y = ar.y)
+    list(y = y, x = x, lstr = lstr, intercept = intercept, ar.y = ar.y)
 }
