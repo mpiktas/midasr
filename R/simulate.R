@@ -244,3 +244,56 @@ simulate.midas_r <- function(object, nsim = 999, seed = NULL, future=TRUE, newda
 ##' @rdname simulate.midas_r
 ##' @export
 NULL
+
+#' Simulate LSTR MIDAS regression model
+#'
+#' @param x vector, high frequency variable 
+#' @param m integer, frequency ratio
+#' @param theta vector, restriction coefficients for high frequency variable
+#' @param linear vector of length 2, linear LSTR model parameters, intercept and the slope.
+#' @param lstr vector of length 3, LSTR parameters
+#' @param ar vector, parameters for AR part of the model
+#' @param rand.gen function, a function for generating the regression innovations, default is \code{rnorm}
+#' @param n.start integer, length of a 'burn-in' period. If NA, the default, a reasonable value is computed.
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' @importFrom stats filter
+midas_lstr_sim <- function(n, m, theta, linear, lstr, ar.x,  ar.y, 
+                           rand.gen = rnorm,  n.start = NA, ...) {
+    
+    minroots <- min(Mod(polyroot(c(1, -ar.y))))
+    
+    if (minroots <= 1) stop("'ar' part of model is not stationary")
+    if(is.na(n.start)) n.start <- length(ar) + ceiling(6/log(minroots))
+    
+    innov_x <- rand.gen(m*(n + n.start))
+    
+    x <- filter(innov_x, ar.x, method = 'recursive', init = 0)
+    
+    xx <- mls(x, 0:(length(theta) - 1), m)
+    
+    sd_x <- sd(c(xx), na.rm = TRUE)
+     
+    gh <- xx %*% theta
+         
+    b <- -exp(lstr[2])*(gh - lstr[3])/sd_x
+    G <- 1/(1 + exp(b))
+     
+    g <- linear[1] + linear[2]*gh*(1 + lstr[1]*G)
+    
+    g[is.na(g)] <- 0
+    
+    innov <- rand.gen(length(g), ...)
+    
+    y <- filter(g + innov, ar.y, method = "recursive", init = 0)
+    
+    
+    y <- y[-seq_len(n.start)]
+    x <- x[-seq_len(n.start*m)]
+
+    list(y = y, x = x, lstr = lstr, linear = linear, ar.y = ar.y)
+}

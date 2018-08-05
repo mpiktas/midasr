@@ -552,50 +552,49 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
 ##'
 ##' @export
 ##' 
-midas_lstr_simple <- function(y, X, z = NULL, weight, startlstr, startx, startz = NULL, method = c("Nelder-Mead", "BFGS"), ...) {
+midas_lstr_simple <- function(y, X, z = NULL, weight, start_lstr, start_x, start_z = NULL, method = c("Nelder-Mead", "BFGS"), ...) {
     d <- ncol(X)
-    nw <- length(start)
    
     if(!is.null(z) && !is.matrix(z)) z <- matrix(z, ncol=1)
     
-    model <- cbind(y,X,z)
+    model <- na.omit(cbind(y,X,z))
     
     y <- model[,1]
     X <- model[, 2:(ncol(X) + 1)]
     if (is.null(z)) { 
         z <- 0
     } else {
-        z <- model[, (ncol(X) + 1):ncol(model)]
+        z <- model[, (ncol(X) + 2):ncol(model)]
     }
     n <- nrow(model)
     
-    sx <- length(startx)
-    sd_x <- apply(X, 1, sd)
+    sx <- length(start_x)
+    sd_x <- sd(c(X))
     
     rhs <- function(p) {
         plstr <- p[1:4]
-        pr <- p[5:(5 + sx)]
+        pr <- p[5:(4 + sx)]
         if (is.null(z)) pz <- 0 else {
-            pz <- p[(6 + sx):length(p)]
+            pz <- p[(5 + sx):length(p)]
         }
-        xx <- X %*% weight(pr)
+        xx <- X %*% weight(pr, ncol(X))
         b <- -exp(plstr[3])*(xx - plstr[4])/sd_x
-        g <- 1/(1 + exp(b))
-        plstr[1]*xx*(1 + plstr[2]*g) + z*pz  
+        G <- 1/(1 + exp(b))
+        plstr[1]*xx*(1 + plstr[2]*G) + z %*% pz  
     }
     
     fn0 <- function(p) {
         sum((y - rhs(p))^2)
     }
     
-    start <- c(startlstr, startx, startz)
+    start <- c(start_lstr, start_x, start_z)
     opt <- optimx(start, fn0, method = method,...)
     bmet <- which.min(opt$value)
     par <- as.numeric(opt[bmet, 1:length(start)])   
     call <- match.call()
     fitted.values <- as.vector(y - rhs(par))
     list(coefficients = par,
-         midas_coefficients = par[5:(5 + sx)],
+         midas_coefficients = weight(par[5:(4 + sx)],ncol(X)),
          lstr_coefficients = par[1:4],
          model = model,
          weights = weight,
