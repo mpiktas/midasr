@@ -912,10 +912,10 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
 ##'
 ##' X<-fmls(x,11,12)
 ##'
-##' midas_r_simple(y,X,trend,weight=nealmon,startx=c(0,0,0))
+##' midas_r_plain(y,X,trend,weight=nealmon,startx=c(0,0,0))
 ##' @export
 ##' 
-midas_r_simple <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method=c("Nelder-Mead","BFGS"),...) {
+midas_r_plain <- function(y,X,z=NULL,weight,grw=NULL,startx,startz=NULL,method=c("Nelder-Mead","BFGS"),...) {
     d <- ncol(X)
     nw <- length(startx)
    

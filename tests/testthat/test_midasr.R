@@ -299,19 +299,19 @@ test_that("AR* model works with gradient", {
 })
 
 
-test_that("Midas_r_simple works", {
+test_that("Midas_r_plain works", {
     a <- midas_r(y~trend+mls(x,0:7,4,nealmon)+mls(z,0:16,12,nealmon),start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)), Ofunction = "optimx")
     fn_a <- function(p, d) {
             c(nealmon(p[1:2],d=8),nealmon(p[3:5], d=17))
             }
-    s <- midas_r_simple(y,cbind(mls(x, 0:7, 4), mls(z, 0:16, 12)), cbind(1, trend), fn_a, 
+    s <- midas_r_plain(y,cbind(mls(x, 0:7, 4), mls(z, 0:16, 12)), cbind(1, trend), fn_a, 
                             startx = a$start_opt[3:7], startz = a$start_opt[1:2])
     
     expect_that(sum(abs(coef(s)[c(6:7,1:5)]-coef(a)))
 , is_less_than(1e-11))
 })
 
-test_that("Midas_r_simple gradient works", {
+test_that("Midas_r_plain gradient works", {
     a <- midas_r(y~trend+mls(x,0:7,4,nealmon)+mls(z,0:16,12,nealmon),start=list(x=c(1,-0.5),z=c(2,0.5,-0.1)), Ofunction = "optimx", weight_gradients = list())
     fn_a <- function(p, d) {
         c(nealmon(p[1:2],d=8),nealmon(p[3:5], d=17))
@@ -323,7 +323,7 @@ test_that("Midas_r_simple gradient works", {
             rbind(matrix(0, nrow = 8, ncol = 3), gr2))
     }
     
-    s <- midas_r_simple(y,cbind(mls(x, 0:7, 4), mls(z, 0:16, 12)), cbind(1, trend), fn_a, 
+    s <- midas_r_plain(y,cbind(mls(x, 0:7, 4), mls(z, 0:16, 12)), cbind(1, trend), fn_a, 
                         startx = a$start_opt[3:7], startz = a$start_opt[1:2], 
                         grw = gr_fn_a)
     
