@@ -9,7 +9,7 @@ do_n <- function(n) {
     colnames(z) <- c("Intercept", "y1", "y2")
     X <- mls(dgp$x, 0:23, 12)
 
-    lstr <- midas_lstr_simple(dgp$y, X, z, nnbeta, start_lstr = c(1.5, 1, log(1), 1), start_x = c(2, 4), start_z=c(1, 0.5, 0)) 
+    lstr <- midas_lstr_plain(dgp$y, X, z, nnbeta, start_lstr = c(1.5, 1, log(1), 1), start_x = c(2, 4), start_z=c(1, 0.5, 0)) 
     list(dgp = dgp, lstr = lstr)
 }
 

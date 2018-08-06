@@ -529,7 +529,7 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
          nobs=nrow(X))   
 }
 
-##' LSTR  MIDAS regression
+##' LSTR (Logistic Smooth TRansition)  MIDAS regression
 ##'
 ##' Function for fitting LSTR MIDAS regression without the formula interface
 ##' @param y model response
@@ -549,7 +549,7 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
 ##'
 ##' @export
 ##' 
-midas_lstr_simple <- function(y, X, z = NULL, weight, start_lstr, start_x, start_z = NULL, method = c("Nelder-Mead", "BFGS"), ...) {
+midas_lstr_plain <- function(y, X, z = NULL, weight, start_lstr, start_x, start_z = NULL, method = c("Nelder-Mead", "BFGS"), ...) {
     d <- ncol(X)
    
     if(!is.null(z) && !is.matrix(z)) z <- matrix(z, ncol=1)
@@ -604,4 +604,82 @@ midas_lstr_simple <- function(y, X, z = NULL, weight, start_lstr, start_x, start
          residuals = as.vector(y - fitted.values),
          start = start)
              
+}
+
+##' MMM (Mean-Min-Max)  MIDAS regression
+##'
+##' Function for fitting MMM MIDAS regression without the formula interface
+##' @param y model response
+##' @param X prepared matrix of high frequency variable lags for MMM term
+##' @param z additional low frequency variables
+##' @param weight the weight function
+##' @param start_mmm the starting values for MMM term
+##' @param start_x the starting values for weight function
+##' @param start_z the starting values for additional low frequency variables
+##' @param method a method passed to \link{optimx}
+##' @param ... additional parameters to \link{optimx}
+##' @return an object similar to \code{midas_r} object
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @import numDeriv
+##' @import optimx
+##' @importFrom stats na.omit sd
+##'
+##' @export
+##' 
+midas_mmm_plain <- function(y, X, z = NULL, weight, start_mmm, start_x, start_z = NULL, method = c("Nelder-Mead", "BFGS"), ...) {
+    d <- ncol(X)
+    
+    if(!is.null(z) && !is.matrix(z)) z <- matrix(z, ncol=1)
+    
+    model <- na.omit(cbind(y,X,z))
+    
+    y <- model[,1]
+    X <- model[, 2:(ncol(X) + 1)]
+    if (is.null(z)) { 
+        z <- 0
+    } else {
+        z <- model[, (ncol(X) + 2):ncol(model)]
+    }
+    n <- nrow(model)
+    
+    sx <- length(start_x)
+    sd_x <- sd(c(X))
+    
+    rhs <- function(p) {
+        pmmm <- p[1:2]
+        pr <- p[3:(2 + sx)]
+        if (is.null(z)) pz <- 0 else {
+            pz <- p[(3 + sx):length(p)]
+        }
+        mtr <- exp(pmmm[2]*X)
+        mtr_denom <- apply(mtr, 1, sum)
+        mmm_term <- ncol(X)*X*mtr/mtr_denom
+        
+        pmmm[1]*mmm_term %*% weight(pr, ncol(X)) + z %*% pz  
+    }
+    
+    fn0 <- function(p) {
+        sum((y - rhs(p))^2)
+    }
+    
+    start <- c(start_mmm, start_x, start_z)
+    opt <- optimx(start, fn0, method = method,...)
+    bmet <- which.min(opt$value)
+    par <- as.numeric(opt[bmet, 1:length(start)])   
+    call <- match.call()
+    fitted.values <- as.vector(y - rhs(par))
+    list(coefficients = par,
+         midas_coefficients = weight(par[3:(2 + sx)],ncol(X)),
+         mmm_coefficients = par[1:2],
+         model = model,
+         weights = weight,
+         fn0 = fn0,
+         rhs = rhs,
+         opt = opt,
+         call = call,
+         hessian = function(x)numDeriv::hessian(fn0,x),
+         fitted.values = fitted.values,
+         residuals = as.vector(y - fitted.values),
+         start = start)
+    
 }

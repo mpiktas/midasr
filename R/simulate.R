@@ -273,7 +273,7 @@ NULL
 #' colnames(z) <- c("Intercept", "y1", "y2")
 #' X <- mls(dgp$x, 0:23, 12)
 #'
-#' lstr <- midas_lstr_simple(dgp$y, X, z, nnbeta, 
+#' lstr <- midas_lstr_plain(dgp$y, X, z, nnbeta, 
 #'                           start_lstr = c(1.5, 1, log(1), 1), 
 #'                           start_x = c(2, 4), start_z=c(1, 0.5, 0)) 
 #' 
@@ -314,4 +314,73 @@ midas_lstr_sim <- function(n, m, theta, intercept, lstr, ar.x,  ar.y,
     x <- x[-seq_len(n.start*m)]
 
     list(y = y, x = x, lstr = lstr, intercept = intercept, ar.y = ar.y)
+}
+
+
+#' Simulate MMM MIDAS regression model
+#'
+#' @param n number of observations to simulate.
+#' @param m integer, frequency ratio
+#' @param theta vector, restriction coefficients for high frequency variable
+#' @param intercept vector of length 1, intercept for the model.
+#' @param mmm vector of length 2, slope for the MMM term and MMM parameter
+#' @param ar.x vector, AR parameters for simulating high frequency variable
+#' @param ar.y vector, AR parameters for AR part of the model
+#' @param rand.gen function, a function for generating the regression innovations, default is \code{rnorm}
+#' @param n.start integer, length of a 'burn-in' period. If NA, the default, a reasonable value is computed.
+#' @param ... additional parameters to rand.gen
+#'
+#' @return a list
+#' @export
+#'
+#' @examples
+#' 
+#' nnbeta <- function(p, k) nbeta(c(1,p),k)
+#' 
+#' dgp <- midas_mmm_sim(250, m = 12, theta = nnbeta(c(2, 4), 24), 
+#'                            intercept = c(1), mmm = c(1.5, 1), 
+#'                            ar.x = 0.9, ar.y = 0.5, n.start = 100)
+
+#' z <- cbind(1, mls(dgp$y, 1:2, 1))
+#' colnames(z) <- c("Intercept", "y1", "y2")
+#' X <- mls(dgp$x, 0:23, 12)
+#'
+#' mmm <- midas_mmm_plain(dgp$y, X, z, nnbeta, 
+#'                           start_mmm = c(1.5, 1), 
+#'                           start_x = c(2, 4), start_z=c(1, 0.5, 0)) 
+#' 
+#' coef(mmm)
+#' 
+#' @importFrom stats filter sd
+midas_mmm_sim <- function(n, m, theta, intercept, mmm, ar.x,  ar.y, 
+                           rand.gen = rnorm,  n.start = NA, ...) {
+    
+    minroots <- min(Mod(polyroot(c(1, -ar.y))))
+    
+    if (minroots <= 1) stop("'ar' part of model is not stationary")
+    if(is.na(n.start)) n.start <- length(ar.y) + ceiling(6/log(minroots))
+    
+    innov_x <- rand.gen(m*(n + n.start))
+    
+    x <- filter(innov_x, ar.x, method = 'recursive', init = 0)
+    
+    xx <- mls(x, 0:(length(theta) - 1), m)
+    
+    mtr <- exp(mmm[2]*xx)
+    mtr_denom <- apply(mtr, 1, sum)
+    mmm_term <- ncol(xx)*xx*mtr/mtr_denom
+    
+    g <- intercept + mmm[1]*mmm_term %*% theta
+    
+    g[is.na(g)] <- 0
+    
+    innov <- rand.gen(length(g), ...)
+    
+    y <- filter(g + innov, ar.y, method = "recursive", init = 0)
+    
+    
+    y <- y[-seq_len(n.start)]
+    x <- x[-seq_len(n.start*m)]
+    
+    list(y = y, x = x, mmm = mmm, intercept = intercept, ar.y = ar.y)
 }
