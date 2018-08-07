@@ -309,8 +309,31 @@ midas_nlpr.fit <- function(x) {
 ## Vaidotas Zemlys
 prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_start = TRUE) {
 
+    
     start <- start[!sapply(start,is.null)]
     
+    start_o <- start
+    
+    
+    start <- lapply(start_o, function(l) {
+        if(is.list(l)) {
+            if (!("r" %in% names(l))) stop("The starting values for the restriction must be in a list element named 'r'")
+            return(l[["r"]])
+        }
+        else return(l) 
+    })
+    
+    find_named_element <- function(l, name) {
+        if(is.list(l)) {
+            if (name %in% names(l)) return(TRUE)
+            else return(FALSE)
+        } else return(FALSE)
+    }
+    
+    lstr_terms <- which(sapply(start_o, find_named_element, name = "lstr"))
+    mmm_terms <- which(sapply(start_o, find_named_element, name = "mmm"))
+    
+        
     if(!is.null(args$guess_start)) {
         guess_start <- args$guess_start
         args$guess_start <- NULL
@@ -410,6 +433,7 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
     names(start_default) <- names(rf)
 
     if(any(!weight_names%in% names(start)))stop("Starting values for weight parameters must be supplied")
+    
         
     start_default[names(start)] <- start
     
@@ -434,13 +458,14 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
             return(res)
     }
     
-   
     initial_midas_coef <- all_coef2(unlist(start_default)) 
 
     if(sum(is.na(unlist(initial_midas_coef)))>0) stop("Check your starting values, NA in midas coefficients") 
     
     npx <- cumsum(sapply(initial_midas_coef,length))
-    xinds <- build_indices(npx,names(start_default))        
+    xinds <- build_indices(npx,names(start_default))
+    
+    
      
     if(length(weight_names)>0 && guess_start) {
         wi <- rep(FALSE,length(rf))
@@ -574,10 +599,7 @@ midas_lstr_plain <- function(y, X, z = NULL, weight, start_lstr, start_x, start_
         if (is.null(z)) pz <- 0 else {
             pz <- p[(5 + sx):length(p)]
         }
-        xx <- X %*% weight(pr, ncol(X))
-        b <- -exp(plstr[3])*(xx - plstr[4])/sd_x
-        G <- 1/(1 + exp(b))
-        plstr[1]*xx*(1 + plstr[2]*G) + z %*% pz  
+        lstr(X, weight(pr, ncol(X)), plstr, sd_x) + z %*% pz  
     }
     
     fn0 <- function(p) {
@@ -651,11 +673,7 @@ midas_mmm_plain <- function(y, X, z = NULL, weight, start_mmm, start_x, start_z 
         if (is.null(z)) pz <- 0 else {
             pz <- p[(3 + sx):length(p)]
         }
-        mtr <- exp(pmmm[2]*X)
-        mtr_denom <- apply(mtr, 1, sum)
-        mmm_term <- ncol(X)*X*mtr/mtr_denom
-        
-        pmmm[1]*mmm_term %*% weight(pr, ncol(X)) + z %*% pz  
+        mmm(X, weight(pr, ncol(X)), pmmm) + z %*% pz  
     }
     
     fn0 <- function(p) {
@@ -682,4 +700,39 @@ midas_mmm_plain <- function(y, X, z = NULL, weight, start_mmm, start_x, start_z 
          residuals = as.vector(y - fitted.values),
          start = start)
     
+}
+
+#' Compute LSTR term for high frequency variable
+#'
+#' @param X matrix, high frequency variable embedded in low frequency, output of mls
+#' @param theta vector, restriction coefficients for high frequency variable
+#' @param beta vector of length 4, parameters for LSTR term, slope and 3 LSTR parameters
+#' @param sd_x vector of length 1, defaults to standard deviation of X.
+#'
+#' @return a vector
+#' @export
+#'
+lstr <- function(X, theta, beta, sd_x = sd(c(X), na.rm = TRUE)) {
+    xx <- X %*% theta
+    b <- -exp(beta[3])*(xx - beta[4])/sd_x
+    G <- 1/(1 + exp(b))
+    
+    beta[1]*xx*(1 + beta[2]*G) 
+}
+
+#' Compute MMM term for high frequency variable
+#'
+#' @param X matrix, high frequency variable embedded in low frequency, output of mls
+#' @param theta vector, restriction coefficients for high frequency variable
+#' @param beta vector of length 2, parameters for MMM term, slope and MMM parameter.
+#'
+#' @return a vector
+#' @export
+#'
+mmm <- function(X, theta, beta) {
+    mtr <- exp(beta[2]*X)
+    mtr_denom <- apply(mtr, 1, sum)
+    mmm_term <- ncol(X)*X*mtr/mtr_denom
+    
+    beta[1]*mmm_term %*% theta 
 }

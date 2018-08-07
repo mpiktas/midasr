@@ -4,7 +4,7 @@
 \alias{midas_lstr_sim}
 \title{Simulate LSTR MIDAS regression model}
 \usage{
-midas_lstr_sim(n, m, theta, intercept, lstr, ar.x, ar.y, rand.gen = rnorm,
+midas_lstr_sim(n, m, theta, intercept, plstr, ar.x, ar.y, rand.gen = rnorm,
   n.start = NA, ...)
 }
 \arguments{
@@ -16,7 +16,7 @@ midas_lstr_sim(n, m, theta, intercept, lstr, ar.x, ar.y, rand.gen = rnorm,
 
 \item{intercept}{vector of length 1, intercept for the model.}
 
-\item{lstr}{vector of length 4, slope for the LSTR term and LSTR parameters}
+\item{plstr}{vector of length 4, slope for the LSTR term and LSTR parameters}
 
 \item{ar.x}{vector, AR parameters for simulating high frequency variable}
 
@@ -39,16 +39,16 @@ Simulate LSTR MIDAS regression model
 nnbeta <- function(p, k) nbeta(c(1,p),k)
 
 dgp <- midas_lstr_sim(250, m = 12, theta = nnbeta(c(2, 4), 24), 
-                           intercept = c(1), lstr = c(1.5, 1, log(1), 1), 
+                           intercept = c(1), plstr = c(1.5, 1, log(1), 1), 
                            ar.x = 0.9, ar.y = 0.5, n.start = 100)
 z <- cbind(1, mls(dgp$y, 1:2, 1))
 colnames(z) <- c("Intercept", "y1", "y2")
 X <- mls(dgp$x, 0:23, 12)
 
-lstr <- midas_lstr_plain(dgp$y, X, z, nnbeta, 
+lstr_mod <- midas_lstr_plain(dgp$y, X, z, nnbeta, 
                           start_lstr = c(1.5, 1, log(1), 1), 
                           start_x = c(2, 4), start_z=c(1, 0.5, 0)) 
 
-coef(lstr)
+coef(lstr_mod)
 
 }

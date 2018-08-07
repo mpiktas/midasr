@@ -4,7 +4,7 @@
 \alias{midas_mmm_sim}
 \title{Simulate MMM MIDAS regression model}
 \usage{
-midas_mmm_sim(n, m, theta, intercept, mmm, ar.x, ar.y, rand.gen = rnorm,
+midas_mmm_sim(n, m, theta, intercept, pmmm, ar.x, ar.y, rand.gen = rnorm,
   n.start = NA, ...)
 }
 \arguments{
@@ -16,7 +16,7 @@ midas_mmm_sim(n, m, theta, intercept, mmm, ar.x, ar.y, rand.gen = rnorm,
 
 \item{intercept}{vector of length 1, intercept for the model.}
 
-\item{mmm}{vector of length 2, slope for the MMM term and MMM parameter}
+\item{pmmm}{vector of length 2, slope for the MMM term and MMM parameter}
 
 \item{ar.x}{vector, AR parameters for simulating high frequency variable}
 
@@ -39,16 +39,16 @@ Simulate MMM MIDAS regression model
 nnbeta <- function(p, k) nbeta(c(1,p),k)
 
 dgp <- midas_mmm_sim(250, m = 12, theta = nnbeta(c(2, 4), 24), 
-                           intercept = c(1), mmm = c(1.5, 1), 
+                           intercept = c(1), pmmm = c(1.5, 1), 
                            ar.x = 0.9, ar.y = 0.5, n.start = 100)
 z <- cbind(1, mls(dgp$y, 1:2, 1))
 colnames(z) <- c("Intercept", "y1", "y2")
 X <- mls(dgp$x, 0:23, 12)
 
-mmm <- midas_mmm_plain(dgp$y, X, z, nnbeta, 
+mmm_mod <- midas_mmm_plain(dgp$y, X, z, nnbeta, 
                           start_mmm = c(1.5, 1), 
                           start_x = c(2, 4), start_z=c(1, 0.5, 0)) 
 
-coef(mmm)
+coef(mmm_mod)
 
 }

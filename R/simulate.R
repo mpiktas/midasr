@@ -251,7 +251,7 @@ NULL
 #' @param m integer, frequency ratio
 #' @param theta vector, restriction coefficients for high frequency variable
 #' @param intercept vector of length 1, intercept for the model.
-#' @param lstr vector of length 4, slope for the LSTR term and LSTR parameters 
+#' @param plstr vector of length 4, slope for the LSTR term and LSTR parameters 
 #' @param ar.x vector, AR parameters for simulating high frequency variable
 #' @param ar.y vector, AR parameters for AR part of the model
 #' @param rand.gen function, a function for generating the regression innovations, default is \code{rnorm}
@@ -266,21 +266,21 @@ NULL
 #' nnbeta <- function(p, k) nbeta(c(1,p),k)
 #' 
 #' dgp <- midas_lstr_sim(250, m = 12, theta = nnbeta(c(2, 4), 24), 
-#'                            intercept = c(1), lstr = c(1.5, 1, log(1), 1), 
+#'                            intercept = c(1), plstr = c(1.5, 1, log(1), 1), 
 #'                            ar.x = 0.9, ar.y = 0.5, n.start = 100)
 
 #' z <- cbind(1, mls(dgp$y, 1:2, 1))
 #' colnames(z) <- c("Intercept", "y1", "y2")
 #' X <- mls(dgp$x, 0:23, 12)
 #'
-#' lstr <- midas_lstr_plain(dgp$y, X, z, nnbeta, 
+#' lstr_mod <- midas_lstr_plain(dgp$y, X, z, nnbeta, 
 #'                           start_lstr = c(1.5, 1, log(1), 1), 
 #'                           start_x = c(2, 4), start_z=c(1, 0.5, 0)) 
 #' 
-#' coef(lstr)
+#' coef(lstr_mod)
 #' 
 #' @importFrom stats filter sd
-midas_lstr_sim <- function(n, m, theta, intercept, lstr, ar.x,  ar.y, 
+midas_lstr_sim <- function(n, m, theta, intercept, plstr, ar.x,  ar.y, 
                            rand.gen = rnorm,  n.start = NA, ...) {
     
     minroots <- min(Mod(polyroot(c(1, -ar.y))))
@@ -296,12 +296,7 @@ midas_lstr_sim <- function(n, m, theta, intercept, lstr, ar.x,  ar.y,
     
     sd_x <- sd(c(xx), na.rm = TRUE)
      
-    gh <- xx %*% theta
-         
-    b <- -exp(lstr[3])*(gh - lstr[4])/sd_x
-    G <- 1/(1 + exp(b))
-     
-    g <- intercept + lstr[1]*gh*(1 + lstr[2]*G)
+    g <- intercept + lstr(xx, theta, plstr, sd_x)
     
     g[is.na(g)] <- 0
     
@@ -323,7 +318,7 @@ midas_lstr_sim <- function(n, m, theta, intercept, lstr, ar.x,  ar.y,
 #' @param m integer, frequency ratio
 #' @param theta vector, restriction coefficients for high frequency variable
 #' @param intercept vector of length 1, intercept for the model.
-#' @param mmm vector of length 2, slope for the MMM term and MMM parameter
+#' @param pmmm vector of length 2, slope for the MMM term and MMM parameter
 #' @param ar.x vector, AR parameters for simulating high frequency variable
 #' @param ar.y vector, AR parameters for AR part of the model
 #' @param rand.gen function, a function for generating the regression innovations, default is \code{rnorm}
@@ -338,21 +333,21 @@ midas_lstr_sim <- function(n, m, theta, intercept, lstr, ar.x,  ar.y,
 #' nnbeta <- function(p, k) nbeta(c(1,p),k)
 #' 
 #' dgp <- midas_mmm_sim(250, m = 12, theta = nnbeta(c(2, 4), 24), 
-#'                            intercept = c(1), mmm = c(1.5, 1), 
+#'                            intercept = c(1), pmmm = c(1.5, 1), 
 #'                            ar.x = 0.9, ar.y = 0.5, n.start = 100)
 
 #' z <- cbind(1, mls(dgp$y, 1:2, 1))
 #' colnames(z) <- c("Intercept", "y1", "y2")
 #' X <- mls(dgp$x, 0:23, 12)
 #'
-#' mmm <- midas_mmm_plain(dgp$y, X, z, nnbeta, 
+#' mmm_mod <- midas_mmm_plain(dgp$y, X, z, nnbeta, 
 #'                           start_mmm = c(1.5, 1), 
 #'                           start_x = c(2, 4), start_z=c(1, 0.5, 0)) 
 #' 
-#' coef(mmm)
+#' coef(mmm_mod)
 #' 
 #' @importFrom stats filter sd
-midas_mmm_sim <- function(n, m, theta, intercept, mmm, ar.x,  ar.y, 
+midas_mmm_sim <- function(n, m, theta, intercept, pmmm, ar.x,  ar.y, 
                            rand.gen = rnorm,  n.start = NA, ...) {
     
     minroots <- min(Mod(polyroot(c(1, -ar.y))))
@@ -366,11 +361,7 @@ midas_mmm_sim <- function(n, m, theta, intercept, mmm, ar.x,  ar.y,
     
     xx <- mls(x, 0:(length(theta) - 1), m)
     
-    mtr <- exp(mmm[2]*xx)
-    mtr_denom <- apply(mtr, 1, sum)
-    mmm_term <- ncol(xx)*xx*mtr/mtr_denom
-    
-    g <- intercept + mmm[1]*mmm_term %*% theta
+    g <- intercept + mmm(xx, theta, pmmm)
     
     g[is.na(g)] <- 0
     
