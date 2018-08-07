@@ -32,7 +32,7 @@ test_that("mlsd works the same as mls", {
     y <- c(1:12)
     datex <- x
     datey <- (y-1)*12+1
-    m1 <- mlsd(x, 0:5, datex, datey)
+    m1 <- mlsd(x, 0:5, datey)
     m2 <- mls(x, 0:5, 12)
     
     expect_true(sum(abs(m1-m2)) < 1e-10)
@@ -43,17 +43,19 @@ test_that("mlsd works for the ts objects", {
     x <- ts(c(1:144), freq = 12)
     y <- ts(c(1:48), freq = 4)
     
-    m1 <- mlsd(x, 0:7, x, y)
+    m1 <- mlsd(x, 0:7, y)
     m2 <- mls(x, 0:7, 3)
     
     expect_true(sum(abs(m1-m2), na.rm = TRUE) < 1e-10)
 })
 
+
+
 # test_that("mlsd works for the xts objects", {
-#     data(sample_matrix, package = "xts")
-#     x <- xts::as.xts(sample_matrix, descr = 'my new xts object')
-#     y <- xts::xts(1:6, order.by = unique(lubridate::floor_date(zoo::index(sample.xts), unit = "month")))
-#     
-#     m1 <- mlsd(as.numeric(x[,1]), 0:42, x, y)
-#     expect_true((abs(x[1, 1] - m1[1, 30]) < 1e-10) && (abs(x[30, 1] - m1[1,1]) < 1e-10))
-# })
+#      data(sample_matrix, package = "xts")
+#      x <- xts::as.xts(sample_matrix, descr = 'my new xts object')
+#      y <- xts::xts(1:6, order.by = unique(lubridate::floor_date(zoo::index(x), unit = "month")))
+#      
+#      m1 <- mlsd(x[,1], 0:42, y)
+#      expect_true((abs(x[1, 1] - m1[1, 30]) < 1e-10) && (abs(x[30, 1] - m1[1,1]) < 1e-10))
+#  })

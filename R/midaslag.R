@@ -104,7 +104,6 @@ check_mixfreq <- function(data) {
 #'
 #' @param x a vector
 #' @param k lags, a vector
-#' @param datex a vector of high frequency dates, if 
 #' @param datey low frequency dates
 #' @param ... further arguments used in fitting MIDAS regression
 #'
@@ -115,21 +114,23 @@ check_mixfreq <- function(data) {
 #' @examples
 #' x <- c(1:144)
 #' y <- c(1:12)
-#' datex <- x
 #' datey <- (y-1)*12+1
 #' 
 #' #msld and mls should give the same results
 #' 
-#' m1 <- mlsd(x, 0:5, datex, datey)
+#' m1 <- mlsd(x, 0:5, datey)
 #' 
 #' m2 <- mls(x, 0:5, 12)
 #' 
 #' sum(abs(m1 - m2))
-mlsd <- function(x, k, datex, datey, ... ) {
-    x <- as.numeric(x)
+mlsd <- function(x, k, datey, ... ) {
     
-    if (inherits(datex,"ts")) datex <- time(datex)
-    if (inherits(datex,"zoo") | inherits(datex, "xts")) datex <- index(datex)
+    datex <- NULL
+    if (inherits(x,"ts")) datex <- time(x)
+    if (inherits(x,"zoo") | inherits(x, "xts")) datex <- index(x)
+    
+    x <- as.numeric(x)
+    if (is.null(datex)) datex <- 1:length(x)
     
     if (inherits(datey,"ts")) datey <- time(datey) - 0.001
     if (inherits(datey,"zoo") | inherits(datey, "xts")) datey <- index(datey)

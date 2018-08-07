@@ -504,11 +504,10 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
             type <- term_name
             term_name <- as.character(fr[[2]])
             
+            wpos <- 5
             if(type == "mlsd") {
-                wpos <- 6
                 freq <- NA
             } else {
-                wpos <- 5
                 freq <- eval(fr[[4]], Zenv)
             }
             
@@ -528,14 +527,8 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
             )
             start <- rep(0, nol)
             grf <- function(p)diag(nol)
-            if(length(fr) > wpos - 1 && fr[[wpos]] != "*") {
-                if(wpos == 6) {
-                   # We need to exclude date information here
-                   mf <- fr[-((wpos - 1):wpos)]
-                   mf[[4]] <- NA
-                } else {
-                    mf <- fr[-wpos]
-                }
+            if (length(fr) > wpos - 1 && fr[[wpos]] != "*") {
+                mf <- fr[-wpos]
                 mf[[1]] <- fr[[wpos]]
                 weight_name <- as.character(fr[[wpos]])
                 

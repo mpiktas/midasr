@@ -4,14 +4,12 @@
 \alias{mlsd}
 \title{MIDAS lag structure with dates}
 \usage{
-mlsd(x, k, datex, datey, ...)
+mlsd(x, k, datey, ...)
 }
 \arguments{
 \item{x}{a vector}
 
 \item{k}{lags, a vector}
-
-\item{datex}{a vector of high frequency dates, if}
 
 \item{datey}{low frequency dates}
 
@@ -26,12 +24,11 @@ MIDAS lag structure with dates
 \examples{
 x <- c(1:144)
 y <- c(1:12)
-datex <- x
 datey <- (y-1)*12+1
 
 #msld and mls should give the same results
 
-m1 <- mlsd(x, 0:5, datex, datey)
+m1 <- mlsd(x, 0:5, datey)
 
 m2 <- mls(x, 0:5, 12)
 
