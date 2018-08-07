@@ -2,8 +2,7 @@
 % Please edit documentation in R/lagspec.R
 \name{nbeta_gradient}
 \alias{nbeta_gradient}
-\title{Gradient function for normalized beta probability density function MIDAS weights specification
-Calculate gradient function for normalized beta probability density function specification of MIDAS weights.}
+\title{Gradient function for normalized beta probability density function MIDAS weights specification}
 \usage{
 nbeta_gradient(p, d, m)
 }
@@ -18,7 +17,6 @@ nbeta_gradient(p, d, m)
 vector of coefficients
 }
 \description{
-Gradient function for normalized beta probability density function MIDAS weights specification
 Calculate gradient function for normalized beta probability density function specification of MIDAS weights.
 }
 \author{

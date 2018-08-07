@@ -2,8 +2,7 @@
 % Please edit documentation in R/lagspec.R
 \name{nbetaMT}
 \alias{nbetaMT}
-\title{Normalized beta probability density function MIDAS weights specification (MATLAB toolbox compatible)
-Calculate MIDAS weights according to normalized beta probability density function specification. Compatible with the specification in MATLAB toolbox.}
+\title{Normalized beta probability density function MIDAS weights specification (MATLAB toolbox compatible)}
 \usage{
 nbetaMT(p, d, m)
 }
@@ -18,7 +17,6 @@ nbetaMT(p, d, m)
 vector of coefficients
 }
 \description{
-Normalized beta probability density function MIDAS weights specification (MATLAB toolbox compatible)
 Calculate MIDAS weights according to normalized beta probability density function specification. Compatible with the specification in MATLAB toolbox.
 }
 \author{

@@ -2,8 +2,7 @@
 % Please edit documentation in R/lagspec.R
 \name{nbeta}
 \alias{nbeta}
-\title{Normalized beta probability density function MIDAS weights specification
-Calculate MIDAS weights according to normalized beta probability density function specification}
+\title{Normalized beta probability density function MIDAS weights specification}
 \usage{
 nbeta(p, d, m)
 }
@@ -18,7 +17,6 @@ nbeta(p, d, m)
 vector of coefficients
 }
 \description{
-Normalized beta probability density function MIDAS weights specification
 Calculate MIDAS weights according to normalized beta probability density function specification
 }
 \author{
