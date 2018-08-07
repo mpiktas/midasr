@@ -102,6 +102,7 @@ nealmon_gradient <- function(p,d,m) {
 }
 
 ##' Normalized beta probability density function MIDAS weights specification
+##' 
 ##' Calculate MIDAS weights according to normalized beta probability density function specification
 ##' @param p parameters for normalized beta probability density function
 ##' @param d number of coefficients
@@ -114,6 +115,7 @@ nbeta <- function(p,d,m) {
 }
 
 ##' Gradient function for normalized beta probability density function MIDAS weights specification
+##' 
 ##' Calculate gradient function for normalized beta probability density function specification of MIDAS weights.
 ##' @param p parameters for normalized beta probability density function
 ##' @param d number of coefficients
@@ -127,6 +129,7 @@ nbeta_gradient <- function(p,d,m) {
 
 
 ##' Normalized beta probability density function MIDAS weights specification (MATLAB toolbox compatible)
+##' 
 ##' Calculate MIDAS weights according to normalized beta probability density function specification. Compatible with the specification in MATLAB toolbox.
 ##' @param p parameters for normalized beta probability density function
 ##' @param d number of coefficients
@@ -150,6 +153,7 @@ nbetaMT <- function(p,d,m) {
 }
 
 ##' Gradient function for normalized beta probability density function MIDAS weights specification (MATLAB toolbox compatible)
+##' 
 ##' Calculate gradient function for normalized beta probability density function specification of MIDAS weights.
 ##' @param p parameters for normalized beta probability density function
 ##' @param d number of coefficients
