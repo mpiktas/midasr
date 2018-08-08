@@ -27,7 +27,6 @@
 ##' \item{hessian}{hessian of NLS objective function}
 ##' \item{gradD}{gradient function of MIDAS weight functions} 
 ##' \item{Zenv}{the environment in which data is placed}
-##' \item{use_gradient}{TRUE if user supplied gradient is used, FALSE otherwise}
 ##' \item{nobs}{the number of effective observations}
 ##' \item{convergence}{the convergence message}
 ##' \item{fitted.values}{the fitted values of MIDAS regression}
@@ -125,7 +124,7 @@ midas_nlpr <- function(formula, data, start, Ofunction="optim", ...) {
     
     class(prepmd) <- "midas_nlpr"
     
-    midas_r.fit(prepmd)    
+    midas_nlpr.fit(prepmd)    
 }
 
 ##' @method update midas_r
@@ -207,7 +206,7 @@ update.midas_nlpr <- function(object, formula.,..., evaluate = TRUE) {
             }
             object$call <- call
             object$argmap_opt <- argmap
-            midas_r.fit(object)
+            midas_nlpr.fit(object)
         }
     }
     else call
@@ -231,9 +230,6 @@ midas_nlpr.fit <- function(x) {
     if(function.opt == "optim" | function.opt =="spg") {  
         args$par <- x$start_opt
         args$fn <- x$fn0
-        if(x$use_gradient) {
-            args$gr <- x$gradient
-        }
         opt <- try(do.call(function.opt,args),silent=TRUE)
         if(inherits(opt,"try-error")) {
             stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
@@ -245,9 +241,6 @@ midas_nlpr.fit <- function(x) {
     if(function.opt=="optimx") {  
         args$par <- x$start_opt
         args$fn <- x$fn0
-        if(x$use_gradient) {
-            args$gr <- x$gradient
-        }
         opt <- try(do.call(function.opt,args),silent=TRUE)
         if(inherits(opt,"try-error")) {
             stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt,"\nPlease try other starting values or a different optimisation function")
@@ -259,14 +252,6 @@ midas_nlpr.fit <- function(x) {
     }    
     if(function.opt=="nls") {
         rhs <- x$rhs
-        if(x$use_gradient) {
-            orhs <- rhs
-            rhs <- function(p) {
-                res <- orhs(p)
-                attr(res,"gradient") <- x$model[,-1]%*%x$gradD(p)
-                res
-            }
-        }
         y <- x$model[,1]
         args$formula <- formula(y~rhs(p))
         args$start <- list(p=x$start_opt)
@@ -286,8 +271,7 @@ midas_nlpr.fit <- function(x) {
     x$opt <- opt
     x$coefficients <- par
     names(par) <- NULL
-    x$midas_coefficients <- x$gen_midas_coef(par)
-    x$fitted.values <- as.vector(x$model[,-1]%*%x$midas_coefficients)
+    x$fitted.values <- x$rhs(par)
     x$residuals <- as.vector(x$model[,1]-x$fitted.values)
     x
 }
@@ -312,35 +296,14 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
     
     start <- start[!sapply(start,is.null)]
     
-    start_o <- start
-    
-    
-    start <- lapply(start_o, function(l) {
-        if(is.list(l)) {
-            if (!("r" %in% names(l))) stop("The starting values for the restriction must be in a list element named 'r'")
-            return(l[["r"]])
-        }
-        else return(l) 
-    })
-    
-    find_named_element <- function(l, name) {
-        if(is.list(l)) {
-            if (name %in% names(l)) return(TRUE)
-            else return(FALSE)
-        } else return(FALSE)
-    }
-    
-    lstr_terms <- which(sapply(start_o, find_named_element, name = "lstr"))
-    mmm_terms <- which(sapply(start_o, find_named_element, name = "mmm"))
-    
-        
     if(!is.null(args$guess_start)) {
         guess_start <- args$guess_start
         args$guess_start <- NULL
     }    
     terms.lhs <- as.list(attr(mt,"variables"))[-2:-1]
     
-    dterm <- function(fr, ltb = NULL) {
+    
+    dterm <- function(fr) {
         term_name <- as.character(fr)[1]
         weight_name <- ""
         rf <- function(p)p
@@ -351,11 +314,10 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
             type <- term_name
             term_name <- as.character(fr[[2]])
             
+            wpos <- 5
             if(type == "mlsd") {
-                wpos <- 6
                 freq <- NA
             } else {
-                wpos <- 5
                 freq <- eval(fr[[4]], Zenv)
             }
             
@@ -374,13 +336,7 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
             )
             start <- rep(0, nol)
             if(length(fr) > wpos - 1) {
-                if(wpos == 6) {
-                   # We need to exclude date information here
-                   mf <- fr[-((wpos - 1):wpos)]
-                   mf[[4]] <- NA
-                } else {
-                    mf <- fr[-wpos]
-                }
+                mf <- fr[-wpos]
                 mf[[1]] <- fr[[wpos]]
                 weight_name <- as.character(fr[[wpos]])
                 
@@ -392,7 +348,7 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
                         mf[[j]] <- eval(mf[[j]], Zenv)
                     }
                 }
-                mf[[3]] <- ifelse(is.null(ltb), nol, sum(ltb[, 1]))
+                mf[[3]] <- nol
                 rf <- function(p) {
                     mf[[2]] <- p
                     eval(mf,Zenv)
@@ -401,17 +357,15 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
         }
         list(weight = rf,
              term_name = term_name,
-             start = start,                    
+             start = start,
+             full_start = start, 
              weight_name = weight_name,
              frequency = freq,
              lag_structure = lagstruct
         )
     }
     
-        
-    ltb <- rep(list(NULL), length(terms.lhs))
-    
-    rfd <- mapply(dterm, terms.lhs, ltb, SIMPLIFY = FALSE)
+    rfd <- mapply(dterm, terms.lhs, SIMPLIFY = FALSE)
     
     if (attr(mt,"intercept")==1)  {
         intc <- dterm(expression(1))
@@ -419,102 +373,95 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
         rfd <- c(list(intc), rfd)
     }
     
-    rf <- lapply(rfd,"[[","weight")
-    names(rf) <- sapply(rfd,"[[","term_name")
-    
-    ##Note this is a bit of misnomer. Variable weight_names is actualy a vector of term names which have MIDAS weights.
-    ##It *is not* the same as actual name of weight function. This is a left-over from the old code. 
-    weight_names <- sapply(rfd,"[[","weight_name")
-    weight_inds <- which(weight_names!="")
-    weight_names <- names(rf)[weight_names!=""]
-    
-    
-    start_default <- lapply(rfd,"[[","start")
-    names(start_default) <- names(rf)
-
-    if(any(!weight_names%in% names(start)))stop("Starting values for weight parameters must be supplied")
-    
-        
-    start_default[names(start)] <- start
-    
-    np <- cumsum(sapply(start_default,length))
-
-    build_indices <- function(ci,nm) {
-        inds <- cbind(c(1,ci[-length(ci)]+1),ci)
-        inds <- apply(inds,1,function(x)list(x[1]:x[2]))
-        inds <- lapply(inds,function(x)x[[1]])
-        names(inds) <- nm
-        inds
+    term_names <- sapply(rfd,"[[","term_name")
+    if (length(setdiff(names(start), intersect(names(start), term_names))) > 0) {
+        stop("The names for the starting values should coincide with terms in formula")
     }
+    names(rfd) <- term_names
     
-    pinds <- build_indices(np,names(start_default))
-
-    for(i in 1:length(start_default))names(start_default[[i]]) <- NULL
-
+    rfd[names(start)] <- mapply(function(tmi, st) {
+        tmi[["full_start"]] <- unlist(st)
+        if (is.list(st)) {
+            #This is for pretty names, remove all the previous names
+            for (i in 1:length(st))names(st[[i]]) <- NULL
+            if (!("r" %in% names(st))) stop("The starting values for the restriction should be in an element named r")
+            if (setdiff(names(st),c("lstr","mmm")) != "r") stop("The starting values for nlpr term should be in an element named either lstr or mmm")
+            tmi[["start"]] <- st[["r"]]
+            nlpr_name <- setdiff(names(st),"r")
+            tmi[["nlpr"]] <- eval(as.name(nlpr_name))
+            bi <- build_indices(cumsum(sapply(st,length)), names(st))
+            names(bi)[names(bi) == nlpr_name] <- "nlpr"
+            tmi[["param_map"]] <- bi
+            tmi
+        } else {
+            names(st) <- NULL
+        }
+        tmi[["full_start"]] <- unlist(st)
+        tmi
+    }, rfd[names(start)], start, SIMPLIFY = FALSE)    
     
-    all_coef2 <- function(p) {              
-            pp <- lapply(pinds,function(x)p[x])     
+    nlpr_terms <- names(which(sapply(rfd, function(l) !is.null(l[["nlpr"]]))))
+    
+    rf <- lapply(rfd,"[[","weight")
+    
+    init_start_default <- lapply(rfd,"[[","start")
+
+    init_pinds <- build_indices_list(init_start_default)
+
+    init_coef2 <- function(p) {              
+            pp <- lapply(init_pinds,function(x)p[x])     
             res <- mapply(function(fun,param)fun(param),rf,pp,SIMPLIFY=FALSE)
             return(res)
     }
     
-    initial_midas_coef <- all_coef2(unlist(start_default)) 
+    initial_midas_coef <- init_coef2(unlist(init_start_default)) 
 
     if(sum(is.na(unlist(initial_midas_coef)))>0) stop("Check your starting values, NA in midas coefficients") 
     
     npx <- cumsum(sapply(initial_midas_coef,length))
-    xinds <- build_indices(npx,names(start_default))
-    
-    
-     
-    if(length(weight_names)>0 && guess_start) {
-        wi <- rep(FALSE,length(rf))
-        wi[weight_inds] <- TRUE
-        Xstart <- mapply(function(cf,inds,iswhgt) {        
-            if(iswhgt) {
-                X[, inds, drop = FALSE] %*% cf
-            }
-            else X[, inds, drop = FALSE]
-        }, initial_midas_coef, xinds,wi,SIMPLIFY=FALSE)
+    xinds <- build_indices(npx,names(init_start_default))
 
-        npxx <- cumsum(sapply(Xstart,function(x) {
-            ifelse(is.null(dim(x)),1,ncol(x))
-            }))
-        xxinds <- build_indices(npxx,names(start_default))
-        XX <- do.call("cbind",Xstart)
-        ###If the starting values for the weight restriction are all zeros, then the weighted explanatory variable is zero.
-        ###In this case lsfit gives a warning about colinear matrix, which we can ignore.
-        prec <- suppressWarnings(lsfit(XX,y,intercept=FALSE))
-        lmstart <- lapply(xxinds,function(x)coef(prec)[x])
-        names(lmstart) <- names(xxinds)
-        for(i in 1:length(lmstart))names(lmstart[[i]]) <- NULL
-
-        nms <- !(names(start_default) %in% names(start))
-        start_default[nms] <- lmstart[nms]
-        
-        for(ww in which(wi)) {
-            normalized <- FALSE
-            if(rfd[[ww]]$weight_name %in% c("nealmon","nbeta","nbetaMT","gompertzp","nakagamip","lcauchyp")) normalized <- TRUE
-            else {
-                normalized <- is_weight_normalized(rf[[ww]], start_default[[ww]])
-            }
-            if(normalized) {
-                start_default[[ww]][1] <- lmstart[[ww]]
-            }
-        }
+    start_default <- lapply(rfd, "[[", "full_start")
+    #for (i in 1:length(start_default)) names(start_default[[i]]) <- NULL
+    pinds <- build_indices_list(start_default)
+    
+    pinds1 <- pinds[setdiff(names(pinds), nlpr_terms)]
+    rf1 <- rf[setdiff(names(pinds), nlpr_terms)]
+    
+    rfd[nlpr_terms] <- mapply(function(tmi, xind, pind){
+        tmi[["xind"]] <- xind
+        tmi[["pind"]] <- pind
+        tmi[["sd_x"]] <- sd(X[,xind], na.rm = TRUE)
+        tmi
+    }, rfd[nlpr_terms], xinds[nlpr_terms], pinds[nlpr_terms], SIMPLIFY = FALSE)
+    
+    coef_list <- function(p, pi, rfl) {
+        pp <- lapply(pi,function(x)p[x])     
+        res <- mapply(function(fun,param)fun(param), rfl, pp, SIMPLIFY = FALSE)
+        return(res)
+    }
+    coef1 <- function(p) unlist(coef_list(p, pi = pinds1, rfl = rf1))
+   
+    do_nlpr_term <- function(p, tfun, xind, wfun, pind, param_map, sd_x) {
+        pr <- p[pind][param_map[["r"]]]
+        pn <- p[pind][param_map[["nlpr"]]] 
+        tfun(X[, xind], wfun(pr), pn, sd_x)
     }
     
-    starto <- unlist(start_default)
+    xind1 <- unlist(xinds[setdiff(names(xinds), nlpr_terms)])
+    X1 <- X[, xind1]
     
-    all_coef <- function(p) unlist(all_coef2(p)) 
     
-    mdsrhs <- function(p) {       
-        coefs <- all_coef(p)
-        X%*%coefs
+    rhs <- function(p) { 
+        T2 <- lapply(rfd[nlpr_terms],function(l) {
+            do_nlpr_term(p, l[["nlpr"]], l[["xind"]], l[["weight"]], l[["pind"]], l[["param_map"]], l[["sd_x"]])
+        })
+        cf1 <- coef1(p)
+        X1 %*% cf1 + Reduce("+", T2)
     }
   
     fn0 <- function(p,...) {
-        r <- y - mdsrhs(p)
+        r <- y - rhs(p)
         sum(r^2)
     }
     
@@ -526,26 +473,14 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
     if(!("method"%in% names(control)) & Ofunction=="optim") {        
         control$method <- "BFGS"
     }    
-    term_info <- rfd
-    names(term_info) <- sapply(term_info,"[[","term_name")
-    term_info <- mapply(function(term,pind,xind){
-        term$start <- NULL
-        term$coef_index <- pind
-        term$midas_coef_index <- xind
-        term
-    },term_info,pinds[names(term_info)],xinds[names(term_info)],SIMPLIFY=FALSE)
     
-    
-    list(coefficients=starto,
-         midas_coefficients=all_coef(starto),
+    list(coefficients=unlist(start_default),
          model=cbind(y,X),         
-         term_info=term_info,
          fn0=fn0,
-         rhs=mdsrhs,
-         gen_midas_coef = all_coef,
+         rhs=rhs,
          opt=NULL,
          argmap_opt=control,
-         start_opt=starto,
+         start_opt=unlist(start_default),
          start_list=start,
          call=cl,
          terms=mt,
@@ -612,6 +547,7 @@ midas_lstr_plain <- function(y, X, z = NULL, weight, start_lstr, start_x, start_
     par <- as.numeric(opt[bmet, 1:length(start)])   
     call <- match.call()
     fitted.values <- as.vector(y - rhs(par))
+    names(par) <- c(paste0("lstr",1:length(start_lstr)), paste0("x", 1:length(start_x)), paste0("z", 1:length(start_z)))
     list(coefficients = par,
          midas_coefficients = weight(par[5:(4 + sx)],ncol(X)),
          lstr_coefficients = par[1:4],
@@ -686,6 +622,7 @@ midas_mmm_plain <- function(y, X, z = NULL, weight, start_mmm, start_x, start_z 
     par <- as.numeric(opt[bmet, 1:length(start)])   
     call <- match.call()
     fitted.values <- as.vector(y - rhs(par))
+    names(par) <- c(paste0("mm",1:length(start_mmm)), paste0("x", 1:length(start_x)), paste0("z", 1:length(start_z)))
     list(coefficients = par,
          midas_coefficients = weight(par[3:(2 + sx)],ncol(X)),
          mmm_coefficients = par[1:2],
@@ -725,14 +662,16 @@ lstr <- function(X, theta, beta, sd_x = sd(c(X), na.rm = TRUE)) {
 #' @param X matrix, high frequency variable embedded in low frequency, output of mls
 #' @param theta vector, restriction coefficients for high frequency variable
 #' @param beta vector of length 2, parameters for MMM term, slope and MMM parameter.
+#' @param ..., currently not used
 #'
 #' @return a vector
 #' @export
 #'
-mmm <- function(X, theta, beta) {
+mmm <- function(X, theta, beta, ...) {
     mtr <- exp(beta[2]*X)
     mtr_denom <- apply(mtr, 1, sum)
     mmm_term <- ncol(X)*X*mtr/mtr_denom
     
     beta[1]*mmm_term %*% theta 
 }
+

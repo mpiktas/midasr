@@ -618,14 +618,6 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     
     np <- cumsum(sapply(start_default,length))
 
-    build_indices <- function(ci,nm) {
-        inds <- cbind(c(1,ci[-length(ci)]+1),ci)
-        inds <- apply(inds,1,function(x)list(x[1]:x[2]))
-        inds <- lapply(inds,function(x)x[[1]])
-        names(inds) <- nm
-        inds
-    }
-    
     pinds <- build_indices(np,names(start_default))
 
     for(i in 1:length(start_default))names(start_default[[i]]) <- NULL
@@ -1093,4 +1085,16 @@ checkARstar <- function(trms) {
     }
   }
   list(x = trms, lagsTable = lagsTable)
+}
+
+build_indices_list <- function(l) {
+    build_indices(cumsum(sapply(l, length)), names(l))
+}
+
+build_indices <- function(ci,nm) {
+    inds <- cbind(c(1,ci[-length(ci)]+1),ci)
+    inds <- apply(inds,1,function(x)list(x[1]:x[2]))
+    inds <- lapply(inds,function(x)x[[1]])
+    names(inds) <- nm
+    inds
 }
