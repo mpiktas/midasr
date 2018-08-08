@@ -305,10 +305,10 @@ midas_lstr_sim <- function(n, m, theta, intercept, plstr, ar.x,  ar.y,
     y <- filter(g + innov, ar.y, method = "recursive", init = 0)
     
     
-    y <- y[-seq_len(n.start)]
-    x <- x[-seq_len(n.start*m)]
+    y <- ts(y[-seq_len(n.start)], frequency = 1)
+    x <- ts(x[-seq_len(n.start*m)], frequency = m)
 
-    list(y = y, x = x, lstr = lstr, intercept = intercept, ar.y = ar.y)
+    list(y = y, x = x, lstr = plstr, intercept = intercept, ar.y = ar.y)
 }
 
 
@@ -370,8 +370,8 @@ midas_mmm_sim <- function(n, m, theta, intercept, pmmm, ar.x,  ar.y,
     y <- filter(g + innov, ar.y, method = "recursive", init = 0)
     
     
-    y <- y[-seq_len(n.start)]
-    x <- x[-seq_len(n.start*m)]
+    y <- ts(y[-seq_len(n.start)], frequency = 1)
+    x <- ts(x[-seq_len(n.start*m)], frequency = m)
     
-    list(y = y, x = x, mmm = mmm, intercept = intercept, ar.y = ar.y)
+    list(y = y, x = x, mmm = pmmm, intercept = intercept, ar.y = ar.y)
 }

@@ -4,7 +4,7 @@
 \alias{mmm}
 \title{Compute MMM term for high frequency variable}
 \usage{
-mmm(X, theta, beta)
+mmm(X, theta, beta, ...)
 }
 \arguments{
 \item{X}{matrix, high frequency variable embedded in low frequency, output of mls}
@@ -12,6 +12,8 @@ mmm(X, theta, beta)
 \item{theta}{vector, restriction coefficients for high frequency variable}
 
 \item{beta}{vector of length 2, parameters for MMM term, slope and MMM parameter.}
+
+\item{..., }{currently not used}
 }
 \value{
 a vector

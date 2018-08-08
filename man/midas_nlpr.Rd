@@ -38,7 +38,6 @@ a \code{midas_r} object which is the list with the following elements:
 \item{hessian}{hessian of NLS objective function}
 \item{gradD}{gradient function of MIDAS weight functions} 
 \item{Zenv}{the environment in which data is placed}
-\item{use_gradient}{TRUE if user supplied gradient is used, FALSE otherwise}
 \item{nobs}{the number of effective observations}
 \item{convergence}{the convergence message}
 \item{fitted.values}{the fitted values of MIDAS regression}
