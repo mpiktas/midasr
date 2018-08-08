@@ -46,11 +46,6 @@
 ##' might be an identity function. Model with no restrictions is called U-MIDAS model. The regressors \eqn{x_\tau^{(i)}} must be of higher
 ##' (or of the same) frequency as the dependent variable \eqn{y_t}. 
 ##'
-##' MIDAS-AR* (a model with a common factor, see (Clements and Galvao, 2008)) can be estimated by specifying additional argument, see an example.
-##'
-##' The restriction function must return the restricted coefficients of
-##' the MIDAS regression.
-##'
 ##' @importFrom stats as.formula formula model.matrix model.response terms lsfit time
 ##' @importFrom zoo index index2char
 ##' @export
@@ -159,16 +154,10 @@ update.midas_nlpr <- function(object, formula.,..., evaluate = TRUE) {
             object$start_opt <- cf
         }
     } else {
-        if(is.null(extras$start)) {
-            ##If start is null, we want to fit unrestricted midas model, this means that we need to call midas_r
-            call["start"] <- list(NULL)                        
-            redo <- TRUE
-        } else {
-            cstart <- eval(call$start,object$Zenv)
-            ustart[names(cstart)] <- cstart
-            call$start <- ustart
-            object$start_opt <- unlist(ustart)
-        }
+        cstart <- eval(call$start,object$Zenv)
+        ustart[names(cstart)] <- cstart
+        call$start <- ustart
+        object$start_opt <- unlist(ustart)
     }        
     if (evaluate) {
         if(!missing(formula.) || "data" %in% names(extras)  || "weight_gradients" %in% names(extras) || redo) {
