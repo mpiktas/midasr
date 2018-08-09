@@ -57,12 +57,7 @@ estimate the parameters of the restriction
 
 Such model is a generalisation of so called ADL-MIDAS regression. It is not required that all the coefficients should be restricted, i.e the function \eqn{g^{(i)}}
 might be an identity function. Model with no restrictions is called U-MIDAS model. The regressors \eqn{x_\tau^{(i)}} must be of higher
-(or of the same) frequency as the dependent variable \eqn{y_t}. 
-
-MIDAS-AR* (a model with a common factor, see (Clements and Galvao, 2008)) can be estimated by specifying additional argument, see an example.
-
-The restriction function must return the restricted coefficients of
-the MIDAS regression.
+(or of the same) frequency as the dependent variable \eqn{y_t}.
 }
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys

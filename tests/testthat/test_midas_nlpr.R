@@ -115,3 +115,62 @@ test_that("updating data and starting values works",{
     expect_that(sum(abs(coef(b) - coef(c))), equals(0))
 })
 
+test_that("LSTR standard errors work", {
+    mfr <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
+                      start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
+                                   y = c(0.5, 0),
+                                   `(Intercept)` = 1), Ofunction = "optimx", method = "Nelder-Mead", control = list(maxit = 5000))
+    
+    mfr1 <- update(mfr, Ofunction = "nls")
+    
+    s1 <- summary(mfr1)
+    s2 <- summary(mfr1$opt)
+    
+    expect_true(sum(abs(s2$coefficients[, 2] - s1$coefficients[, 2])) < 1e-6)
+  
+})
+
+test_that("MMM standard errors work", {
+    
+    mfr <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_mmm, 
+                      start = list(x = list(r = c(2, 4), mmm = c(1.5, 1)),
+                                   y = c(0.5, 0),
+                                   `(Intercept)` = 1), Ofunction = "optimx", method = "Nelder-Mead", control = list(maxit = 5000))
+    
+    mfr1 <- update(mfr, Ofunction = "nls")
+    
+    s1 <- summary(mfr1)
+    s2 <- summary(mfr1$opt)
+    
+    expect_true(sum(abs(s2$coefficients[, 2] - s1$coefficients[, 2])) < 1e-6)
+    
+})
+
+test_that("Predicting works for LSTR", {
+    
+    mfr <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
+                      start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
+                                   y = c(0.5, 0),
+                                   `(Intercept)` = 1), Ofunction = "optimx", method = "Nelder-Mead", control = list(maxit = 5000))
+    
+    p1 <- predict(mfr, newdata = list(x = window(dgp_lstr$x, end = c(200,12)), y = window(dgp_lstr$y, end = 200))) 
+    
+    p2 <- predict(mfr)[1:198]
+    
+    expect_true(sum(abs(p1 - p2)) < 1e-10)
+})
+
+test_that("Predicting works for MMM", {
+    mfr <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_mmm, 
+                      start = list(x = list(r = c(2, 4), mmm = c(1.5, 1)),
+                                   y = c(0.5, 0),
+                                   `(Intercept)` = 1), Ofunction = "optimx", method = "Nelder-Mead", control = list(maxit = 5000))
+    
+    
+    p1 <- predict(mfr, newdata = list(x = window(dgp_mmm$x, end = c(200,12)), y = window(dgp_mmm$y, end = 200))) 
+    
+    p2 <- predict(mfr)[1:198]
+    
+    expect_true(sum(abs(p1 - p2)) < 1e-10)
+})
+
