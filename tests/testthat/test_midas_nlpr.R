@@ -126,7 +126,7 @@ test_that("LSTR standard errors work", {
     s1 <- summary(mfr1)
     s2 <- summary(mfr1$opt)
     
-    expect_true(sum(abs(s2$coefficients[, 2] - s1$coefficients[, 2])) < 1e-6)
+    expect_true(sum(abs(s2$coefficients[, 2] - s1$coefficients[, 2])) < 1e-5)
   
 })
 
@@ -142,7 +142,7 @@ test_that("MMM standard errors work", {
     s1 <- summary(mfr1)
     s2 <- summary(mfr1$opt)
     
-    expect_true(sum(abs(s2$coefficients[, 2] - s1$coefficients[, 2])) < 1e-6)
+    expect_true(sum(abs(s2$coefficients[, 2] - s1$coefficients[, 2])) < 1e-5)
     
 })
 
