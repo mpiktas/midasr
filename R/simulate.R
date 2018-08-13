@@ -375,3 +375,56 @@ midas_mmm_sim <- function(n, m, theta, intercept, pmmm, ar.x,  ar.y,
     
     list(y = y, x = x, mmm = pmmm, intercept = intercept, ar.y = ar.y)
 }
+
+#' Simulate SI MIDAS regression model
+#'
+#' @param n number of observations to simulate.
+#' @param m integer, frequency ratio
+#' @param theta vector, restriction coefficients for high frequency variable
+#' @param gfun  function, a function which takes a single index 
+#' @param ar.x vector, AR parameters for simulating high frequency variable
+#' @param ar.y vector, AR parameters for AR part of the model
+#' @param rand.gen function, a function for generating the regression innovations, default is \code{rnorm}
+#' @param n.start integer, length of a 'burn-in' period. If NA, the default, a reasonable value is computed.
+#' @param ... additional parameters to rand.gen
+#'
+#' @return a list
+#' @export
+#'
+#' @examples
+#' 
+#' nnbeta <- function(p, k) nbeta(c(1,p),k)
+#' 
+#' dgp <- midas_si_sim(250, m = 12, theta = nnbeta(c(2, 4), 24), 
+#'                            gfun = function(x) 0.03*x^3, 
+#'                            ar.x = 0.9, ar.y = 0.5, n.start = 100)
+#'                            
+#' @importFrom stats filter sd
+midas_si_sim <- function(n, m, theta, gfun, ar.x,  ar.y, 
+                          rand.gen = rnorm,  n.start = NA, ...) {
+    
+    minroots <- min(Mod(polyroot(c(1, -ar.y))))
+    
+    if (minroots <= 1) stop("'ar' part of model is not stationary")
+    if (is.na(n.start)) n.start <- length(ar.y) + ceiling(6/log(minroots))
+    
+    innov_x <- rand.gen(m*(n + n.start))
+    
+    x <- filter(innov_x, ar.x, method = 'recursive', init = 0)
+    
+    xx <- mls(x, 0:(length(theta) - 1), m)
+    
+    g <- gfun(xx %*% theta) 
+    
+    g[is.na(g)] <- 0
+    
+    innov <- rand.gen(length(g), ...)
+    
+    y <- filter(g + innov, ar.y, method = "recursive", init = 0)
+    
+    
+    y <- ts(y[-seq_len(n.start)], frequency = 1)
+    x <- ts(x[-seq_len(n.start*m)], frequency = m)
+    
+    list(y = y, x = x, ar.y = ar.y)
+}
