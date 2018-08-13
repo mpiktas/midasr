@@ -12,6 +12,8 @@ midas_pl_plain(y, X, z, p.ar = NULL, weight, degree = 1, start_bws, start_x,
 
 \item{X}{prepared matrix of high frequency variable lags for MMM term}
 
+\item{z}{a vector, data for the non-parametric part}
+
 \item{p.ar}{length of AR part}
 
 \item{weight}{the weight function}
