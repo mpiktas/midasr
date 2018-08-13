@@ -279,7 +279,6 @@ midas_nlpr.fit <- function(x) {
 ## lagsTable the lagstable from checkARstar
 ## unrestricted the unrestricted model
 ## guess_start if TRUE, get the initial values for non-MIDAS terms via OLS, if FALSE, initialize them with zero.
-## Vaidotas Zemlys
 prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_start = TRUE) {
 
     
