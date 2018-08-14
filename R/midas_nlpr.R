@@ -265,7 +265,7 @@ midas_nlpr.fit <- function(x) {
     x
 }
 
-## Prepare necessary objects for fitting of the MIDAS regression
+## Prepare necessary objects for fitting of the non-linear parametric MIDAS regression
 ##
 ## y the response
 ## X the model matrix
@@ -290,73 +290,10 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
     }    
     terms.lhs <- as.list(attr(mt,"variables"))[-2:-1]
     
-    
-    dterm <- function(fr) {
-        term_name <- as.character(fr)[1]
-        weight_name <- ""
-        rf <- function(p)p
-        start <- 0
-        freq <- 1
-        lagstruct <- 0
-        if(term_name %in% c("mls", "fmls", "dmls","mlsd")) {
-            type <- term_name
-            term_name <- as.character(fr[[2]])
-            
-            wpos <- 5
-            if(type == "mlsd") {
-                freq <- NA
-            } else {
-                freq <- eval(fr[[4]], Zenv)
-            }
-            
-            lags <- eval(fr[[3]], Zenv)
-            nol <- switch(type,
-                          fmls = lags+1,
-                          dmls = lags+1,
-                          mls = length(lags),
-                          mlsd = length(lags)
-            )
-            lagstruct <- switch(type,
-                                fmls = 0:lags,
-                                dmls = 0:lags,
-                                mls = lags,
-                                mlsd = lags
-            )
-            start <- rep(0, nol)
-            if(length(fr) > wpos - 1) {
-                mf <- fr[-wpos]
-                mf[[1]] <- fr[[wpos]]
-                weight_name <- as.character(fr[[wpos]])
-                
-                noarg <- length(formals(eval(fr[[wpos]], Zenv)))
-                if(noarg < 2) stop("The weight function must have at least two arguments")            
-                mf <- mf[1:min(length(mf), noarg + 1)]
-                if(length(mf)>3) {
-                    for(j in 4:length(mf)) {
-                        mf[[j]] <- eval(mf[[j]], Zenv)
-                    }
-                }
-                mf[[3]] <- nol
-                rf <- function(p) {
-                    mf[[2]] <- p
-                    eval(mf,Zenv)
-                }
-            }
-        }
-        list(weight = rf,
-             term_name = term_name,
-             start = start,
-             full_start = start, 
-             weight_name = weight_name,
-             frequency = freq,
-             lag_structure = lagstruct
-        )
-    }
-    
-    rfd <- mapply(dterm, terms.lhs, SIMPLIFY = FALSE)
+    rfd <- lapply(terms.lhs, dterm_nlpr, Zenv = Zenv)
     
     if (attr(mt,"intercept")==1)  {
-        intc <- dterm(expression(1))
+        intc <- dterm_nlpr(expression(1), Zenv)
         intc$term_name <- "(Intercept)"
         rfd <- c(list(intc), rfd)
     }
@@ -661,5 +598,67 @@ mmm <- function(X, theta, beta, ...) {
     mmm_term <- ncol(X)*X*mtr/mtr_denom
     
     beta[1]*mmm_term %*% theta 
+}
+
+dterm_nlpr <- function(fr, Zenv) {
+    term_name <- as.character(fr)[1]
+    weight_name <- ""
+    rf <- function(p)p
+    start <- 0
+    freq <- 1
+    lagstruct <- 0
+    if(term_name %in% c("mls", "fmls", "dmls","mlsd")) {
+        type <- term_name
+        term_name <- as.character(fr[[2]])
+        
+        wpos <- 5
+        if(type == "mlsd") {
+            freq <- NA
+        } else {
+            freq <- eval(fr[[4]], Zenv)
+        }
+        
+        lags <- eval(fr[[3]], Zenv)
+        nol <- switch(type,
+                      fmls = lags+1,
+                      dmls = lags+1,
+                      mls = length(lags),
+                      mlsd = length(lags)
+        )
+        lagstruct <- switch(type,
+                            fmls = 0:lags,
+                            dmls = 0:lags,
+                            mls = lags,
+                            mlsd = lags
+        )
+        start <- rep(0, nol)
+        if(length(fr) > wpos - 1) {
+            mf <- fr[-wpos]
+            mf[[1]] <- fr[[wpos]]
+            weight_name <- as.character(fr[[wpos]])
+            
+            noarg <- length(formals(eval(fr[[wpos]], Zenv)))
+            if(noarg < 2) stop("The weight function must have at least two arguments")            
+            mf <- mf[1:min(length(mf), noarg + 1)]
+            if(length(mf)>3) {
+                for(j in 4:length(mf)) {
+                    mf[[j]] <- eval(mf[[j]], Zenv)
+                }
+            }
+            mf[[3]] <- nol
+            rf <- function(p) {
+                mf[[2]] <- p
+                eval(mf,Zenv)
+            }
+        }
+    }
+    list(weight = rf,
+         term_name = term_name,
+         start = start,
+         full_start = start, 
+         weight_name = weight_name,
+         frequency = freq,
+         lag_structure = lagstruct
+    )
 }
 
