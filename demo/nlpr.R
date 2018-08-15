@@ -16,6 +16,13 @@ do_n_lstr <- function(n) {
 
 sim_lstr <- lapply(c(250,500), do_n_lstr)
 
+lstr250 <- midas_nlpr(y~mlsd(x, 0:23, y, nnbeta) + mlsd(y,1:2,y), data = sim_lstr[[1]]$dgp,
+                      start = list(x = list(lstr = c(1.5, 1, log(1), 1),
+                                            r = c(2, 4)), 
+                                   y = c(0.5, 0),
+                                   `(Intercept)` =  1), 
+                      method = "Nelder-Mead", control = list(maxit = 5000))
+
 do_n_mmm <- function(n) {
     dgp <- midas_mmm_sim(n, m = 12, theta = nnbeta(c(2, 4), 24), intercept = 1, pmmm = c(1.5, 1), ar.x = 0.9, ar.y = 0.5, n.start = 100)
     
@@ -30,7 +37,11 @@ do_n_mmm <- function(n) {
 
 sim_mmm <- lapply(c(250,500), do_n_mmm)
 
-#lstr <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = sim_lstr[[1]]$dgp, 
-#                   start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1))), Ofunction = "optimx")
+mmm250 <- midas_nlpr(y~mlsd(x, 0:23, y, nnbeta) + mlsd(y,1:2,y), data = sim_mmm[[1]]$dgp,
+                      start = list(x = list(mmm = c(1.5, 1),
+                                            r = c(2, 4)), 
+                                    y = c(0.5, 0),
+                                   `(Intercept)` =  1), 
+                      method = "Nelder-Mead", control = list(maxit = 5000))
 
 

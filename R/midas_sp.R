@@ -159,11 +159,11 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
     #}
     
     if (attr(mt1,"intercept") == 1)  {
-        X <- X[, -1]
+        X <- X[, -1, drop = FALSE]
     }
     
     if (attr(mt2,"intercept") == 1)  {
-        Z <- Z[, -1]
+        Z <- Z[, -1, drop = FALSE]
     }
     
     terms.rhs1 <- as.list(attr(mt1,"variables"))[-2:-1]
@@ -217,7 +217,7 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
         xi <- as.numeric(X %*% cf1(p))
         zi <- do.call("rbind", lapply(term_names2, function(t2) {
             if (t2 %in% weight_names2) Z[, zinds[[t2]]] %*% rf2[[t2]](p[pinds2[[t2]]])
-            else Z[, zinds[t2]]
+            else Z[, zinds[[t2]], drop = FALSE]
         }))
         if (ncol(zi) == 1) zi <- as.numeric(zi)
         u <- y - xi
