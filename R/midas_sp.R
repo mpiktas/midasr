@@ -4,7 +4,9 @@
 ##'
 ##' @param formula formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function
 ##' @param data a named list containing data with mixed frequencies
+##' @param bws starting values for bandwith, if unset the default will be used.
 ##' @param start the starting values for optimisation. Must be a list with named elements.
+##' @param degree the degree of local polynomial. 0 corresponds to local-constant, 1 local-linear. For univariate models higher values can be provided.
 ##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
 ##' @param ... additional arguments supplied to optimisation function
 ##' @return a \code{midas_sp} object which is the list with the following elements:
@@ -162,12 +164,6 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
     
     if (attr(mt2,"intercept") == 1)  {
         Z <- Z[, -1]
-    }
-    
-    all_coef2 <- function(p) {              
-        pp <- lapply(pinds,function(x)p[x])     
-        res <- mapply(function(fun,param)fun(param),rf,pp,SIMPLIFY=FALSE)
-        return(res)
     }
     
     terms.rhs1 <- as.list(attr(mt1,"variables"))[-2:-1]
