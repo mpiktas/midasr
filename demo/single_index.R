@@ -12,8 +12,8 @@ do_n_si <- function(n) {
     list(dgp = dgp, si = si_mod)
 }
 
-system.time(sim_si <- lapply(c(250,500), do_n_si))
+t1 <- system.time(sim_si <- lapply(c(250,500), do_n_si))
 
-system.time(msi <- midas_sp(y~mlsd(y, 1:2, y) | mlsd(x, 0:23, y, nnbeta), 
+t2 <- system.time(msi <- midas_sp(y~mlsd(y, 1:2, y) | mlsd(x, 0:23, y, nnbeta), 
                 bws = 0, degree = 1, data = sim_si[[1]]$dgp,
                 start = list(x = c(2, 4), y = c(0.5, 0)), method = "Nelder-Mead", control = list(maxit = 5000)))

@@ -11,8 +11,8 @@ do_n_pl <- function(n) {
     list(dgp = dgp, pl = pl_mod)
 }
 
-system.time(sim_pl <- lapply(c(250,500), do_n_pl))
+t1 <- system.time(sim_pl <- lapply(c(250,500), do_n_pl))
 
-system.time(mpl <- midas_sp(y~mlsd(y, 1:2, y) + mlsd(x, 0:23, y, nbeta)| z, 
+t2 <- system.time(mpl <- midas_sp(y~mlsd(y, 1:2, y) + mlsd(x, 0:23, y, nbeta)| z, 
                             bws = 0, degree = 1, data = sim_pl[[1]]$dgp,
                             start = list(x = c(1.5, 2, 4), y = c(0.5, 0)), method = "Nelder-Mead", control = list(maxit = 5000)))
