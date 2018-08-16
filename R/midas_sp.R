@@ -4,7 +4,7 @@
 ##'
 ##' @param formula formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function
 ##' @param data a named list containing data with mixed frequencies
-##' @param bws starting values for bandwith, if unset the default will be used.
+##' @param bws a bandwith specification, starting values for bandwith, if unset the default will be used.
 ##' @param start the starting values for optimisation. Must be a list with named elements.
 ##' @param degree the degree of local polynomial. 0 corresponds to local-constant, 1 local-linear. For univariate models higher values can be provided.
 ##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
@@ -45,7 +45,7 @@
 ##' \deqn{\beta_j^{(i)}=g^{(i)}(j,\lambda).}
 ##'
 ##' Such model is a generalisation of so called ADL-MIDAS regression. It is not required that all the coefficients should be restricted, i.e the function \eqn{g^{(i)}}
-##' might be an identity function. Model with no restrictions is called U-MIDAS model. The regressors \eqn{x_\tau^{(i)}} must be of higher
+##' might be an identity function. The regressors \eqn{x_\tau^{(i)}} must be of higher
 ##' (or of the same) frequency as the dependent variable \eqn{y_t}. 
 ##'
 ##' @importFrom stats as.formula formula model.matrix model.response terms lsfit time
@@ -235,7 +235,9 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
     ##Override default method of optim. Use BFGS instead of Nelder-Mead
     if (!("method" %in% names(control)) & Ofunction == "optim") {        
         control$method <- "BFGS"
-    }    
+    }
+    if(bws_length > 1) names(bws) <- paste0("bw", 1:bws_length)
+    else names(bws) <- "bw"
     starto <- c(bws, unlist(start_default1), unlist(start_default2)) 
     list(coefficients = starto,
          model = cbind(y, X, Z),         
@@ -247,7 +249,7 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
          start_opt = starto,
          start_list = c(list(bws = bws), start1 = start_default1, start2 = start_default2),
          call = cl,
-         terms1 = mt1,
+         terms = mt1,
          terms2 = mt2,
          hessian = hess,
          Zenv = Zenv,
