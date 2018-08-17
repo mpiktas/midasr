@@ -11,7 +11,7 @@ midas_sp(formula, data, bws, start, degree = 1, Ofunction = "optim", ...)
 
 \item{data}{a named list containing data with mixed frequencies}
 
-\item{bws}{starting values for bandwith, if unset the default will be used.}
+\item{bws}{a bandwith specification, starting values for bandwith, if unset the default will be used.}
 
 \item{start}{the starting values for optimisation. Must be a list with named elements.}
 
@@ -60,7 +60,7 @@ estimate the parameters of the restriction
 \deqn{\beta_j^{(i)}=g^{(i)}(j,\lambda).}
 
 Such model is a generalisation of so called ADL-MIDAS regression. It is not required that all the coefficients should be restricted, i.e the function \eqn{g^{(i)}}
-might be an identity function. Model with no restrictions is called U-MIDAS model. The regressors \eqn{x_\tau^{(i)}} must be of higher
+might be an identity function. The regressors \eqn{x_\tau^{(i)}} must be of higher
 (or of the same) frequency as the dependent variable \eqn{y_t}.
 }
 \author{
