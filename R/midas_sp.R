@@ -70,6 +70,7 @@ midas_sp <- function(formula, data, bws, start, degree = 1,  Ofunction="optim", 
     
     assign("ee",ee,Zenv)
     formula <- Formula(formula)
+    environment(formula) <- Zenv
     cl <- match.call()    
     mf <- match.call(expand.dots = FALSE)
     mf$formula <- formula
@@ -86,7 +87,7 @@ midas_sp <- function(formula, data, bws, start, degree = 1,  Ofunction="optim", 
     y <- model.response(mf, "numeric")
     X <- model.matrix(formula, data = mf, rhs = 1)
     if(length(attr(formula,"rhs")) > 1) {
-        Z <- model.matrix(formula, mf, rhs = 2)
+        Z <- model.matrix(formula, data = mf, rhs = 2)
     } else Z <- NULL
     
     #Save ts/zoo information

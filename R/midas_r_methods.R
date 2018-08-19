@@ -656,7 +656,6 @@ plot_midas_coef <- function(x, term_name=NULL, title = NULL, vcov. = sandwich, u
     invisible(pd)
 }
 
-
 ##' Extract coefficients and GOF measures from MIDAS regression object
 ##'
 ##' 
@@ -668,9 +667,7 @@ plot_midas_coef <- function(x, term_name=NULL, title = NULL, vcov. = sandwich, u
 ##' @param ... additional parameters passed to summary
 ##' @return texreg object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
-##' @rdname extract.midas_r
-##' @method extract midas_r
-##' @importFrom texreg extract createTexreg
+##' @importFrom texreg createTexreg
 ##' @importFrom stats nobs
 ##' @export
 extract.midas_r <- function(model, include.rsquared = TRUE, include.adjrs = TRUE, 
@@ -711,3 +708,8 @@ extract.midas_r <- function(model, include.rsquared = TRUE, include.adjrs = TRUE
                        pvalues = pval, gof.names = gof.names, gof = gof, gof.decimal = gof.decimal)
     return(tr)
 }
+
+##' @importFrom texreg extract
+##' @importFrom methods setMethod
+setMethod("extract", signature = className("midas_r","midasr"), definition = extract.midas_r)
+

@@ -4,8 +4,8 @@
 \alias{extract.midas_r}
 \title{Extract coefficients and GOF measures from MIDAS regression object}
 \usage{
-\method{extract}{midas_r}(model, include.rsquared = TRUE,
-  include.adjrs = TRUE, include.nobs = TRUE, include.rmse = TRUE, ...)
+extract.midas_r(model, include.rsquared = TRUE, include.adjrs = TRUE,
+  include.nobs = TRUE, include.rmse = TRUE, ...)
 }
 \arguments{
 \item{model}{a MIDAS regression object}

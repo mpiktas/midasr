@@ -110,9 +110,7 @@ print.summary.midas_sp <- function(x, digits=max(3, getOption("digits") - 3 ), s
     invisible(x)
 }
 
-##' @export
-##' @method extract midas_sp
-extract.midas_sp <- function(model, include.rsquared = TRUE, include.adjrs = TRUE, 
-                               include.nobs = TRUE, include.rmse = TRUE, ...) {
-    extract.midas_r(model, include.rsquared, include.adjrs, include.nobs, include.rmse, ...)
-}
+
+##' @include midas_r_methods.R
+setMethod("extract", signature = className("midas_sp", "midasr"), definition = extract.midas_r)
+

@@ -3,7 +3,7 @@ Title: Mixed Data Sampling Regression
 Description: Methods and tools for mixed frequency time series data analysis.
     Allows estimation, model selection and forecasting for MIDAS regressions.
 URL: http://mpiktas.github.io/midasr/
-Version: 0.6.5
+Version: 0.6.6
 Maintainer: Vaidotas Zemlys-Balevičius <zemlys@gmail.com>
 Author: Virmantas Kvedaras <virmantas.kvedaras@mif.vu.lt>, Vaidotas Zemlys-Balevičius
    <vaidotas.zemlys@mif.vu.lt>
@@ -22,7 +22,8 @@ Imports:
     graphics,
     utils,
     Formula,
-    texreg
+    texreg,
+    methods
 License: GPL-2 | MIT + file LICENCE
 BugReports: https://github.com/mpiktas/midasr/issues
 Suggests:
@@ -31,3 +32,21 @@ Suggests:
     xts
 RoxygenNote: 6.0.1
 Encoding: UTF-8
+Collate: 
+    'deriv.R'
+    'imidasreg.R'
+    'lagspec.R'
+    'midas_nlpr.R'
+    'midas_r_methods.R'
+    'midas_nlpr_methods.R'
+    'midas_qr_methods.R'
+    'midas_sp.R'
+    'midas_sp_methods.R'
+    'midaslag.R'
+    'midasqr.R'
+    'midasr-package.R'
+    'midasreg.R'
+    'modsel.R'
+    'nonparametric.R'
+    'simulate.R'
+    'tests.R'

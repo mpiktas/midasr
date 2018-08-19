@@ -216,9 +216,6 @@ coef.midas_nlpr <- function(object, type = c("plain", "midas", "nlpr"), term_nam
     }
 }
 
-##' @export
-##' @method extract midas_nlpr
-extract.midas_nlpr <- function(model, include.rsquared = TRUE, include.adjrs = TRUE, 
-                               include.nobs = TRUE, include.rmse = TRUE, ...) {
-    extract.midas_r(model, include.rsquared, include.adjrs, include.nobs, include.rmse, ...)
-}
+##' @include midas_r_methods.R
+setMethod("extract", signature = className("midas_nlpr", "midasr"), definition = extract.midas_r)
+
