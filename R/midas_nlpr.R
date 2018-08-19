@@ -329,36 +329,37 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
     
     rf <- lapply(rfd,"[[","weight")
     
-    init_start_default <- lapply(rfd,"[[","start")
+    fake_start_default <- lapply(rfd,"[[","start")
 
-    init_pinds <- build_indices_list(init_start_default)
+    fake_pinds <- build_indices_list(fake_start_default)
 
-    init_coef2 <- function(p) {              
-            pp <- lapply(init_pinds,function(x)p[x])     
+    fake_coef2 <- function(p) {              
+            pp <- lapply(fake_pinds,function(x)p[x])     
             res <- mapply(function(fun,param)fun(param),rf,pp,SIMPLIFY=FALSE)
             return(res)
     }
     
-    initial_midas_coef <- init_coef2(unlist(init_start_default)) 
+    fake_midas_coef <- fake_coef2(unlist(fake_start_default)) 
 
-    if(sum(is.na(unlist(initial_midas_coef)))>0) stop("Check your starting values, NA in midas coefficients") 
+    if(sum(is.na(unlist(fake_midas_coef)))>0) stop("Check your starting values, NA in midas coefficients") 
     
-    npx <- cumsum(sapply(initial_midas_coef,length))
-    xinds <- build_indices(npx,names(init_start_default))
+    npx <- cumsum(sapply(fake_midas_coef,length))
+    xinds <- build_indices(npx,names(fake_start_default))
 
     start_default <- lapply(rfd, "[[", "full_start")
-    #for (i in 1:length(start_default)) names(start_default[[i]]) <- NULL
     pinds <- build_indices_list(start_default)
     
     pinds1 <- pinds[setdiff(names(pinds), nlpr_terms)]
     rf1 <- rf[setdiff(names(pinds), nlpr_terms)]
     
-    rfd[nlpr_terms] <- mapply(function(tmi, xind, pind){
+    rfd <- mapply(function(tmi, xind, pind){
         tmi[["xind"]] <- xind
         tmi[["pind"]] <- pind
         tmi[["sd_x"]] <- sd(X[,xind], na.rm = TRUE)
         tmi
-    }, rfd[nlpr_terms], xinds[nlpr_terms], pinds[nlpr_terms], SIMPLIFY = FALSE)
+    }, rfd, xinds, pinds, SIMPLIFY = FALSE)
+    
+    usual_terms <- 
     
     coef_list <- function(p, pi, rfl) {
         pp <- lapply(pi,function(x)p[x])     
@@ -398,20 +399,30 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
     if(!("method"%in% names(control)) & Ofunction=="optim") {        
         control$method <- "BFGS"
     }    
+    #Do a rename to conform to midas_r
+    term_info <- lapply(rfd, function(l) {
+        nm <- names(l)
+        nm[nm  == "xind"] <- "midas_coef_index"
+        nm[nm == "pind"] <- "coef_index"
+        names(l) <- nm
+        l
+    })
     
-    list(coefficients=unlist(start_default),
-         model=cbind(y,X),         
-         fn0=fn0,
-         rhs=rhs,
-         opt=NULL,
-         argmap_opt=control,
-         start_opt=unlist(start_default),
-         start_list=start,
-         call=cl,
-         terms=mt,
-         hessian=hess,
-         Zenv=Zenv,
-         nobs=nrow(X))   
+    
+    list(coefficients = unlist(start_default),
+         model = cbind(y,X),         
+         fn0 = fn0,
+         rhs = rhs,
+         opt = NULL,
+         argmap_opt = control,
+         start_opt = unlist(start_default),
+         start_list = start,
+         call = cl,
+         terms = mt,
+         hessian = hess,
+         Zenv = Zenv,
+         term_info = term_info,
+         nobs = nrow(X))   
 }
 
 ##' LSTR (Logistic Smooth TRansition)  MIDAS regression

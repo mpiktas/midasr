@@ -163,3 +163,58 @@ predict.midas_nlpr <- function(object, newdata, na.action = na.omit, ... ) {
     
     as.vector(rhs(coef(object)))
 }
+
+##' Extracts various coefficients of MIDAS regression
+##'
+##' MIDAS regression has two sets of cofficients. The first set is the coefficients associated with the parameters
+##' of weight functions associated with MIDAS regression terms. These are the coefficients of the NLS problem associated with MIDAS regression.
+##' The second is the coefficients of the linear model, i.e  the values of weight
+##' functions of terms, or so called MIDAS coefficients. By default the function returns the first set of the coefficients.
+##' 
+##' @title Extract coefficients of MIDAS regression
+##' @param object \code{midas_nlpr} object
+##' @param midas logical, if \code{TRUE}, MIDAS coefficients are returned, if \code{FALSE} (default), coefficients of NLS problem are returned
+##' @param term_names a character vector with term names. Default is \code{NULL}, which means that coefficients of all the terms are returned
+##' @param ... not used currently
+##' @return a vector with coefficients
+##' @author Vaidotas Zemlys
+##' @method coef midas_nlpr
+##' @rdname coef.midas_nlpr
+##' @examples
+##'
+##' @export
+coef.midas_nlpr <- function(object, type = c("plain", "midas", "nlpr"), term_names = NULL, ...) {
+    type <- match.arg(type)
+    if (is.null(term_names) & type != "plain") stop("Please provide a term name to get midas or nlpr type coefficients")
+    if (is.null(term_names)) {
+        return(object$coefficients)
+    } else {
+        if (length(setdiff(term_names,names(object$term_info))) > 0) stop("Some of the term names are not present in estimated MIDAS regression")
+        if (type == "plain") {
+            res <- lapply(object$term_info[term_names], function(x) {
+                if (is.null(x[["nlpr"]])) object$coefficients[x$coef_index]
+                else object$coefficients[x$coef_index][x$param_map$r]
+            })
+        }  
+        if (type == "midas") {
+            res <- lapply(object$term_info[term_names], function(x) {
+                 if (is.null(x[["nlpr"]]))  x$weight(object$coefficients[x$coef_index])
+                 else x$weight(object$coefficients[x$coef_index][x$param_map$r])
+            })
+        }
+        if (type == "nlpr") {
+            cf <- coef(object, type = "plain", term_name = NULL)
+            res <- lapply(object$term_info[term_names], function(x) {
+                if (is.null(x[["nlpr"]]))  stop("The term ", x$term_name, " is not a non-linear parametric term")
+                else cf[x$coef_index][x$param_map$nlpr]
+            })
+        }
+        
+        
+        names(res) <- NULL
+        if (length(res) == 1) return(res[[1]])
+        else return(unlist(res))
+            
+    }
+}
+
