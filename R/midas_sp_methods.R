@@ -17,7 +17,7 @@ print.midas_sp <- function(x, digits=max(3,getOption("digits")-3),...) {
 
 
 ##' @export
-##' @importFrom stats deviance pt pnorm residuals printCoefmat
+##' @importFrom stats deviance pt pnorm residuals printCoefmat cor
 ##' @method summary midas_sp
 summary.midas_sp <- function(object, df=NULL, ...) {
     r <- as.vector(residuals(object))
@@ -46,7 +46,7 @@ summary.midas_sp <- function(object, df=NULL, ...) {
     rdf <- n-p
     df.int <- 0L
     
-    r_squared <- mss/(mss + rss)
+    r_squared <- cor(f, object$model[, 1])
     adj_r_squared <- 1 - (1 - r_squared) * ((n - df.int)/rdf)
     
     tval <- param/se
