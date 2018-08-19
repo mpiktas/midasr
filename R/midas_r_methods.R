@@ -657,3 +657,57 @@ plot_midas_coef <- function(x, term_name=NULL, title = NULL, vcov. = sandwich, u
 }
 
 
+##' Extract coefficients and GOF measures from MIDAS regression object
+##'
+##' 
+##' @param model a MIDAS regression object
+##' @param include.rsquared, If available: should R-squared be reported?
+##' @param include.adjrs If available: should the adjusted R-squared be reported?
+##' @param include.nobs If available: should the number of observations be reported?
+##' @param include.rmse If available: should the root-mean-square error (= residual standard deviation) be reported?
+##' @param ... additional parameters passed to summary
+##' @return texreg object
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @rdname extract.midas_r
+##' @method extract midas_r
+##' @importFrom texreg extract createTexreg
+##' @importFrom stats nobs
+##' @export
+extract.midas_r <- function(model, include.rsquared = TRUE, include.adjrs = TRUE, 
+                            include.nobs = TRUE, include.rmse = TRUE, ...) {
+    s <- summary(model, ...)
+    names <- rownames(s$coef)
+    co <- s$coef[, 1]
+    se <- s$coef[, 2]
+    pval <- s$coef[, 4]
+    rs <- s$r_squared
+    adj <- s$adj_r_squared
+    n <- nobs(model)
+    gof <- numeric()
+    gof.names <- character()
+    gof.decimal <- logical()
+    if (include.rsquared == TRUE) {
+        gof <- c(gof, rs)
+        gof.names <- c(gof.names, "R$^2$")
+        gof.decimal <- c(gof.decimal, TRUE)
+    }
+    if (include.adjrs == TRUE) {
+        gof <- c(gof, adj)
+        gof.names <- c(gof.names, "Adj. R$^2$")
+        gof.decimal <- c(gof.decimal, TRUE)
+    }
+    if (include.nobs == TRUE) {
+        gof <- c(gof, n)
+        gof.names <- c(gof.names, "Num. obs.")
+        gof.decimal <- c(gof.decimal, FALSE)
+    }
+    if (include.rmse == TRUE && !is.null(s$sigma[[1]])) {
+        rmse <- s$sigma[[1]]
+        gof <- c(gof, rmse)
+        gof.names <- c(gof.names, "RMSE")
+        gof.decimal <- c(gof.decimal, TRUE)
+    }
+    tr <- createTexreg(coef.names = names, coef = co, se = se, 
+                       pvalues = pval, gof.names = gof.names, gof = gof, gof.decimal = gof.decimal)
+    return(tr)
+}

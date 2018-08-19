@@ -21,7 +21,8 @@ Imports:
     stats,
     graphics,
     utils,
-    Formula
+    Formula,
+    texreg
 License: GPL-2 | MIT + file LICENCE
 BugReports: https://github.com/mpiktas/midasr/issues
 Suggests:

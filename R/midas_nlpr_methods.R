@@ -173,15 +173,13 @@ predict.midas_nlpr <- function(object, newdata, na.action = na.omit, ... ) {
 ##' 
 ##' @title Extract coefficients of MIDAS regression
 ##' @param object \code{midas_nlpr} object
-##' @param midas logical, if \code{TRUE}, MIDAS coefficients are returned, if \code{FALSE} (default), coefficients of NLS problem are returned
+##' @param type one of plain, midas, or nlpr. Returns appropriate coefficients.
 ##' @param term_names a character vector with term names. Default is \code{NULL}, which means that coefficients of all the terms are returned
 ##' @param ... not used currently
 ##' @return a vector with coefficients
 ##' @author Vaidotas Zemlys
 ##' @method coef midas_nlpr
 ##' @rdname coef.midas_nlpr
-##' @examples
-##'
 ##' @export
 coef.midas_nlpr <- function(object, type = c("plain", "midas", "nlpr"), term_names = NULL, ...) {
     type <- match.arg(type)
@@ -218,3 +216,9 @@ coef.midas_nlpr <- function(object, type = c("plain", "midas", "nlpr"), term_nam
     }
 }
 
+##' @export
+##' @method extract midas_nlpr
+extract.midas_nlpr <- function(model, include.rsquared = TRUE, include.adjrs = TRUE, 
+                               include.nobs = TRUE, include.rmse = TRUE, ...) {
+    extract.midas_r(model, include.rsquared, include.adjrs, include.nobs, include.rmse, ...)
+}
