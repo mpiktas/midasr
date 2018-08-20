@@ -107,7 +107,7 @@ test_that("updating data and starting values works",{
                                  `(Intercept)` = 1), Ofunction = "optim", method = "Nelder-Mead", control = list(maxit = 5000))
     
     
-    b <- update(a, data = spd,   start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
+    b <- update(a, data = spd, start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
                                                      y = c(0.5, 0),
                                                      `(Intercept)` = 1), Ofunction = "optim", method = "Nelder-Mead", control = list(maxit = 5000)) 
     

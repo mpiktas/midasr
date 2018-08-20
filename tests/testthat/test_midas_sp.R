@@ -8,6 +8,17 @@ dgp_pl <- midas_pl_sim(n, m = 12, theta = nbeta(c(1.5, 2, 4), 24), gfun = functi
 dgp_si <- midas_si_sim(n, m = 12, theta = nnbeta(c(2, 4), 24), gfun = function(x)0.03*x^3, ar.x = 0.9, ar.y = 0.5, n.start = 100)
 
 
+
+a100 <- midas_sp(y~mlsd(x, 0:23, y, nbeta)+mlsd(y, 1:2, y) | z, 
+                 bws = 0, degree = 1, data = dgp_pl,
+                 start = list(x = c(1.5, 2, 4), y = c(0.5, 0)), 
+                 method = "Nelder-Mead", control = list(maxit = 100))
+
+b100 <- midas_sp(y~mlsd(y, 1:2, y) | mlsd(x, 0:23, y, nnbeta), 
+         bws = 0, degree = 1, data = dgp_si,
+         start = list(x = c(2, 4), y = c(0.5, 0)), 
+         method = "Nelder-Mead", control = list(maxit = 100))
+
 test_that("Plain and formula interface give the same results for PL", {
     X <- mls(dgp_pl$x, 0:23, 12)
     
@@ -15,10 +26,7 @@ test_that("Plain and formula interface give the same results for PL", {
                           start_bws = 0, start_x = c(1.5, 2, 4), start_ar = c(0.5, 0),
                           method = "Nelder-Mead", itnmax = 100) 
     
-    mfr <-midas_sp(y~mlsd(x, 0:23, y, nbeta)+mlsd(y, 1:2, y) | z, 
-                   bws = 0, degree = 1, data = dgp_pl,
-                   start = list(x = c(1.5, 2, 4), y = c(0.5, 0)), 
-                   method = "Nelder-Mead", control = list(maxit = 100))
+    mfr <- a100
 
     expect_true(sum(abs(mfr$coefficients - mpl$coefficients)) < 1e-10)
 })
@@ -34,33 +42,31 @@ test_that("Plain and formula interface give the same results for SI", {
                            start = list(x = c(2, 4), y = c(0.5, 0)), 
                            method = "Nelder-Mead", control = list(maxit = 100))
         
-    cmap <- c(1,4:5, 2:3)
+   cmap <- c(1,4:5, 2:3)
     expect_true(sum(abs(mfr$coefficients[cmap]-mpl$coefficients)) < 1e-10)
 })
 
+
+
 test_that("Rearanging terms works", {
-    mfr1 <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
-                      start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
-                                   y = c(0.5, 0),
-                                   `(Intercept)` = 1), Ofunction = "optimx", method = "Nelder-Mead", control = list(maxit = 100))
-   
-    mfr2 <- midas_nlpr(y~ mlsd(x, 0:23, y, nnbeta) + mlsd(y, 1:2,  y), data = dgp_lstr, 
-                       start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
-                                    y = c(0.5, 0),
-                                    `(Intercept)` = 1), Ofunction = "optimx", method = "Nelder-Mead", control = list(maxit = 100))
-    cmap <- c(1, 4:9, 2:3)
+    
+    mfr1 <- a100
+    mfr2 <- midas_sp(y~mlsd(y, 1:2, y) + mlsd(x, 0:23, y, nbeta)| z, 
+                   bws = 0, degree = 1, data = dgp_pl,
+                   start = list(x = c(1.5, 2, 4), y = c(0.5, 0)), 
+                   method = "Nelder-Mead", control = list(maxit = 100))
+    
+    cmap <- c(1,5:6, 2:4)
+    
     
     expect_true(sum(abs(mfr1$coefficients[cmap]-mfr2$coefficients)) < 1e-10)
 })
 
-test_that("Updating Ofunction works for nplr", {
-    a <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
-                       start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
-                                    y = c(0.5, 0),
-                                    `(Intercept)` = 1), Ofunction = "optim", method = "Nelder-Mead", control = list(maxit = 5000))
+test_that("Updating Ofunction works for sp", {
     
+    a <- a100
     b <- update(a, Ofunction = "nls")
-    c <- suppressWarnings(update(b, Ofunction = "optimx", method = c("Nelder-Mead", "BFGS", "spg")))
+    c <- suppressWarnings(update(b, Ofunction = "optimx", method = c("BFGS", "spg"), itnmax = 10))
     
     expect_that(a$argmap_opt$Ofunction == "optim", is_true())
     expect_that(b$argmap_opt$Ofunction == "nls", is_true())
@@ -69,103 +75,31 @@ test_that("Updating Ofunction works for nplr", {
     expect_that(inherits(b$opt, "nls"), is_true())
     expect_that(inherits(c$opt, "optimx"), is_true())
     
-    expect_that(a$convergence == 0, is_true())
-    expect_that(b$convergence == 0, is_true())
-    expect_that(c$convergence == 0, is_true())
+    expect_that(sum(abs(coef(a) - b$start_opt)) == 0, is_true())
+    expect_that(sum(abs(coef(b) - c$start_opt)) == 0, is_true())
     
 })
 
 test_that("Updating Ofunction arguments  works", {
-    a <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
-                    start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
-                                 y = c(0.5, 0),
-                                 `(Intercept)` = 1), Ofunction = "optim", method = "Nelder-Mead", control = list(maxit = 5000))
-    
-    
-    b <- update(a, method = "CG")
+    a <- a100 
+    b <- update(a, method = "CG", control = list(maxit = 5))
     
     expect_that(b$argmap_opt$method == "CG", is_true())
     
 })
 
-test_that("updating data and starting values works",{
+test_that("Updating data and starting values works",{
   
-    spd <- dgp_lstr[c("y","x")]
+    spd <- dgp_si[c("y","x")]
     spd$y <- window(spd$y, start = 1, end = 200)
     spd$x <- window(spd$x, start = c(1,1), end = c(200,12))
     
-    a <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
-                    start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
-                                 y = c(0.5, 0),
-                                 `(Intercept)` = 1), Ofunction = "optim", method = "Nelder-Mead", control = list(maxit = 5000))
+    a <- b100
     
+    b <- update(a, data = spd, start = list(x = c(2, 4), y = c(0.5, 0)), control = list(maxit = 1), method = "Nelder-Mead")
     
-    c <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = spd, 
-                    start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
-                                 y = c(0.5, 0),
-                                 `(Intercept)` = 1), Ofunction = "optim", method = "Nelder-Mead", control = list(maxit = 5000))
+    m <- na.omit(cbind(spd$y, mlsd(spd$y,1:2, spd$y), mlsd(spd$x, 0:23, spd$y)))
     
-    
-    b <- update(a, data = spd,   start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
-                                                     y = c(0.5, 0),
-                                                     `(Intercept)` = 1), Ofunction = "optim", method = "Nelder-Mead", control = list(maxit = 5000)) 
-    
-    
-    expect_that(sum(abs(coef(b) - coef(c))), equals(0))
-})
-
-test_that("PL standard errors work", {
-    
-    mfr1 <- update(mfr, Ofunction = "nls")
-    
-    s1 <- summary(mfr1)
-    s2 <- summary(mfr1$opt)
-    
-    expect_true(sum(abs(s2$coefficients[, 2] - s1$coefficients[, 2])) < 1e-5)
-  
-})
-
-test_that("SI standard errors work", {
-    
-    mfr <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_mmm, 
-                      start = list(x = list(r = c(2, 4), mmm = c(1.5, 1)),
-                                   y = c(0.5, 0),
-                                   `(Intercept)` = 1), Ofunction = "optimx", method = "Nelder-Mead", control = list(maxit = 5000))
-    
-    mfr1 <- update(mfr, Ofunction = "nls")
-    
-    s1 <- summary(mfr1)
-    s2 <- summary(mfr1$opt)
-    
-    expect_true(sum(abs(s2$coefficients[, 2] - s1$coefficients[, 2])) < 1e-5)
-    
-})
-
-test_that("Predicting works for LSTR", {
-    
-    mfr <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
-                      start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
-                                   y = c(0.5, 0),
-                                   `(Intercept)` = 1), Ofunction = "optimx", method = "Nelder-Mead", control = list(maxit = 5000))
-    
-    p1 <- predict(mfr, newdata = list(x = window(dgp_lstr$x, end = c(200,12)), y = window(dgp_lstr$y, end = 200))) 
-    
-    p2 <- predict(mfr)[1:198]
-    
-    expect_true(sum(abs(p1 - p2)) < 1e-10)
-})
-
-test_that("Predicting works for MMM", {
-    mfr <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_mmm, 
-                      start = list(x = list(r = c(2, 4), mmm = c(1.5, 1)),
-                                   y = c(0.5, 0),
-                                   `(Intercept)` = 1), Ofunction = "optimx", method = "Nelder-Mead", control = list(maxit = 5000))
-    
-    
-    p1 <- predict(mfr, newdata = list(x = window(dgp_mmm$x, end = c(200,12)), y = window(dgp_mmm$y, end = 200))) 
-    
-    p2 <- predict(mfr)[1:198]
-    
-    expect_true(sum(abs(p1 - p2)) < 1e-10)
+    expect_that(sum(abs(m - b$model)), equals(0))
 })
 
