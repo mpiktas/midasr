@@ -71,7 +71,7 @@ summary.midas_sp <- function(object, df=NULL, ...) {
                                       "t value", "Pr(>|t|)"))
     ans <- list(formula=formula(object$terms), residuals=r, sigma=sqrt(resvar),
                 df=c(p,rdf), cov.unscaled = V/resvar, call=object$call,
-                coefficients=param,midas_coefficients=coef(object, midas = TRUE),
+                coefficients=param,
                 r_squared = r_squared, adj_r_squared = adj_r_squared, lhs_start = object$lhs_start, lhs_end = object$lhs_end, class_lhs = class(object$lhs))
     class(ans) <- "summary.midas_sp"
     ans
@@ -113,4 +113,133 @@ print.summary.midas_sp <- function(x, digits=max(3, getOption("digits") - 3 ), s
 
 ##' @include midas_r_methods.R
 setMethod("extract", signature = className("midas_sp", "midasr"), definition = extract.midas_r)
+
+##' @method update midas_sp
+##' @importFrom stats getCall setNames
+##' @export
+update.midas_sp <- function(object, formula.,..., evaluate = TRUE) {
+    if (is.null(call <- getCall(object))) 
+        stop("need an object with call component")
+    extras <- match.call(expand.dots = FALSE)$...
+    if (!missing(formula.)) 
+        call$formula <- update(Formula(object), formula.)
+    
+    if (length(extras)) {
+        existing <- !is.na(match(names(extras), names(call))) 
+        for (a in names(extras)[existing]) call[[a]] <- extras[[a]]
+        if (any(!existing)) {
+            call <- c(as.list(call), extras[!existing])
+            call <- as.call(call)
+        }        
+    }
+    
+    ##1. If no start is supplied update the start from the call
+    ##2. If start is supplied intersect it with already fitted values.
+    
+    cf <- coef(object)
+    ustart <- lapply(object$term_info,function(x)cf[x[["coef_index"]]])
+    
+    redo <- FALSE
+    if(!("start" %in% names(extras))) {        
+        if(!("start" %in% names(call) && is.null(call$start))) {
+            call$start <- ustart
+            object$start_opt <- cf
+        }
+    } else {
+        cstart <- eval(call$start,object$Zenv)
+        ustart[names(cstart)] <- cstart
+        call$start <- ustart
+        object$start_opt <- unlist(ustart)
+    } 
+    
+    if (evaluate) {
+        if(!missing(formula.) || "data" %in% names(extras)  || "weight_gradients" %in% names(extras) || redo) {
+            eval(call, parent.frame())
+        } else {
+            ##If we got here, we assume that we do not need to reevaluate terms.
+            if(!is.null(extras$Ofunction)) {
+                Ofunction <- eval(extras$Ofunction)
+                extras$Ofunction <- NULL
+            } else Ofunction <- object$argmap_opt$Ofunction            
+            dotargnm <- names(extras)
+            if (length(dotargnm) > 0) {
+                offending <- dotargnm[!dotargnm %in% names(formals(Ofunction))]
+                if (length(offending) > 0) {
+                    stop(paste("The function ", Ofunction, " does not have the following arguments: ", 
+                               paste(offending, collapse = ", "), sep = ""))
+                }
+            }
+            else {
+                extras <- NULL
+            }
+            if (Ofunction != object$argmap_opt$Ofunction) {
+                argmap <- c(list(Ofunction = Ofunction), extras)
+            }
+            else {
+                argmap <- object$argmap_opt
+                argmap$Ofunction <- NULL
+                argnm <- union(names(argmap), names(extras))
+                marg <- vector("list", length(argnm))
+                names(marg) <- argnm
+                marg[names(extras)] <- extras
+                oldarg <- setdiff(names(argmap), names(extras))
+                marg[oldarg] <- argmap[oldarg]
+                argmap <- c(list(Ofunction = Ofunction), marg)
+            }
+            object$call <- call
+            object$argmap_opt <- argmap
+            midas_nlpr.fit(object)
+        }
+    }
+    else call
+}
+
+
+##' Extracts various coefficients of MIDAS regression
+##'
+##' MIDAS regression has two sets of cofficients. The first set is the coefficients associated with the parameters
+##' of weight functions associated with MIDAS regression terms. These are the coefficients of the NLS problem associated with MIDAS regression.
+##' The second is the coefficients of the linear model, i.e  the values of weight
+##' functions of terms, or so called MIDAS coefficients. By default the function returns the first set of the coefficients.
+##' 
+##' @title Extract coefficients of MIDAS regression
+##' @param object \code{midas_nlpr} object
+##' @param type one of plain, midas, or nlpr. Returns appropriate coefficients.
+##' @param term_names a character vector with term names. Default is \code{NULL}, which means that coefficients of all the terms are returned
+##' @param ... not used currently
+##' @return a vector with coefficients
+##' @author Vaidotas Zemlys
+##' @method coef midas_sp
+##' @rdname coef.midas_sp
+##' @export
+coef.midas_sp <- function(object, type = c("plain", "midas", "bw"), term_names = NULL, ...) {
+    type <- match.arg(type)
+    if (is.null(term_names) & type == "midas") stop("Please provide a term name to get midas type coefficients")
+    if (is.null(term_names)) {
+        if(type == "bw") {
+            object$coefficients[1:length(object$bws)]
+        }
+        else return(object$coefficients)
+    } else {
+        if (type == "bw") {
+            warning("Bandwith setting is the same for all terms") 
+            coef(object, type = "bw", term_names = NULL)
+        }
+        if (length(setdiff(term_names,names(object$term_info))) > 0) stop("Some of the term names are not present in estimated MIDAS regression")
+        if (type == "plain") {
+            res <- lapply(object$term_info[term_names], function(x) {
+                if (!is.null(x$coef_index)) object$coefficients[x$coef_index]
+            })
+        }  
+        if (type == "midas") {
+            res <- lapply(object$term_info[term_names], function(x) {
+                if (!is.null(x$coef_index))  x$weight(object$coefficients[x$coef_index])
+            })
+        }
+        names(res) <- NULL
+        if (length(res) == 1) return(res[[1]])
+        else return(unlist(res))
+        
+    }
+}
 

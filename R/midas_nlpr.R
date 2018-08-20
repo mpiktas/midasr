@@ -122,7 +122,7 @@ midas_nlpr <- function(formula, data, start, Ofunction="optim", ...) {
     midas_nlpr.fit(prepmd)    
 }
 
-##' @method update midas_r
+##' @method update midas_nlpr
 ##' @importFrom stats getCall update.formula setNames
 ##' @export
 update.midas_nlpr <- function(object, formula.,..., evaluate = TRUE) {
@@ -259,6 +259,10 @@ midas_nlpr.fit <- function(x) {
     
     x$opt <- opt
     x$coefficients <- par
+    if (inherits(x, "midas_sp")) {
+        bws <- par[1:length(x$bws)]
+        x$bws <- bws
+    }
     names(par) <- NULL
     x$fitted.values <- x$rhs(par)
     x$residuals <- as.vector(x$model[,1]-x$fitted.values)

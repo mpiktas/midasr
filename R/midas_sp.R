@@ -177,7 +177,9 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
     start_default1[intersect(names(start), term_names1)] <- start[intersect(names(start), term_names1)]
     np1 <- cumsum(sapply(start_default1,length))
     pinds1 <- build_indices(np1,names(start_default1))
-    
+    fake_x_coef <- all_coef_full(unlist(start_default1), pinds1, rf1) 
+    npx <- cumsum(sapply(fake_x_coef,length))
+    xinds <- build_indices(npx,names(start_default1))
     
     terms.rhs2 <- as.list(attr(mt2,"variables"))[-2:-1]
     rfd2 <- lapply(terms.rhs2, dterm_nlpr,  Zenv = Zenv)
@@ -240,6 +242,28 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
     if(bws_length > 1) names(bws) <- paste0("bw", 1:bws_length)
     else names(bws) <- "bw"
     starto <- c(bws, unlist(start_default1), unlist(start_default2)) 
+    
+    term_info1 <- mapply(function(l, pind, xind) {
+        l$coef_index <- pind
+        l$midas_coef_index <- xind
+        l
+    },rfd1, pinds1, xinds, SIMPLIFY = FALSE)
+    
+    term_info2 <- lapply(term_names2, function(t2) {
+        res <- rfd2[[t2]]
+        if(t2 %in% weight_names2) {
+            res$coef_index <- pinds2[[t2]]
+            res$midas_coef_index <- zinds[[t2]]
+        } else {
+            res$midas_coef_index <- zinds[[t2]]
+        }
+        res
+    })
+    
+    names(term_info2) <- term_names2
+    term_info <- c(term_info1, term_info2)
+    
+    
     list(coefficients = starto,
          model = cbind(y, X, Z),         
          fn0 = fn0,
@@ -252,6 +276,8 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
          call = cl,
          terms = mt1,
          terms2 = mt2,
+         bws = bws,
+         term_info = term_info,
          hessian = hess,
          Zenv = Zenv,
          nobs = nrow(X))   
