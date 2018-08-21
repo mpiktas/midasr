@@ -293,7 +293,6 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
         args$guess_start <- NULL
     }    
     terms.lhs <- as.list(attr(mt,"variables"))[-2:-1]
-    
     rfd <- lapply(terms.lhs, dterm_nlpr, Zenv = Zenv)
     
     if (attr(mt,"intercept")==1)  {
@@ -656,8 +655,12 @@ dterm_nlpr <- function(fr, Zenv) {
             if(noarg < 2) stop("The weight function must have at least two arguments")            
             mf <- mf[1:min(length(mf), noarg + 1)]
             if(length(mf)>3) {
-                for(j in 4:length(mf)) {
-                    mf[[j]] <- eval(mf[[j]], Zenv)
+                start_eval <- 4
+                if(type == "mlsd") start_eval <- 5
+                if(length(mf)>=start_eval) {
+                    for(j in start_eval:length(mf)) {
+                        mf[[j]] <- eval(mf[[j]], Zenv)
+                    }
                 }
             }
             mf[[3]] <- nol

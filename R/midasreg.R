@@ -539,8 +539,14 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
                 if(noarg < 2) stop("The weight function must have at least two arguments")            
                 mf <- mf[1:min(length(mf), noarg + 1)]
                 if(length(mf)>3) {
-                    for(j in 4:length(mf)) {
-                        mf[[j]] <- eval(mf[[j]], Zenv)
+                    ##If we are in mlsd we just need to ignore the third parameter, 
+                    ##it cannot be passed to weight function
+                    start_eval <- 4
+                    if(type == "mlsd") start_eval <- 5
+                    if(length(mf) >= start_eval) {
+                        for(j in start_eval:length(mf)) {
+                            mf[[j]] <- eval(mf[[j]], Zenv)
+                        }
                     }
                 }
                 mf[[3]] <- ifelse(is.null(ltb), nol, sum(ltb[, 1]))
