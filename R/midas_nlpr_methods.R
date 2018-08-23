@@ -219,3 +219,129 @@ coef.midas_nlpr <- function(object, type = c("plain", "midas", "nlpr"), term_nam
 ##' @include midas_r_methods.R
 setMethod("extract", signature = className("midas_nlpr", "midasr"), definition = extract.midas_r)
 
+
+##' Plots MIDAS coefficients of a MIDAS regression for a selected term.
+##'
+##' Plots MIDAS coefficients of a selected MIDAS regression term together with corresponding MIDAS coefficients and their confidence intervals
+##' of unrestricted MIDAS regression
+##' @title Plot MIDAS coefficients
+##' @param x \code{midas_r} object
+##' @param term_name the term name for which the coefficients are plotted. Default is \code{NULL}, which selects the first MIDAS term
+##' @param title the title string of the graph. The default is \code{NULL} for the default title.
+##' @param vcov. the covariance matrix to calculate the standard deviation of the cofficients
+##' @param unrestricted the unrestricted model, the default is unrestricted model from the \code{x} object. Set NULL to plot only the weights.
+##' @param ... additional arguments passed to \code{vcov.}
+##' @return a data frame with restricted MIDAS coefficients, unrestricted MIDAS coefficients and lower and upper confidence interval limits. The data
+##' frame is returned invisibly.
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @importFrom graphics plot points
+##' @importFrom numDeriv jacobian
+##' @importFrom stats na.omit
+##' @export
+plot_midas_coef.midas_nlpr <- function(x, term_name = NULL, title = NULL,  compare = NULL, ...) {
+    if(is.null(term_name)) {
+        wt <- do.call("rbind",lapply(x$term_info,function(l)c(l$term_name,l$weight_name)))
+        wt <- data.frame(wt)
+        colnames(wt) <- c("term_name","weight_name")
+        wt <- wt[wt$weight_name != "", ]
+        if (nrow(wt) == 0) stop("No terms with MIDAS weights in midas_r object")
+        if (nrow(wt) > 1) warning("Multiple terms with MIDAS weights, choosing the first one. Please specify the desired term name via 'term_name' argument.")
+        term_name <- wt$term_name[1]
+    }
+    ti <- x$term_info[[term_name]]
+   
+    mcoef <- coef(x, type = "midas", term_name = term_name)
+    pcoef <- coef(x, type = "plain", term_name = term_name)
+    sx <- summary(x)
+    V <- sx$cov.unscaled * sx$sigma^2
+    ti <- x$term_info[[term_name]]
+    if (is.null(ti$nlpr)) {
+        Vind <- ti$coef_index
+    } else {
+        Vind <- ti$coef_index[ti$param_map$r]
+    }
+    grad_r <- jacobian(ti$weight, pcoef)
+    V_s <- V[Vind, Vind]
+    se_r <- sqrt(diag(grad_r %*% V_s %*% t(grad_r)))
+    pd <- data.frame(restricted = mcoef, compare = NA, lower = mcoef - 1.96*se_r, upper = mcoef + 1.96*se_r, lag_struct = ti$lag_structure)
+   
+    if (!is.null(compare)) {
+        pd$compare <- ti$weight(compare)
+    }
+    
+    ylim <- range(na.omit(c(pd[,1],pd[,2], pd[,3],pd[,4])))
+    plot(pd$lag_struct, pd$restricted, col = "blue", ylab = "MIDAS coefficients", xlab = "High frequency lag", ylim = ylim)
+    
+    points(pd$lag_struct, pd$compare, col = "black") 
+    points(pd$lag_struct, pd$lower, type = "l", col = "grey", lty = 2)
+    points(pd$lag_struct, pd$upper, type = "l", col = "grey", lty = 2)
+    
+    if (is.null(title)) {
+        title(main = paste0("MIDAS coefficients for term ",term_name,": ",ti$weight_name))
+    } else title(main = title) 
+    
+    invisible(pd)
+}
+
+plot_nlpr <- function(x, term_name, title = NULL,  compare = NULL, ... ) {
+    ti <- x$term_info[[term_name]]
+    
+    if (is.null(ti) && is.null(ti$nlpr)) stop("Please provide the name of the term which is nlpr term")
+    
+    sx <- summary(x)
+    cf <- coef(x)
+    
+    tfun <- function(p) {
+        pr <- p[ti$param_map$r]
+        pn <- p[ti$param_map$nlpr]
+        as.vector(ti$nlpr(x$model[, ti$midas_coef_index], ti$weight(pr), pn, ti$sd_x))
+    }
+    
+    sx <- summary(x)
+    V <- sx$cov.unscaled * sx$sigma^2
+    Vind <- ti$coef_index
+    grad_r <- jacobian(tfun, cf[Vind])
+    
+    V_s <- V[Vind, Vind]
+    se_r <- sqrt(diag(grad_r %*% V_s %*% t(grad_r)))
+    
+    xi <- as.vector(x$model[, ti$midas_coef_index] %*% ti$weight(cf[ti$coef_index][ti$param_map$r]))
+    
+    ixi <- order(xi)
+    
+    nt <- tfun(cf[Vind])
+    
+    xi_o <- xi[ixi]
+    nt_o <- nt[ixi]
+    se_ro <- se_r[ixi]
+    
+    pd <- data.frame(xi = xi_o, term = nt_o, compare = NA, lower = nt_o - 1.96*se_ro, upper = nt_o + 1.96*se_ro)
+   
+    if (!is.null(compare)) {
+        op <- rep(NA, length(ti$coef_index))
+        op[ti$param_map$r] <- compare$r
+        if (setdiff(names(compare),c("lstr","mmm")) != "r") stop("The parameters for nlpr term should be in an element named either lstr or mmm")
+        nlpr_name <- setdiff(names(compare),"r")
+        op[ti$param_map$nlpr] <- compare[[nlpr_name]]
+        xi2 <- as.vector(x$model[, ti$midas_coef_index] %*% ti$weight(op[ti$param_map$r]))
+        ixi2 <- order(xi2)
+        pd$compare <- tfun(op)[ixi2]
+        
+        pd$xi2 <-  xi2[ixi2]
+    }
+    
+    ylim <- range(na.omit(c(pd$term,pd$compare, pd$lower, pd$upper)))
+    
+    plot(pd$xi, pd$term, col = "blue", ylab = "Non-linear parametric term", xlab = "MIDAS aggregate", ylim = ylim, type = "l")
+    
+    points(pd$xi2, pd$compare, col = "black", type = "l") 
+    points(pd$xi, pd$lower, type = "l", col = "grey", lty = 2)
+    points(pd$xi, pd$upper, type = "l", col = "grey", lty = 2)
+    
+    if (is.null(title)) {
+        title(main = paste0("Non-linear parametric term ",term_name,": ",ti$weight_name))
+    } else title(main = title) 
+    
+    invisible(pd)
+    
+}
