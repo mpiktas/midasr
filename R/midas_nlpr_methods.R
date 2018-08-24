@@ -228,9 +228,8 @@ setMethod("extract", signature = className("midas_nlpr", "midasr"), definition =
 ##' @param x \code{midas_r} object
 ##' @param term_name the term name for which the coefficients are plotted. Default is \code{NULL}, which selects the first MIDAS term
 ##' @param title the title string of the graph. The default is \code{NULL} for the default title.
-##' @param vcov. the covariance matrix to calculate the standard deviation of the cofficients
-##' @param unrestricted the unrestricted model, the default is unrestricted model from the \code{x} object. Set NULL to plot only the weights.
-##' @param ... additional arguments passed to \code{vcov.}
+##' @param compare the parameters for weight function to compare with the model, default is NULL
+##' @param ... not used
 ##' @return a data frame with restricted MIDAS coefficients, unrestricted MIDAS coefficients and lower and upper confidence interval limits. The data
 ##' frame is returned invisibly.
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
@@ -283,29 +282,52 @@ plot_midas_coef.midas_nlpr <- function(x, term_name = NULL, title = NULL,  compa
     invisible(pd)
 }
 
-plot_nlpr <- function(x, term_name, title = NULL,  compare = NULL, ... ) {
+##' Plots logistic function for LSTR MIDAS regression
+##'
+##' Plots logistic function for LSTR MIDSAS regression
+##' of unrestricted MIDAS regression
+##' @title Plot MIDAS coefficients
+##' @param x \code{midas_r} object
+##' @param term_name the term name for which the coefficients are plotted. Default is \code{NULL}, which selects the first MIDAS term
+##' @param title the title string of the graph. The default is \code{NULL} for the default title.
+##' @param compare the parameters for weight function to compare with the model, default is NULL
+##' @param ... not used
+##' @param ... additional arguments passed to \code{vcov.}
+##' @return a data frame with restricted MIDAS coefficients, unrestricted MIDAS coefficients and lower and upper confidence interval limits. The data
+##' frame is returned invisibly.
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @importFrom graphics plot points
+##' @importFrom numDeriv jacobian
+##' @importFrom stats na.omit
+##' @export
+plot_lstr <- function(x, term_name, title = NULL,  compare = NULL, ... ) {
     ti <- x$term_info[[term_name]]
     
     if (is.null(ti) && is.null(ti$nlpr)) stop("Please provide the name of the term which is nlpr term")
     
     sx <- summary(x)
     cf <- coef(x)
-    
+    r_map <- ti$coef_index[ti$param_map$r]
+    n_map <- ti$coef_index[ti$param_map$nlpr[-2:-1]]
+    Vind <- c(r_map,n_map)  
+  
     tfun <- function(p) {
-        pr <- p[ti$param_map$r]
-        pn <- p[ti$param_map$nlpr]
-        as.vector(ti$nlpr(x$model[, ti$midas_coef_index], ti$weight(pr), pn, ti$sd_x))
+        ri <- 1:length(r_map)
+        pr <- p[ri]
+        pn <- p[-ri]
+        as.vector(lstr_G(x$model[, ti$midas_coef_index + 1], ti$weight(pr), pn, ti$sd_x))
     }
     
     sx <- summary(x)
     V <- sx$cov.unscaled * sx$sigma^2
-    Vind <- ti$coef_index
+    
+    
     grad_r <- jacobian(tfun, cf[Vind])
     
     V_s <- V[Vind, Vind]
     se_r <- sqrt(diag(grad_r %*% V_s %*% t(grad_r)))
     
-    xi <- as.vector(x$model[, ti$midas_coef_index] %*% ti$weight(cf[ti$coef_index][ti$param_map$r]))
+    xi <- as.vector(x$model[, ti$midas_coef_index + 1] %*% ti$weight(cf[ti$coef_index][ti$param_map$r]))
     
     ixi <- order(xi)
     
@@ -318,12 +340,10 @@ plot_nlpr <- function(x, term_name, title = NULL,  compare = NULL, ... ) {
     pd <- data.frame(xi = xi_o, term = nt_o, compare = NA, lower = nt_o - 1.96*se_ro, upper = nt_o + 1.96*se_ro)
    
     if (!is.null(compare)) {
-        op <- rep(NA, length(ti$coef_index))
-        op[ti$param_map$r] <- compare$r
-        if (setdiff(names(compare),c("lstr","mmm")) != "r") stop("The parameters for nlpr term should be in an element named either lstr or mmm")
-        nlpr_name <- setdiff(names(compare),"r")
-        op[ti$param_map$nlpr] <- compare[[nlpr_name]]
-        xi2 <- as.vector(x$model[, ti$midas_coef_index] %*% ti$weight(op[ti$param_map$r]))
+        op <- rep(NA, length(Vind))
+        op[1:length(r_map)] <- compare$r
+        op[-(1:length(r_map))] <- compare$lstr
+        xi2 <- as.vector(x$model[, ti$midas_coef_index + 1] %*% ti$weight(op[1:length(r_map)]))
         ixi2 <- order(xi2)
         pd$compare <- tfun(op)[ixi2]
         
@@ -332,14 +352,14 @@ plot_nlpr <- function(x, term_name, title = NULL,  compare = NULL, ... ) {
     
     ylim <- range(na.omit(c(pd$term,pd$compare, pd$lower, pd$upper)))
     
-    plot(pd$xi, pd$term, col = "blue", ylab = "Non-linear parametric term", xlab = "MIDAS aggregate", ylim = ylim, type = "l")
+    plot(pd$xi, pd$term, col = "blue", ylab = "Logistic function", xlab = "MIDAS aggregate", ylim = ylim, type = "l")
     
     points(pd$xi2, pd$compare, col = "black", type = "l") 
     points(pd$xi, pd$lower, type = "l", col = "grey", lty = 2)
     points(pd$xi, pd$upper, type = "l", col = "grey", lty = 2)
     
     if (is.null(title)) {
-        title(main = paste0("Non-linear parametric term ",term_name,": ",ti$weight_name))
+        title(main = paste0("Logistic function of term ",term_name," with weight: ",ti$weight_name))
     } else title(main = title) 
     
     invisible(pd)

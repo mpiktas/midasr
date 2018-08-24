@@ -589,13 +589,15 @@ midas_mmm_plain <- function(y, X, z = NULL, weight, start_mmm, start_x, start_z 
 #' @export
 #'
 lstr <- function(X, theta, beta, sd_x = sd(c(X), na.rm = TRUE)) {
-    xx <- X %*% theta
-    b <- -exp(beta[3])*(xx - beta[4])/sd_x
-    G <- 1/(1 + exp(b))
-    
+    G <- lstr_G(X, theta, beta[3:4], sd_x)
     beta[1]*xx*(1 + beta[2]*G) 
 }
 
+lstr_G <- function(X, theta, beta, sd_x = sd(c(X), na.rm = TRUE)) {
+    xx <- X %*% theta
+    b <- -exp(beta[1])*(xx - beta[2])/sd_x
+    1/(1 + exp(b))
+}
 #' Compute MMM term for high frequency variable
 #'
 #' @param X matrix, high frequency variable embedded in low frequency, output of mls
