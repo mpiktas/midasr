@@ -236,11 +236,13 @@ setMethod("extract", signature = className("midas_nlpr", "midasr"), definition =
 ##' @importFrom graphics plot points
 ##' @importFrom numDeriv jacobian
 ##' @importFrom stats na.omit
+##' @method plot_midas_coef midas_nlpr
+##' @rdname plot_midas_coef.midas_nlpr
 ##' @export
 plot_midas_coef.midas_nlpr <- function(x, term_name = NULL, title = NULL,  compare = NULL, ...) {
     if(is.null(term_name)) {
         wt <- do.call("rbind",lapply(x$term_info,function(l)c(l$term_name,l$weight_name)))
-        wt <- data.frame(wt)
+        wt <- data.frame(wt, stringsAsFactors = FALSE)
         colnames(wt) <- c("term_name","weight_name")
         wt <- wt[wt$weight_name != "", ]
         if (nrow(wt) == 0) stop("No terms with MIDAS weights in midas_r object")
@@ -292,7 +294,6 @@ plot_midas_coef.midas_nlpr <- function(x, term_name = NULL, title = NULL,  compa
 ##' @param title the title string of the graph. The default is \code{NULL} for the default title.
 ##' @param compare the parameters for weight function to compare with the model, default is NULL
 ##' @param ... not used
-##' @param ... additional arguments passed to \code{vcov.}
 ##' @return a data frame with restricted MIDAS coefficients, unrestricted MIDAS coefficients and lower and upper confidence interval limits. The data
 ##' frame is returned invisibly.
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys

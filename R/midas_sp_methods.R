@@ -8,7 +8,7 @@ print.midas_sp <- function(x, digits=max(3,getOption("digits")-3),...) {
     cat(paste("Start = ", x$lhs_start, 
               ", End = ", x$lhs_end, 
               "\n", sep = ""))
-    cat(" model:", deparse(formula(x)),"\n")
+    cat(" model:", deparse(x$call$formula),"\n")
     print(coef(x),digits = digits, ...)
     cat("\n")
     cat("Function", x$argmap_opt$Ofunction, "was used for fitting\n")
@@ -69,7 +69,7 @@ summary.midas_sp <- function(object, df=NULL, ...) {
     param <- cbind(param,se,tval,pval)
     dimnames(param) <- list(pnames, c("Estimate", "Std. Error", 
                                       "t value", "Pr(>|t|)"))
-    ans <- list(formula=formula(object$terms), residuals=r, sigma=sqrt(resvar),
+    ans <- list(formula = formula(object$call$formula), residuals=r, sigma=sqrt(resvar),
                 df=c(p,rdf), cov.unscaled = V/resvar, call=object$call,
                 coefficients=param,
                 r_squared = r_squared, adj_r_squared = adj_r_squared, lhs_start = object$lhs_start, lhs_end = object$lhs_end, class_lhs = class(object$lhs))
@@ -99,7 +99,8 @@ print.summary.midas_sp <- function(x, digits=max(3, getOption("digits") - 3 ), s
     cat(paste("Start = ", x$lhs_start, 
               ", End = ", x$lhs_end, 
               "\n", sep = ""))
-    cat("\n Formula", deparse(formula(x)),"\n")
+    browser()
+    cat("\n Formula:", deparse(x$formula),"\n")
     df <- x$df
     rdf <- df[2L]
     cat("\n Parameters:\n")
@@ -243,3 +244,8 @@ coef.midas_sp <- function(object, type = c("plain", "midas", "bw"), term_names =
     }
 }
 
+##' @include midas_r_methods.R
+##' @include midas_nlpr_methods.R
+##' @method plot_midas_coef midas_sp
+##' @export
+plot_midas_coef.midas_sp <- plot_midas_coef.midas_nlpr

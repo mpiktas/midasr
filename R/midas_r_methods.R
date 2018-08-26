@@ -588,6 +588,10 @@ get_estimation_sample <- function(object) {
 ##' @export
 NULL
 
+
+##' @export
+plot_midas_coef <- function(object, term_name, title, ...) UseMethod("plot_midas_coef") 
+
 ##' Plots MIDAS coefficients of a MIDAS regression for a selected term.
 ##'
 ##' Plots MIDAS coefficients of a selected MIDAS regression term together with corresponding MIDAS coefficients and their confidence intervals
@@ -615,8 +619,10 @@ NULL
 ##' 
 ##' plot_midas_coef(mr)
 ##' @importFrom graphics plot points
+##' @method plot_midas_coef midas_r
+##' @rdname plot_midas_coef
 ##' @export
-plot_midas_coef <- function(x, term_name=NULL, title = NULL, vcov. = sandwich, unrestricted = x$unrestricted, ...) {
+plot_midas_coef.midas_r <- function(x, term_name=NULL, title = NULL, vcov. = sandwich, unrestricted = x$unrestricted, ...) {
     if(is.null(term_name)) {
         wt <- do.call("rbind",lapply(x$term_info,function(l)c(l$term_name,l$weight_name)))
         wt <- data.frame(wt)
