@@ -590,7 +590,7 @@ midas_mmm_plain <- function(y, X, z = NULL, weight, start_mmm, start_x, start_z 
 #'
 lstr <- function(X, theta, beta, sd_x = sd(c(X), na.rm = TRUE)) {
     xx <- X %*% theta
-    b <- -exp(beta[1])*(xx - beta[2])/sd_x
+    b <- -exp(beta[3])*(xx - beta[4])/sd_x
     G <- 1/(1 + exp(b))
     beta[1]*xx*(1 + beta[2]*G) 
 }
