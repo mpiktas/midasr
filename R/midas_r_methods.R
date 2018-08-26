@@ -590,7 +590,7 @@ NULL
 
 
 ##' @export
-plot_midas_coef <- function(object, term_name, title, ...) UseMethod("plot_midas_coef") 
+plot_midas_coef <- function(x, term_name, title, ...) UseMethod("plot_midas_coef") 
 
 ##' Plots MIDAS coefficients of a MIDAS regression for a selected term.
 ##'
