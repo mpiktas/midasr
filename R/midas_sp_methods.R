@@ -249,3 +249,61 @@ coef.midas_sp <- function(object, type = c("plain", "midas", "bw"), term_names =
 ##' @method plot_midas_coef midas_sp
 ##' @export
 plot_midas_coef.midas_sp <- plot_midas_coef.midas_nlpr
+
+##' Plot non-parametric part of the single index MIDAS regression
+##'
+##' Plot non-parametric part of the single index MIDAS regression
+##' of unrestricted MIDAS regression
+##' @param x \code{midas_r} object
+##' @param term_name the term name for which the coefficients are plotted. Default is \code{NULL}, which selects the first MIDAS term
+##' @param title the title string of the graph. The default is \code{NULL} for the default title.
+##' @param compare the parameters for weight function to compare with the model, default is NULL
+##' @param ... not used
+##' @return a data frame with restricted MIDAS coefficients, unrestricted MIDAS coefficients and lower and upper confidence interval limits. The data
+##' frame is returned invisibly.
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @importFrom graphics plot points
+##' @importFrom numDeriv jacobian
+##' @importFrom stats na.omit
+##' @export
+plot_sp <- function(x, term_name, title = NULL,  compare = NULL, ... ) {
+    
+    if (length(x$bws) > 1) stop("Plotting is currently supported for univariate non-parametric functions only")
+    ti <- x$term_info[[term_name]]
+    
+    if (ti$term_type != "Z") stop("The term name supplied does not correspond to non-parametric term") 
+    
+    gfun <- function(p) {
+        xi <- x$model[, x$model_matrix_map$X] %*% x$coef_X(p)
+        Z <- x$model[, x$model_matrix_map$Z, drop = FALSE]
+        if (is.null(ti$coef_index)) zi <- Z[, ti$midas_coef_index, drop = FALSE]
+        else zi <- Z[, ti$midas_coef_index] %*% ti$weight(p[ti$coef_index])
+        if (ncol(zi) == 1) zi <- as.numeric(zi)
+        u <- x$model[, 1] - xi
+        list(xi = xi, zi = zi, u = u, g = cv_np(u, zi, p[1:length(x$bws)], x$degree))
+    }
+    
+    
+    gg <- gfun(coef(x))
+    ozi <- order(gg$zi)
+    pd <- data.frame(xi = gg$zi[ozi],  term = gg$g[ozi], compare = NA, lower = NA, upper = NA)
+    
+    if (!is.null(compare)) {
+       pd$compare <- compare(pd$xi)
+    }
+    
+    ylim <- range(na.omit(c(pd$term,pd$compare, pd$lower, pd$upper)))
+    
+    plot(pd$xi, pd$term, col = "blue", ylab = "Estimated non-parametric function", xlab = "MIDAS aggregate", ylim = ylim, type = "l")
+    
+    points(pd$xi, pd$compare, type = "l", col="black")
+    points(pd$xi, pd$lower, type = "l", col = "grey", lty = 2)
+    points(pd$xi, pd$upper, type = "l", col = "grey", lty = 2)
+    
+    if (is.null(title)) {
+        title(main = paste0("Non-parametric estimate for term ",term_name," with weight: ",ti$weight_name))
+    } else title(main = title) 
+    
+    invisible(pd)
+    
+}

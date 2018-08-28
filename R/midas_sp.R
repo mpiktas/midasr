@@ -246,6 +246,7 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
     term_info1 <- mapply(function(l, pind, xind) {
         l$coef_index <- pind
         l$midas_coef_index <- xind
+        l$term_type <- "X"
         l
     },rfd1, pinds1, xinds, SIMPLIFY = FALSE)
     
@@ -257,6 +258,7 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
         } else {
             res$midas_coef_index <- zinds[[t2]]
         }
+        res$term_type <- "Z"
         res
     })
     
@@ -265,10 +267,14 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
     
     
     list(coefficients = starto,
-         model = cbind(y, X, Z),         
+         model = cbind(y, X, Z), 
          fn0 = fn0,
          rhs = rhs_cv,
          rhs_cv = rhs_cv,
+         coef_X  = cf1,
+         model_matrix_map = list(y = 1,
+                                 X = 1 + 1:ncol(X),
+                                 Z = ncol(X) + 1 + 1:ncol(Z)),
          opt = NULL,
          argmap_opt = control,
          start_opt = starto,
@@ -280,7 +286,8 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
          term_info = term_info,
          hessian = hess,
          Zenv = Zenv,
-         nobs = nrow(X))   
+         nobs = nrow(X),
+         degree = degree)   
 }
 
 

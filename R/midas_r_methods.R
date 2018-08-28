@@ -590,6 +590,7 @@ NULL
 
 
 ##' @export
+##' @rdname plot_midas_coef.midas_r
 plot_midas_coef <- function(x, term_name, title, ...) UseMethod("plot_midas_coef") 
 
 ##' Plots MIDAS coefficients of a MIDAS regression for a selected term.
@@ -620,7 +621,6 @@ plot_midas_coef <- function(x, term_name, title, ...) UseMethod("plot_midas_coef
 ##' plot_midas_coef(mr)
 ##' @importFrom graphics plot points
 ##' @method plot_midas_coef midas_r
-##' @rdname plot_midas_coef
 ##' @export
 plot_midas_coef.midas_r <- function(x, term_name=NULL, title = NULL, vcov. = sandwich, unrestricted = x$unrestricted, ...) {
     if(is.null(term_name)) {
