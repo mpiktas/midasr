@@ -54,6 +54,16 @@ test_that("Rearanging terms works", {
     expect_true(sum(abs(mfr1$coefficients[cmap]-mfr2$coefficients)) < 1e-10)
 })
 
+test_that("midas_nlpr works with the intercept term only", {
+    mfr1 <- midas_nlpr(y~ mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
+                       start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
+                                    `(Intercept)` = 1), Ofunction = "optimx", method = "Nelder-Mead", control = list(maxit = 10))
+    
+    
+    expect_true(length(coef(mfr1)) == 7)
+})
+
+
 test_that("Updating Ofunction works for nplr", {
     a <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
                        start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),

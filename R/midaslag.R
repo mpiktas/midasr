@@ -137,12 +137,14 @@ mlsd <- function(x, k, datey, ... ) {
     
     if (length(x) != length(datex)) stop("The date vector for high frequency data must be the same length as a data")
     
-       
-    if (datey[1] > min(datex)) datey <- c(datey,min(datex))
+    datey0 <- datey
+    
+    if (datey[1] > min(datex)) datey <- c(min(datex), datey)
     if (datey[length(datey)] < max(datex)) datey <- c(datey, max(datex))
-    
+
+    id <- which(datey>=min(datey0) & datey <= max(datey0))
+
     ct <- cut(datex, datey, right = FALSE, labels = FALSE, include.lowest = TRUE)
-    
     fhx <- function(h.x) {
         id <- h.x - k 
         id[id <= 0] <- NA
@@ -153,6 +155,6 @@ mlsd <- function(x, k, datey, ... ) {
     XX <- lapply(cumsum(table(ct)), fhx)
     X <- do.call("rbind", XX)
     colnames(X) <- paste("X", k, sep = ".")
-    X
+    X[id, ]
     
 }

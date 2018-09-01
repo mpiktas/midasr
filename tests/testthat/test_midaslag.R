@@ -49,6 +49,24 @@ test_that("mlsd works for the ts objects", {
     expect_true(sum(abs(m1-m2), na.rm = TRUE) < 1e-10)
 })
 
+data(USunempr)
+data(USrealgdp)
+yy <- diff(log(USrealgdp)) 
+xx <- diff(USunempr) 
+
+test_that("mlsd returns the matrix of apropriate dimensions",{
+  
+    zz <- mlsd(xx, 0:24, yy)
+    expect_true( nrow(zz) == length(yy))
+})
+
+#test_that("Windowing works with mlsd",{
+#    yy1 <- window(yy, end = 1980)
+#    zz <- mlsd(xx, 0:24, yy1)
+#    xx1 <- window(xx, end = c(1980,12))
+#    expect_true( zz[nrow(zz),1] == xx1[length(xx1)])
+#
+#})
 
 
 # test_that("mlsd works for the xts objects", {

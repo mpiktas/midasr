@@ -378,7 +378,7 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
     }
     
     xind1 <- unlist(xinds[setdiff(names(xinds), nlpr_terms)])
-    X1 <- X[, xind1]
+    X1 <- X[, xind1, drop = FALSE]
     
     
     rhs <- function(p) { 
@@ -399,9 +399,9 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
     
     control <- c(list(Ofunction=Ofunction),args)
     ##Override default method of optim. Use BFGS instead of Nelder-Mead
-    if(!("method"%in% names(control)) & Ofunction=="optim") {        
-        control$method <- "BFGS"
-    }    
+    #if(!("method"%in% names(control)) & Ofunction=="optim") {        
+    #    control$method <- "BFGS"
+    #}    
     #Do a rename to conform to midas_r
     term_info <- lapply(rfd, function(l) {
         nm <- names(l)
