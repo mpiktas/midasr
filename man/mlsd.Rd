@@ -33,6 +33,7 @@ m1 <- mlsd(x, 0:5, datey)
 m2 <- mls(x, 0:5, 12)
 
 sum(abs(m1 - m2))
+
 }
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys-Balevičius

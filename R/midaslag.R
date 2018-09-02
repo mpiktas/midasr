@@ -109,6 +109,7 @@ check_mixfreq <- function(data) {
 #'
 #' @return a matrix containing the first differences and the lag k+1.
 #' @author Virmantas Kvedaras, Vaidotas Zemlys-Balevičius
+#' @importFrom stats lag
 #' @export
 #'
 #' @examples
