@@ -338,7 +338,7 @@ plot_lstr <- function(x, term_name, title = NULL,  compare = NULL, ... ) {
     nt_o <- nt[ixi]
     se_ro <- se_r[ixi]
     
-    pd <- data.frame(xi = xi_o, term = nt_o, compare = NA, lower = nt_o - 1.96*se_ro, upper = nt_o + 1.96*se_ro)
+    pd <- data.frame(xi = xi_o, term = nt_o, compare = NA, lower = nt_o - 1.96*se_ro, upper = nt_o + 1.96*se_ro, xi2 = NA)
    
     if (!is.null(compare)) {
         op <- rep(NA, length(Vind))

@@ -274,7 +274,11 @@ plot_sp <- function(x, term_name, title = NULL,  compare = NULL, ... ) {
     if (ti$term_type != "Z") stop("The term name supplied does not correspond to non-parametric term") 
     
     gfun <- function(p) {
-        xi <- x$model[, x$model_matrix_map$X] %*% x$coef_X(p)
+        if(is.null(x$model_matrix_map$X)) { 
+            xi <- 0 
+        } else {
+            xi <- x$model[, x$model_matrix_map$X] %*% x$coef_X(p)
+        }
         Z <- x$model[, x$model_matrix_map$Z, drop = FALSE]
         if (is.null(ti$coef_index)) zi <- Z[, ti$midas_coef_index, drop = FALSE]
         else zi <- Z[, ti$midas_coef_index] %*% ti$weight(p[ti$coef_index])
