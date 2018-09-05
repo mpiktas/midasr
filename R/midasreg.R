@@ -252,7 +252,7 @@ midas_r <- function(formula, data, start, Ofunction="optim", weight_gradients=NU
     mf <- eval(mf,Zenv)
     mt <- attr(mf, "terms")
     args <- list(...)
-    y <- model.response(mf, "numeric")
+    y <- as.numeric(model.response(mf, "numeric"))
     X <- model.matrix(mt, mf)
     
     #Save ts/zoo information

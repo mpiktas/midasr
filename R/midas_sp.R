@@ -84,7 +84,7 @@ midas_sp <- function(formula, data, bws, start, degree = 1,  Ofunction="optim", 
     mf <- eval(mf,Zenv)
     mt <- attr(mf, "terms")
     args <- list(...)
-    y <- model.response(mf, "numeric")
+    y <- as.numeric(model.response(mf, "numeric"))
     X <- model.matrix(formula, data = mf, rhs = 1)
     if(length(attr(formula,"rhs")) > 1) {
         Z <- model.matrix(formula, data = mf, rhs = 2)

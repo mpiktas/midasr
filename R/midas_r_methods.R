@@ -539,18 +539,36 @@ data_to_list <- function(data) {
                     x
                 } else {
                     ##This is needed since if tseries library is not loaded as.list for mts does not work as expected                   
-                    if(inherits(x,"mts")) 
-                        x <- data.frame(x)
-                    if(ncol(x)==1) {
-                        if(!is.null(colnames(x))) {
-                            if(nm=="") nm <- colnames(x)
-                            else warning("Duplicate names in data. Using the one from the list")                                                                              }                        
-                        x <- list(as.numeric(x[,1]))
-                        names(x) <- nm
-                        x
-                    }                      
-                    else {
-                        as.list(data.frame(x))
+                    if(inherits(x, "xts")) {
+                        if(ncol(x) == 1) {
+                            x <- list(x)
+                            colnames(x[[1]]) <- NULL
+                            names(x) <- nm
+                            return(x)
+                        } else {
+                            res <- vector("list", ncol(x))
+                            for(i in 1:ncol(x)) {
+                                res[[i]] <- x[, i]
+                                colnames(res[[i]]) <- NULL
+                            }
+                            if("" %in% colnames(x)) stop("Please provide the names for your xts objects")
+                            names(res) <- colnames(x)
+                            return(res)
+                        }
+                    } else {
+                        if(inherits(x,"mts")) 
+                            x <- data.frame(x)
+                        if(ncol(x)==1) {
+                            if(!is.null(colnames(x))) {
+                                if(nm=="") nm <- colnames(x)
+                                else warning("Duplicate names in data. Using the one from the list")                                                                              }                        
+                            x <- list(as.numeric(x[,1]))
+                            names(x) <- nm
+                            x
+                        }
+                        else {
+                            as.list(data.frame(x))
+                        }
                     }
                 }
             },data,names(data),SIMPLIFY=FALSE)
