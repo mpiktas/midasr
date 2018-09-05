@@ -33,6 +33,30 @@ NULL
 ##' @keywords datasets
 NULL
 
+
+##' US quartely seasonaly adjusted consumer price index 
+##'
+##' US quarterly CPI from 1960Q1 to 2017Q3s
+##' 
+##' @name UScpiqs
+##' @docType data
+##' @format A \code{\link{data.frame}} object.
+##' @source \href{http://www.bea.gov/national/xls/gdplev.xls}{FRED}
+##' @keywords datasets
+NULL
+
+##' US weekly effective federal funds rate.
+##'
+##' US weekly effective federal funds rate from 1954-07-07 to 2017-12-13
+##' 
+##' @name USeffrw
+##' @docType data
+##' @format A \code{\link{data.frame}} object.
+##' @source \href{http://www.bea.gov/national/xls/gdplev.xls}{FRED}
+##' @keywords datasets
+NULL
+
+
 ##' Realized volatility of S&P500 index
 ##'
 ##' Realized volatility of S&P500(Live) index of the period 2000 01 03 - 2013 11 22
