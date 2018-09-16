@@ -5,7 +5,9 @@
 ##' @param formula formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function
 ##' @param data a named list containing data with mixed frequencies
 ##' @param start the starting values for optimisation. Must be a list with named elements.
-##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
+##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen 
+##' R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link{optim}} with arguments
+##'  \code{method="Nelder-Mead"} and \code{control=list(maxit=5000)}. Other supported functions are \code{\link{nls}}, \code{\link{optimx}}.
 ##' @param ... additional arguments supplied to optimisation function
 ##' @return a \code{midas_r} object which is the list with the following elements:
 ##' 
@@ -397,11 +399,13 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
     hess <- function(x)numDeriv::hessian(fn0,x)
       
     
-    control <- c(list(Ofunction=Ofunction),args)
-    ##Override default method of optim. Use BFGS instead of Nelder-Mead
-    #if(!("method"%in% names(control)) & Ofunction=="optim") {        
-    #    control$method <- "BFGS"
-    #}    
+    control <- c(list(Ofunction = Ofunction),args)
+   
+    ##The default method is "Nelder-Mead" and number of maximum iterations is 5000
+    if (!("method" %in% names(control)) & Ofunction == "optim") {        
+        control$method <- "Nelder-Mead"
+        if (is.null(control$maxit)) control$maxit <- 5000
+    } 
     #Do a rename to conform to midas_r
     term_info <- lapply(rfd, function(l) {
         nm <- names(l)

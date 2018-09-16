@@ -24,7 +24,7 @@ test_that("Plain and formula interface give the same results for PL", {
     
     mpl <- midas_pl_plain(dgp_pl$y, X, dgp_pl$z, p.ar = 2L, nbeta, degree = 1, 
                           start_bws = 0, start_x = c(1.5, 2, 4), start_ar = c(0.5, 0),
-                          method = "Nelder-Mead", itnmax = 100) 
+                          method = "Nelder-Mead", control = list(maxit = 100)) 
     
     mfr <- a100
 
@@ -35,7 +35,7 @@ test_that("Plain and formula interface give the same results for SI", {
     X <- mls(dgp_si$x, 0:23, 12)
     
    mpl <- midas_si_plain(dgp_si$y, X, p.ar = 2L, nnbeta, degree = 1, start_bws = 0, start_x = c(2, 4), start_ar = c(0.5, 0),
-                             method = "Nelder-Mead", itnmax = 100) 
+                             method = "Nelder-Mead", control = list(maxit = 100)) 
     
    mfr <- midas_sp(y~mlsd(y, 1:2, y) | mlsd(x, 0:23, y, nnbeta), 
                            bws = 0, degree = 1, data = dgp_si,
@@ -43,7 +43,7 @@ test_that("Plain and formula interface give the same results for SI", {
                            method = "Nelder-Mead", control = list(maxit = 100))
         
    cmap <- c(1,4:5, 2:3)
-    expect_true(sum(abs(mfr$coefficients[cmap]-mpl$coefficients)) < 1e-10)
+   expect_true(sum(abs(mfr$coefficients[cmap] - mpl$coefficients)) < 1e-10)
 })
 
 

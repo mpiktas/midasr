@@ -26,9 +26,9 @@ midas_pl_plain(y, X, z, p.ar = NULL, weight, degree = 1, start_bws, start_x,
 
 \item{start_ar}{the starting values for AR part. Should be the same length as \code{p}}
 
-\item{method}{a method passed to \link{optimx}}
+\item{method}{a method passed to \link{optim}}
 
-\item{...}{additional parameters to \link{optimx}}
+\item{...}{additional parameters to \link{optim}}
 }
 \value{
 an object similar to \code{midas_r} object

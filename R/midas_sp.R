@@ -4,10 +4,13 @@
 ##'
 ##' @param formula formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function
 ##' @param data a named list containing data with mixed frequencies
-##' @param bws a bandwith specification, starting values for bandwith, if unset the default will be used.
+##' @param bws a bandwith specification. Note you need to supply logarithm value of the bandwith. 
 ##' @param start the starting values for optimisation. Must be a list with named elements.
 ##' @param degree the degree of local polynomial. 0 corresponds to local-constant, 1 local-linear. For univariate models higher values can be provided.
-##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
+##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen 
+##' R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link{optim}} with arguments
+##'  \code{method="Nelder-Mead"} and \code{control=list(maxit=5000)}. Other supported functions are \code{\link{nls}}, \code{\link{optimx}}.
+##' 
 ##' @param ... additional arguments supplied to optimisation function
 ##' @return a \code{midas_sp} object which is the list with the following elements:
 ##' 
@@ -244,14 +247,15 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
     hess <- function(x)numDeriv::hessian(fn0,x)
     
     control <- c(list(Ofunction = Ofunction),args)
-    ##Override default method of optim. Use BFGS instead of Nelder-Mead
+    ##The default method is "Nelder-Mead" and number of maximum iterations is 5000
     if (!("method" %in% names(control)) & Ofunction == "optim") {        
-        control$method <- "BFGS"
+        control$method <- "Nelder-Mead"
+        if (is.null(control$maxit)) control$maxit <- 5000
     }
-    if(bws_length > 1) names(bws) <- paste0("bw", 1:bws_length)
+    if (bws_length > 1) names(bws) <- paste0("bw", 1:bws_length)
     else names(bws) <- "bw"
     
-    if(is.null(mt1)) {
+    if (is.null(mt1)) {
         starto <- c(bws, unlist(start_default2)) 
         term_info1 <- NULL   
         model_matrix_map = list(y = 1,
@@ -322,17 +326,16 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
 ##' @param start_bws the starting values bandwith
 ##' @param start_x the starting values for weight function
 ##' @param start_ar the starting values for AR part. Should be the same length as \code{p}
-##' @param method a method passed to \link{optimx}
-##' @param ... additional parameters to \link{optimx}
+##' @param method a method passed to \link{optim}, defaults to Nelder-Mead
+##' @param ... additional parameters to \link{optim}
 ##' @return an object similar to \code{midas_r} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' 
-##' @import optimx
-##' @importFrom stats na.omit 
+##' @importFrom stats na.omit optim
 ##'
 ##' @export
 ##' 
-midas_si_plain <- function(y, X, p.ar = NULL, weight, degree = 1, start_bws, start_x, start_ar = NULL, method = c("Nelder-Mead"), ...) {
+midas_si_plain <- function(y, X, p.ar = NULL, weight, degree = 1, start_bws, start_x, start_ar = NULL, method = "Nelder-Mead", ...) {
     d <- ncol(X)
     
     yy <- NULL 
@@ -372,9 +375,8 @@ midas_si_plain <- function(y, X, p.ar = NULL, weight, degree = 1, start_bws, sta
     }
     
     start <- c(start_bws, start_x, start_ar)
-    opt <- optimx(start, fn0, method = method,...)
-    bmet <- which.min(opt$value)
-    par <- as.numeric(opt[bmet, 1:length(start)])   
+    opt <- optim(start, fn0, method = method,...)
+    par <- opt$par
     call <- match.call()
     
     rhs <- function(p) {
@@ -421,12 +423,11 @@ midas_si_plain <- function(y, X, p.ar = NULL, weight, degree = 1, start_bws, sta
 ##' @param start_bws the starting values bandwith
 ##' @param start_x the starting values for weight function
 ##' @param start_ar the starting values for AR part. Should be the same length as \code{p}
-##' @param method a method passed to \link{optimx}
-##' @param ... additional parameters to \link{optimx}
+##' @param method a method passed to \link{optim}
+##' @param ... additional parameters to \link{optim}
 ##' @return an object similar to \code{midas_r} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' 
-##' @import optimx
 ##' @importFrom stats na.omit 
 ##'
 ##' @export
@@ -476,9 +477,8 @@ midas_pl_plain <- function(y, X, z, p.ar = NULL, weight, degree = 1, start_bws, 
         sum((y - rhs_cv(p))^2)
     }
     start <- c(start_bws, start_x, start_ar)
-    opt <- optimx(start, fn0, method = method,...)
-    bmet <- which.min(opt$value)
-    par <- as.numeric(opt[bmet, 1:length(start)])   
+    opt <- optim(start, fn0, method = method, ...)
+    par <- opt$par
     call <- match.call()
     
     rhs <- function(p) {

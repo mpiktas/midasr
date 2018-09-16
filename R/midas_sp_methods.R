@@ -99,7 +99,6 @@ print.summary.midas_sp <- function(x, digits=max(3, getOption("digits") - 3 ), s
     cat(paste("Start = ", x$lhs_start, 
               ", End = ", x$lhs_end, 
               "\n", sep = ""))
-    browser()
     cat("\n Formula:", deparse(x$formula),"\n")
     df <- x$df
     rdf <- df[2L]

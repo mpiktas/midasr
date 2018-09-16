@@ -5,7 +5,7 @@
 \title{MIDAS Single index regression}
 \usage{
 midas_si_plain(y, X, p.ar = NULL, weight, degree = 1, start_bws, start_x,
-  start_ar = NULL, method = c("Nelder-Mead"), ...)
+  start_ar = NULL, method = "Nelder-Mead", ...)
 }
 \arguments{
 \item{y}{model response}
@@ -24,9 +24,9 @@ midas_si_plain(y, X, p.ar = NULL, weight, degree = 1, start_bws, start_x,
 
 \item{start_ar}{the starting values for AR part. Should be the same length as \code{p}}
 
-\item{method}{a method passed to \link{optimx}}
+\item{method}{a method passed to \link{optim}, defaults to Nelder-Mead}
 
-\item{...}{additional parameters to \link{optimx}}
+\item{...}{additional parameters to \link{optim}}
 }
 \value{
 an object similar to \code{midas_r} object
