@@ -227,7 +227,7 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
     cf0 <- function(p) p[1:bws_length]
    
     
-    rhs_cv <- function(p) {
+    prep_np <- function(p, y, X, Z) {
         h <- cf0(p)
         xi <- as.numeric(X %*% cf1(p))
         zi <- do.call("rbind", lapply(term_names2, function(t2) {
@@ -236,7 +236,21 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
         }))
         if (ncol(zi) == 1) zi <- as.numeric(zi)
         u <- y - xi
-        xi + cv_np(u, zi, h, degree) 
+        list(u = u, xi = xi, zi = zi, h = h)
+    }
+    
+    rhs_cv <- function(p) {
+        #l <- prep_np(p, y, X, Z) 
+        #l$xi + cv_np(l$u, l$zi, l$h, degree) 
+        h <- cf0(p)
+        xi <- as.numeric(X %*% cf1(p))
+        zi <- do.call("rbind", lapply(term_names2, function(t2) {
+            if (t2 %in% weight_names2) Z[, zinds[[t2]]] %*% rf2[[t2]](p[pinds2[[t2]]])
+            else Z[, zinds[[t2]], drop = FALSE]
+        }))
+        if (ncol(zi) == 1) zi <- as.numeric(zi)
+        u <- y - xi
+        xi + cv_np(u, zi, h, degree)
     }
     
     fn0 <- function(p,...) {
@@ -521,13 +535,10 @@ cv_np <- function(y, x, h, degree = 1) {
         if (is.null(dim(x))) w <- kfun(x[i], x, h)
         else  w <- kfun(x[i, ], x, h)
         if (degree > 0) {
-            if (degree == 1) {
-                if (is.null(dim(x))) { 
-                    xc <- matrix(x - x[i], ncol = 1)
-                } else xc <- cbind(1, sweep(x, 2, x[i, ], "-"))
-            } else {
-                xc <- poly(x - x[i], degree = degree, raw = TRUE, simple = TRUE)
-            }
+            if (is.null(dim(x))) {
+                xm <-  matrix(x - x[i], ncol = 1)
+            } else xm <- sweep(x, 2, x[i, ], "-")
+            xc <- poly(xm, degree = degree, raw = TRUE, simple = TRUE)
             cc <- lsfit(xc[-i,], y[-i], wt = w[-i], intercept = TRUE)
             cvg[i] <- coef(cc)[1]
         } else {
