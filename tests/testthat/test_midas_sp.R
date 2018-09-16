@@ -7,8 +7,6 @@ nnbeta <- function(p, k) nbeta(c(1,p),k)
 dgp_pl <- midas_pl_sim(n, m = 12, theta = nbeta(c(1.5, 2, 4), 24), gfun = function(x)0.25*x^3, ar.x = 0.9, ar.y = 0.5, n.start = 100)
 dgp_si <- midas_si_sim(n, m = 12, theta = nnbeta(c(2, 4), 24), gfun = function(x)0.03*x^3, ar.x = 0.9, ar.y = 0.5, n.start = 100)
 
-
-
 a100 <- midas_sp(y~mlsd(x, 0:23, y, nbeta)+mlsd(y, 1:2, y) | z, 
                  bws = 0, degree = 1, data = dgp_pl,
                  start = list(x = c(1.5, 2, 4), y = c(0.5, 0)), 

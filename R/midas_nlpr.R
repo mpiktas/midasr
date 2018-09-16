@@ -210,6 +210,7 @@ update.midas_nlpr <- function(object, formula.,..., evaluate = TRUE) {
 ##'  
 ##' @param x \code{midas_r} object
 ##' @return \code{\link{midas_r}} object
+##' @importFrom stats fitted.values
 ##' @author Vaidotas Zemlys
 midas_nlpr.fit <- function(x) {
     args <- x$argmap_opt
@@ -266,7 +267,7 @@ midas_nlpr.fit <- function(x) {
         x$bws <- bws
     }
     names(par) <- NULL
-    x$fitted.values <- x$rhs(par)
+    x$fitted.values <- fitted.values(x)
     x$residuals <- as.vector(x$model[,1]-x$fitted.values)
     x
 }

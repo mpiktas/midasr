@@ -226,22 +226,7 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
     
     cf0 <- function(p) p[1:bws_length]
    
-    
-    prep_np <- function(p, y, X, Z) {
-        h <- cf0(p)
-        xi <- as.numeric(X %*% cf1(p))
-        zi <- do.call("rbind", lapply(term_names2, function(t2) {
-            if (t2 %in% weight_names2) Z[, zinds[[t2]]] %*% rf2[[t2]](p[pinds2[[t2]]])
-            else Z[, zinds[[t2]], drop = FALSE]
-        }))
-        if (ncol(zi) == 1) zi <- as.numeric(zi)
-        u <- y - xi
-        list(u = u, xi = xi, zi = zi, h = h)
-    }
-    
     rhs_cv <- function(p) {
-        #l <- prep_np(p, y, X, Z) 
-        #l$xi + cv_np(l$u, l$zi, l$h, degree) 
         h <- cf0(p)
         xi <- as.numeric(X %*% cf1(p))
         zi <- do.call("rbind", lapply(term_names2, function(t2) {
@@ -310,7 +295,6 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
          model = model, 
          fn0 = fn0,
          rhs = rhs_cv,
-         rhs_cv = rhs_cv,
          coef_X  = cf1,
          model_matrix_map = model_matrix_map,
          opt = NULL,
@@ -536,9 +520,9 @@ cv_np <- function(y, x, h, degree = 1) {
         else  w <- kfun(x[i, ], x, h)
         if (degree > 0) {
             if (is.null(dim(x))) {
-                xm <-  matrix(x - x[i], ncol = 1)
-            } else xm <- sweep(x, 2, x[i, ], "-")
-            xc <- poly(xm, degree = degree, raw = TRUE, simple = TRUE)
+                xc <-  matrix(x - x[i], ncol = 1)
+            } else xc <- sweep(x, 2, x[i, ], "-")
+            if(degree > 1) xc <- poly(xc, degree = degree, raw = TRUE, simple = TRUE)
             cc <- lsfit(xc[-i,], y[-i], wt = w[-i], intercept = TRUE)
             cvg[i] <- coef(cc)[1]
         } else {
@@ -562,6 +546,60 @@ g_np <- function(y, x, xeval, h, degree = 1) {
     }
     res
 }
+
+g_np_mv <- function(u, z, zeval, h, degree = 1) {
+    res <- rep(NA, nrow(zeval))
+    for (i in 1:nrow(zeval)) {
+        w <- kfun(zeval[i, ], z, h)
+        if(degree > 0) {
+            zc <- sweep(z, 2, zeval[i, ], "-")
+            if(degree > 1) zc <- poly(zc, degree = degree, raw = TRUE, simple = TRUE)
+            cc <- lsfit(zc, u, wt = w, intercept = TRUE)
+            res[i] <- coef(cc)[1]
+        } else {
+            res[i] <- sum(w*u)/sum(w)
+        }
+    }
+    res
+}
+
+midas_sp_fit <- function(object, Xeval = NULL, Zeval = NULL) {
+    
+    p <- coef(object)
+    
+    y <- object$model[, 1]
+    h <- p[1:length(object$bws)]
+    Z <- object$model[, object$model_matrix_map$Z, drop = FALSE]
+
+    zterms <- sapply(object$term_info, "[[", "term_type") == "Z"
+    
+    ti <- object$term_info[zterms]
+    
+    calc_zi <- function(term, ZZ) {
+        if (is.null(term$coef_index)) zi <- ZZ[, term$midas_coef_index, drop = FALSE]
+        else zi <- ZZ[, term$midas_coef_index] %*% term$weight(p[term$coef_index])
+    }
+    
+    zi <- do.call("rbind", lapply(ti, calc_zi, ZZ = Z))
+    if (is.null(Zeval)) zi_eval <- zi
+    else zi_eval <- do.call("rbind", lapply(ti, calc_zi, ZZ = Zeval))
+   
+    if (is.null(object$model_matrix_map$X)) {
+        xi <- 0  
+    } else {
+        xi <- object$model[, object$model_matrix_map$X] %*% object$coef_X(p)
+    } 
+    
+    u <- y - xi
+    ghat <- g_np_mv(u, zi, zi_eval, h, degree = object$degree)
+    
+    if(is.null(Xeval)) xi_eval <- xi
+    else xi_eval <- Xeval %*% object$coef_X(p)
+    
+    fit <- xi_eval + ghat
+    list(fitted.values = fit, xi = xi_eval, zi = zi_eval, g = ghat, y = y)
+}
+
 
 #' @importFrom stats dnorm
 kfun <- function(z0, z, h) {

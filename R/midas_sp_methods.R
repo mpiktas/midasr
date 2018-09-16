@@ -1,4 +1,11 @@
 ##' @export
+##' @method fitted midas_sp
+fitted.midas_sp <- function(object, ...) {
+    fit <- midas_sp_fit(object, Xeval = NULL, Zeval = NULL)
+    as.numeric(fit$fitted.values)
+}
+
+##' @export
 ##' @method print midas_sp
 print.midas_sp <- function(x, digits=max(3,getOption("digits")-3),...) {
     #Code adapted from dynln:::print.dynlm code

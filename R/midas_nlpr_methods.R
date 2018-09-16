@@ -1,3 +1,13 @@
+##' @importFrom stats fitted
+##' @name fitted
+NULL
+
+##' @export
+##' @method fitted midas_nlpr
+fitted.midas_nlpr <- function(object, ...) {
+    as.numeric(object$rhs(coef(object)))
+}
+
 ##' @export
 ##' @method print midas_nlpr
 print.midas_nlpr <- function(x, digits=max(3,getOption("digits")-3),...) {
