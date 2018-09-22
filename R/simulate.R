@@ -274,7 +274,7 @@ NULL
 #' X <- mls(dgp$x, 0:23, 12)
 #'
 #' lstr_mod <- midas_lstr_plain(dgp$y, X, z, nnbeta, 
-#'                           start_lstr = c(1.5, 1, log(1), 1), 
+#'                           start_lstr = c(1.5, 1, 1, 1), 
 #'                           start_x = c(2, 4), start_z=c(1, 0.5, 0)) 
 #' 
 #' coef(lstr_mod)
