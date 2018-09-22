@@ -270,7 +270,7 @@ plot_midas_coef.midas_sp <- plot_midas_coef.midas_nlpr
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @importFrom graphics plot points
 ##' @importFrom numDeriv jacobian
-##' @importFrom stats na.omit
+##' @importFrom stats na.omit approx density
 ##' @export
 plot_sp <- function(x, term_name, title = NULL,  compare = NULL, ... ) {
     
