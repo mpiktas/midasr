@@ -290,7 +290,7 @@ midas_lstr_sim <- function(n, m, theta, intercept, plstr, ar.x,  ar.y,
     
     innov_x <- rand.gen(m*(n + n.start))
     
-    x <- filter(innov_x, ar.x, method = 'recursive', init = 0)
+    x <- filter(innov_x, ar.x, method = 'recursive', init = rep(0, length(ar.x)))
     
     xx <- mls(x, 0:(length(theta) - 1), m)
     
@@ -302,7 +302,7 @@ midas_lstr_sim <- function(n, m, theta, intercept, plstr, ar.x,  ar.y,
     
     innov <- rand.gen(length(g), ...)
     
-    y <- filter(g + innov, ar.y, method = "recursive", init = 0)
+    y <- filter(g + innov, ar.y, method = "recursive", init = rep(0, length(ar.y)))
     
     
     y <- ts(y[-seq_len(n.start)], frequency = 1)
@@ -359,7 +359,7 @@ midas_mmm_sim <- function(n, m, theta, intercept, pmmm, ar.x,  ar.y,
     
     innov_x <- rand.gen(m*(n + n.start))
     
-    x <- filter(innov_x, ar.x, method = 'recursive', init = 0)
+    x <- filter(innov_x, ar.x, method = 'recursive', init = rep(0, length(ar.x)))
     
     xx <- mls(x, 0:(length(theta) - 1), m)
     
@@ -369,7 +369,7 @@ midas_mmm_sim <- function(n, m, theta, intercept, pmmm, ar.x,  ar.y,
     
     innov <- rand.gen(length(g), ...)
     
-    y <- filter(g + innov, ar.y, method = "recursive", init = 0)
+    y <- filter(g + innov, ar.y, method = "recursive", init = rep(0, length(ar.y)))
     
     
     y <- ts(y[-seq_len(n.start)], frequency = 1)
@@ -415,7 +415,7 @@ midas_si_sim <- function(n, m, theta, gfun, ar.x,  ar.y,
     
     innov_x <- rand.gen(m*(n + n.start))
     
-    x <- filter(innov_x, ar.x, method = 'recursive', init = 0)
+    x <- filter(innov_x, ar.x, method = 'recursive', init = rep(0, length(ar.x)))
     
     xx <- mls(x, 0:(length(theta) - 1), m)
     xi <- xx %*% theta
@@ -425,7 +425,7 @@ midas_si_sim <- function(n, m, theta, gfun, ar.x,  ar.y,
     
     innov <- rand.gen(length(g), ...)
     
-    y <- filter(g + innov, ar.y, method = "recursive", init = 0)
+    y <- filter(g + innov, ar.y, method = "recursive", init = rep(0, length(ar.y)))
     
     
     y <- ts(y[-seq_len(n.start)], frequency = 1)
@@ -471,7 +471,7 @@ midas_pl_sim <- function(n, m, theta, gfun, ar.x,  ar.y,
     
     innov_x <- rand.gen(m*(n + n.start))
     
-    x <- filter(innov_x, ar.x, method = 'recursive', init = 0)
+    x <- filter(innov_x, ar.x, method = 'recursive', init = rep(0, length(ar.x)))
     
     xx <- mls(x, 0:(length(theta) - 1), m)
     
@@ -483,7 +483,7 @@ midas_pl_sim <- function(n, m, theta, gfun, ar.x,  ar.y,
     
     innov <- rand.gen(length(g), ...)
     
-    y <- filter(g + innov, ar.y, method = "recursive", init = 0)
+    y <- filter(g + innov, ar.y, method = "recursive", init = rep(0, length(ar.y)))
     
     
     y <- ts(y[-seq_len(n.start)], frequency = 1)

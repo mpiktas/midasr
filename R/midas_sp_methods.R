@@ -295,8 +295,19 @@ plot_sp <- function(x, term_name, title = NULL,  compare = NULL, ... ) {
     
     
     gg <- gfun(coef(x))
+    
+    kappa <- 0.5/pi # for standard Gaussian kernel
+    dns <- density(gg$zi, na.rm = T) # choose a better bandwith here !!!
+    f_z <- approx(dns$x, dns$y, xout = gg$zi)$y
+    se_np <- sqrt(kappa*deviance(x)/f_z/(exp(coef(x)[1])*x$nobs))
+    
+    
     ozi <- order(gg$zi)
-    pd <- data.frame(xi = gg$zi[ozi],  term = gg$g[ozi], compare = NA, lower = NA, upper = NA)
+    
+    se_npo <- se_np[ozi] 
+    xio <- gg$zi[ozi]
+    
+    pd <- data.frame(xi = xio,  term = gg$g[ozi], compare = NA, lower = xio - 1.96*se_npo, upper = xio + 1.96*se_npo)
     
     if (!is.null(compare)) {
        pd$compare <- compare(pd$xi)
