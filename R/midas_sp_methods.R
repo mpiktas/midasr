@@ -306,8 +306,8 @@ plot_sp <- function(x, term_name, title = NULL,  compare = NULL, ... ) {
     
     se_npo <- se_np[ozi] 
     xio <- gg$zi[ozi]
-    
-    pd <- data.frame(xi = xio,  term = gg$g[ozi], compare = NA, lower = xio - 1.96*se_npo, upper = xio + 1.96*se_npo)
+    trmo <-  gg$g[ozi]
+    pd <- data.frame(xi = xio,  term = trmo, compare = NA, lower = trmo - 1.96*se_npo, upper = trmo + 1.96*se_npo)
     
     if (!is.null(compare)) {
        pd$compare <- compare(pd$xi)
