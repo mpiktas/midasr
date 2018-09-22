@@ -453,7 +453,7 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
 ##'
 ##' @export
 ##' 
-midas_lstr_plain <- function(y, X, z = NULL, weight, start_lstr, start_x, start_z = NULL, method = c("Nelder-Mead", "BFGS"), ...) {
+midas_lstr_plain <- function(y, X, z = NULL, weight, start_lstr, start_x, start_z = NULL, method = c("Nelder-Mead"), ...) {
     d <- ncol(X)
    
     if(!is.null(z) && !is.matrix(z)) z <- matrix(z, ncol=1)
@@ -486,9 +486,8 @@ midas_lstr_plain <- function(y, X, z = NULL, weight, start_lstr, start_x, start_
     }
     
     start <- c(start_lstr, start_x, start_z)
-    opt <- optimx(start, fn0, method = method,...)
-    bmet <- which.min(opt$value)
-    par <- as.numeric(opt[bmet, 1:length(start)])   
+    opt <- optim(start, fn0, method = method,...)
+    par <- opt$par
     call <- match.call()
     fitted.values <- as.vector(y - rhs(par))
     names(par) <- c(paste0("lstr",1:length(start_lstr)), paste0("x", 1:length(start_x)), paste0("z", 1:length(start_z)))
@@ -528,7 +527,7 @@ midas_lstr_plain <- function(y, X, z = NULL, weight, start_lstr, start_x, start_
 ##'
 ##' @export
 ##' 
-midas_mmm_plain <- function(y, X, z = NULL, weight, start_mmm, start_x, start_z = NULL, method = c("Nelder-Mead", "BFGS"), ...) {
+midas_mmm_plain <- function(y, X, z = NULL, weight, start_mmm, start_x, start_z = NULL, method = c("Nelder-Mead"), ...) {
     d <- ncol(X)
     
     if(!is.null(z) && !is.matrix(z)) z <- matrix(z, ncol=1)
@@ -561,9 +560,8 @@ midas_mmm_plain <- function(y, X, z = NULL, weight, start_mmm, start_x, start_z 
     }
     
     start <- c(start_mmm, start_x, start_z)
-    opt <- optimx(start, fn0, method = method,...)
-    bmet <- which.min(opt$value)
-    par <- as.numeric(opt[bmet, 1:length(start)])   
+    opt <- optim(start, fn0, method = method,...)
+    par <- opt$par
     call <- match.call()
     fitted.values <- as.vector(y - rhs(par))
     names(par) <- c(paste0("mm",1:length(start_mmm)), paste0("x", 1:length(start_x)), paste0("z", 1:length(start_z)))
