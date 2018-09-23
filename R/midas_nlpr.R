@@ -319,10 +319,19 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
             if (setdiff(names(st),c("lstr","mmm")) != "r") stop("The starting values for nlpr term should be in an element named either lstr or mmm")
             tmi[["start"]] <- st[["r"]]
             nlpr_name <- setdiff(names(st),"r")
+            np <- st[[nlpr_name]]
+            if(nlpr_name == "lstr" & length(np) != 4) stop("There should be 4 starting values for LSTR term")
+            if(nlpr_name == "mmm" & length(np) != 2) stop("There should be 2 starting values for MMM term")
             tmi[["nlpr"]] <- eval(as.name(nlpr_name))
             bi <- build_indices(cumsum(sapply(st,length)), names(st))
+            if(nlpr_name == "lstr") {
+                lower <- rep(-Inf, length(unlist(st)))
+                lower[bi$lstr[3]] <- 0
+                tmi[["lower"]] <- lower
+            }        
             names(bi)[names(bi) == nlpr_name] <- "nlpr"
             tmi[["param_map"]] <- bi
+            
             tmi
         } else {
             names(st) <- NULL
@@ -355,6 +364,16 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
     start_default <- lapply(rfd, "[[", "full_start")
     pinds <- build_indices_list(start_default)
     
+    lower <- unlist(lapply(rfd, function(l) {
+        if (is.null(l$lower)) return(rep(-Inf, length(l$full_start)))
+        l$lower
+    }))
+    
+    upper <- unlist(lapply(rfd, function(l) {
+        if (is.null(l$upper)) return(rep(Inf, length(l$full_start)))
+        l$upper
+    }))
+    
     pinds1 <- pinds[setdiff(names(pinds), nlpr_terms)]
     rf1 <- rf[setdiff(names(pinds), nlpr_terms)]
     
@@ -365,7 +384,6 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
         tmi
     }, rfd, xinds, pinds, SIMPLIFY = FALSE)
     
-    usual_terms <- 
     
     coef_list <- function(p, pi, rfl) {
         pp <- lapply(pi,function(x)p[x])     
@@ -382,8 +400,16 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
     
     xind1 <- unlist(xinds[setdiff(names(xinds), nlpr_terms)])
     X1 <- X[, xind1, drop = FALSE]
-    
-    
+   
+    check_p <- function(p) return(TRUE)
+    use_bounds <- FALSE
+    if (any(lower != -Inf) | any(upper != Inf)) {
+        check_p <- function(p) {
+            all(p > lower) & all(p < upper) 
+        }
+        use_bounds <- TRUE
+    } 
+        
     rhs <- function(p) { 
         T2 <- lapply(rfd[nlpr_terms],function(l) {
             do_nlpr_term(p, l[["nlpr"]], l[["xind"]], l[["weight"]], l[["pind"]], l[["param_map"]], l[["sd_x"]])
@@ -393,8 +419,10 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
     }
   
     fn0 <- function(p,...) {
-        r <- y - rhs(p)
-        sum(r^2)
+        if (check_p(p)) {
+            r <- y - rhs(p)
+            sum(r^2)
+        } else return(NA)
     }
     
     hess <- function(x)numDeriv::hessian(fn0,x)
@@ -404,8 +432,15 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
    
     ##The default method is "Nelder-Mead" and number of maximum iterations is 5000
     if (!("method" %in% names(control)) & Ofunction == "optim") {        
-        control$method <- "Nelder-Mead"
-        if (is.null(control$maxit)) control$maxit <- 5000
+        if(use_bounds) {
+            control$method <- "L-BFGS-B"
+            control$lower <- lower
+            control$upper <- upper
+            control$maxit <- 1000
+        } else {
+            control$method <- "Nelder-Mead"
+            if (is.null(control$maxit)) control$maxit <- 5000
+        }
     } 
     #Do a rename to conform to midas_r
     term_info <- lapply(rfd, function(l) {
@@ -430,6 +465,8 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
          hessian = hess,
          Zenv = Zenv,
          term_info = term_info,
+         lower = lower,
+         upper = upper,
          nobs = nrow(X))   
 }
 
