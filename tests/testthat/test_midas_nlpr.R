@@ -36,27 +36,27 @@ test_that("Plain and formula interface give the same results for MMM", {
     
     cmap <- c(6:7, 4:5, 1:3)
     
-    expect_true(sum(abs(mfr$coefficients[cmap]-mpl$coefficients)) < 1e-10)
+    expect_true(sum(abs(mfr$coefficients[cmap] - mpl$coefficients)) < 1e-10)
 })
 
 test_that("Rearanging terms works", {
     mfr1 <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
-                      start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
+                      start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, 1, 1)),
                                    y = c(0.5, 0),
-                                   `(Intercept)` = 1), Ofunction = "optimx", method = "Nelder-Mead", control = list(maxit = 100))
+                                   `(Intercept)` = 1), Ofunction = "optim", method = "Nelder-Mead", control = list(maxit = 100))
    
     mfr2 <- midas_nlpr(y~ mlsd(x, 0:23, y, nnbeta) + mlsd(y, 1:2,  y), data = dgp_lstr, 
-                       start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
+                       start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, 1, 1)),
                                     y = c(0.5, 0),
-                                    `(Intercept)` = 1), Ofunction = "optimx", method = "Nelder-Mead", control = list(maxit = 100))
+                                    `(Intercept)` = 1), Ofunction = "optim", method = "Nelder-Mead", control = list(maxit = 100))
     cmap <- c(1, 4:9, 2:3)
     
-    expect_true(sum(abs(mfr1$coefficients[cmap]-mfr2$coefficients)) < 1e-10)
+    expect_true(sum(abs(mfr1$coefficients[cmap] - mfr2$coefficients)) < 1e-10)
 })
 
 test_that("midas_nlpr works with the intercept term only", {
     mfr1 <- midas_nlpr(y~ mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
-                       start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
+                       start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, 1, 1)),
                                     `(Intercept)` = 1), Ofunction = "optimx", method = "Nelder-Mead", control = list(maxit = 10))
     
     
@@ -66,7 +66,7 @@ test_that("midas_nlpr works with the intercept term only", {
 
 test_that("Updating Ofunction works for nplr", {
     a <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
-                       start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
+                       start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, 1, 1)),
                                     y = c(0.5, 0),
                                     `(Intercept)` = 1), Ofunction = "optim", method = "Nelder-Mead", control = list(maxit = 5000))
     
@@ -88,7 +88,7 @@ test_that("Updating Ofunction works for nplr", {
 
 test_that("Updating Ofunction arguments  works", {
     a <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
-                    start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
+                    start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, 1, 1)),
                                  y = c(0.5, 0),
                                  `(Intercept)` = 1), Ofunction = "optim", method = "Nelder-Mead", control = list(maxit = 5000))
     
@@ -106,18 +106,18 @@ test_that("updating data and starting values works",{
     spd$x <- window(spd$x, start = c(1,1), end = c(200,12))
     
     a <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
-                    start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
+                    start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, 1, 1)),
                                  y = c(0.5, 0),
                                  `(Intercept)` = 1), Ofunction = "optim", method = "Nelder-Mead", control = list(maxit = 5000))
     
     
     c <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = spd, 
-                    start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
+                    start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, 1, 1)),
                                  y = c(0.5, 0),
                                  `(Intercept)` = 1), Ofunction = "optim", method = "Nelder-Mead", control = list(maxit = 5000))
     
     
-    b <- update(a, data = spd, start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
+    b <- update(a, data = spd, start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, 1, 1)),
                                                      y = c(0.5, 0),
                                                      `(Intercept)` = 1), Ofunction = "optim", method = "Nelder-Mead", control = list(maxit = 5000)) 
     
@@ -127,7 +127,7 @@ test_that("updating data and starting values works",{
 
 test_that("LSTR standard errors work", {
     mfr <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
-                      start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
+                      start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, 1, 1)),
                                    y = c(0.5, 0),
                                    `(Intercept)` = 1), Ofunction = "optimx", method = "Nelder-Mead", control = list(maxit = 5000))
     
@@ -159,7 +159,7 @@ test_that("MMM standard errors work", {
 test_that("Predicting works for LSTR", {
     
     mfr <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
-                      start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, log(1), 1)),
+                      start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, 1, 1)),
                                    y = c(0.5, 0),
                                    `(Intercept)` = 1), Ofunction = "optimx", method = "Nelder-Mead", control = list(maxit = 5000))
     
