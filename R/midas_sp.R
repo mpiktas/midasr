@@ -239,8 +239,11 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
     }
     
     fn0 <- function(p,...) {
-        r <- y - rhs_cv(p)
-        sum(r^2)
+        if(any(cf0(p)<= 0)) return(NA) 
+        else {
+            r <- y - rhs_cv(p)
+            return(sum(r^2))
+        }
     }
     
     hess <- function(x)numDeriv::hessian(fn0,x)
@@ -604,7 +607,7 @@ midas_sp_fit <- function(object, Xeval = NULL, Zeval = NULL) {
 #' @importFrom stats dnorm
 kfun <- function(z0, z, h) {
     if (is.null(ncol(z))) {
-        dnorm((z - z0)/exp(h))
+        dnorm((z - z0)/h)
     } else {
         z0 <- as.numeric(z0)
         h <- as.numeric(h)
