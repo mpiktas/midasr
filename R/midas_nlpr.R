@@ -436,10 +436,10 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
             control$method <- "L-BFGS-B"
             control$lower <- lower
             control$upper <- upper
-            control$maxit <- 1000
+            control$control <- list(maxit = 1000)
         } else {
             control$method <- "Nelder-Mead"
-            if (is.null(control$maxit)) control$maxit <- 5000
+            if (is.null(control$control$maxit)) control$control <- list(maxit=5000)
         }
     } 
     #Do a rename to conform to midas_r
