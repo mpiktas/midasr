@@ -637,7 +637,7 @@ lstr <- function(X, theta, beta, sd_x = sd(c(X), na.rm = TRUE)) {
 
 lstr_G <- function(X, theta, beta, sd_x = sd(c(X), na.rm = TRUE)) {
     xx <- X %*% theta
-    b <- -exp(beta[1])*(xx - beta[2])/sd_x
+    b <- -beta[1]*(xx - beta[2])/sd_x
     1/(1 + exp(b))
 }
 #' Compute MMM term for high frequency variable
