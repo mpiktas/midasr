@@ -405,7 +405,7 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction,  guess_s
     use_bounds <- FALSE
     if (any(lower != -Inf) | any(upper != Inf)) {
         check_p <- function(p) {
-            all(p > lower) & all(p < upper) 
+            all(p >= lower) & all(p <= upper) 
         }
         use_bounds <- TRUE
     } 
