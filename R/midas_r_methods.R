@@ -685,7 +685,6 @@ plot_midas_coef.midas_r <- function(x, term_name=NULL, title = NULL, vcov. = san
 ##' 
 ##' @param model a MIDAS regression object
 ##' @param include.rsquared, If available: should R-squared be reported?
-##' @param include.adjrs If available: should the adjusted R-squared be reported?
 ##' @param include.nobs If available: should the number of observations be reported?
 ##' @param include.rmse If available: should the root-mean-square error (= residual standard deviation) be reported?
 ##' @param ... additional parameters passed to summary
@@ -694,7 +693,7 @@ plot_midas_coef.midas_r <- function(x, term_name=NULL, title = NULL, vcov. = san
 ##' @importFrom texreg createTexreg
 ##' @importFrom stats nobs
 ##' @export
-extract.midas_r <- function(model, include.rsquared = TRUE, include.adjrs = TRUE, 
+extract.midas_r <- function(model, include.rsquared = TRUE, 
                             include.nobs = TRUE, include.rmse = TRUE, ...) {
     s <- summary(model, ...)
     names <- rownames(s$coef)
@@ -712,11 +711,7 @@ extract.midas_r <- function(model, include.rsquared = TRUE, include.adjrs = TRUE
         gof.names <- c(gof.names, "R$^2$")
         gof.decimal <- c(gof.decimal, TRUE)
     }
-    if (include.adjrs == TRUE) {
-        gof <- c(gof, adj)
-        gof.names <- c(gof.names, "Adj. R$^2$")
-        gof.decimal <- c(gof.decimal, TRUE)
-    }
+  
     if (include.nobs == TRUE) {
         gof <- c(gof, n)
         gof.names <- c(gof.names, "Num. obs.")
@@ -725,7 +720,7 @@ extract.midas_r <- function(model, include.rsquared = TRUE, include.adjrs = TRUE
     if (include.rmse == TRUE && !is.null(s$sigma[[1]])) {
         rmse <- s$sigma[[1]]
         gof <- c(gof, rmse)
-        gof.names <- c(gof.names, "RMSE")
+        gof.names <- c(gof.names, "$\\sigma^2$")
         gof.decimal <- c(gof.decimal, TRUE)
     }
     tr <- createTexreg(coef.names = names, coef = co, se = se, 

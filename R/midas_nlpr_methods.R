@@ -59,8 +59,7 @@ summary.midas_nlpr <- function(object, df=NULL, ...) {
     df.int <- if (attr(object$terms, "intercept")) 1L
     else 0L
     
-    r_squared <- mss/(mss + rss)
-    adj_r_squared <- 1 - (1 - r_squared) * ((n - df.int)/rdf)
+    r_squared <- cor(f, object$model[,1])^2
     
     tval <- param/se
     
@@ -85,7 +84,7 @@ summary.midas_nlpr <- function(object, df=NULL, ...) {
     ans <- list(formula=formula(object$terms), residuals=r, sigma=sqrt(resvar),
                 df=c(p,rdf), cov.unscaled = V/resvar, call=object$call,
                 coefficients=param,midas_coefficients=coef(object, midas = TRUE),
-                r_squared = r_squared, adj_r_squared = adj_r_squared, lhs_start = object$lhs_start, lhs_end = object$lhs_end, class_lhs = class(object$lhs))
+                r_squared = r_squared, lhs_start = object$lhs_start, lhs_end = object$lhs_end, class_lhs = class(object$lhs))
     class(ans) <- "summary.midas_nlpr"
     ans
 }

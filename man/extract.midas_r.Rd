@@ -4,15 +4,13 @@
 \alias{extract.midas_r}
 \title{Extract coefficients and GOF measures from MIDAS regression object}
 \usage{
-extract.midas_r(model, include.rsquared = TRUE, include.adjrs = TRUE,
-  include.nobs = TRUE, include.rmse = TRUE, ...)
+extract.midas_r(model, include.rsquared = TRUE, include.nobs = TRUE,
+  include.rmse = TRUE, ...)
 }
 \arguments{
 \item{model}{a MIDAS regression object}
 
 \item{include.rsquared, }{If available: should R-squared be reported?}
-
-\item{include.adjrs}{If available: should the adjusted R-squared be reported?}
 
 \item{include.nobs}{If available: should the number of observations be reported?}
 

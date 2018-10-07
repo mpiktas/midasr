@@ -53,8 +53,7 @@ summary.midas_sp <- function(object, df=NULL, ...) {
     rdf <- n-p
     df.int <- 0L
     
-    r_squared <- cor(f, object$model[, 1])
-    adj_r_squared <- 1 - (1 - r_squared) * ((n - df.int)/rdf)
+    r_squared <- cor(f, object$model[, 1])^2
     
     tval <- param/se
     
@@ -79,7 +78,7 @@ summary.midas_sp <- function(object, df=NULL, ...) {
     ans <- list(formula = formula(object$call$formula), residuals=r, sigma=sqrt(resvar),
                 df=c(p,rdf), cov.unscaled = V/resvar, call=object$call,
                 coefficients=param,
-                r_squared = r_squared, adj_r_squared = adj_r_squared, lhs_start = object$lhs_start, lhs_end = object$lhs_end, class_lhs = class(object$lhs))
+                r_squared = r_squared, lhs_start = object$lhs_start, lhs_end = object$lhs_end, class_lhs = class(object$lhs))
     class(ans) <- "summary.midas_sp"
     ans
 }
