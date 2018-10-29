@@ -53,8 +53,7 @@ summary.midas_sp <- function(object, df=NULL, ...) {
     rdf <- n-p
     df.int <- 0L
     
-    r_squared <- cor(f, object$model[, 1])^2
-    
+    r_squared <- R2.np(object$model[,1], f) 
     tval <- param/se
     
     #Code stolen from coeftest function

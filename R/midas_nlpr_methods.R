@@ -59,7 +59,7 @@ summary.midas_nlpr <- function(object, df=NULL, ...) {
     df.int <- if (attr(object$terms, "intercept")) 1L
     else 0L
     
-    r_squared <- cor(f, object$model[,1])^2
+    r_squared <- R2.np(object$model[,1], f)
     
     tval <- param/se
     
@@ -374,4 +374,10 @@ plot_lstr <- function(x, term_name, title = NULL,  compare = NULL, ... ) {
     
     invisible(pd)
     
+}
+
+R2.np <- function(y, fit) {
+    yc <- y - mean(y)
+    fitc <- fit - mean(y)
+    sum(yc*fitc)/(sum(yc^2)*sum(fitc^2))
 }
