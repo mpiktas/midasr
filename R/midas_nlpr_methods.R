@@ -379,5 +379,5 @@ plot_lstr <- function(x, term_name, title = NULL,  compare = NULL, ... ) {
 R2.np <- function(y, fit) {
     yc <- y - mean(y)
     fitc <- fit - mean(y)
-    sum(yc*fitc)/(sum(yc^2)*sum(fitc^2))
+    (sum(yc*fitc)^2)/(sum(yc^2)*sum(fitc^2))
 }
