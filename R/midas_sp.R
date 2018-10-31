@@ -252,7 +252,7 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
     ##The default method is "Nelder-Mead" and number of maximum iterations is 5000
     if (!("method" %in% names(control)) & Ofunction == "optim") {        
         control$method <- "Nelder-Mead"
-        if (is.null(control$maxit)) control$maxit <- 5000
+        if (is.null(control$control$maxit)) control$control <- list(maxit=5000)
     }
     if (bws_length > 1) names(bws) <- paste0("bw", 1:bws_length)
     else names(bws) <- "bw"
@@ -526,7 +526,7 @@ cv_np <- function(y, x, h, degree = 1) {
                 xc <-  matrix(x - x[i], ncol = 1)
             } else xc <- sweep(x, 2, x[i, ], "-")
             if(degree > 1) xc <- poly(xc, degree = degree, raw = TRUE, simple = TRUE)
-            cc <- lsfit(xc[-i,], y[-i], wt = w[-i], intercept = TRUE)
+            cc <- suppressWarnings(lsfit(xc[-i,], y[-i], wt = w[-i], intercept = TRUE))
             cvg[i] <- coef(cc)[1]
         } else {
             cvg[i] <- sum(w[-i]*y[-i])/sum(w[-i])
