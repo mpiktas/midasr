@@ -437,20 +437,27 @@ genexp_gradient <- function(p, d, m) {
     cbind(epl, epl*i, pol0*epl*i, pol0*epl*i^2)
 }
 
-is_weight_normalized <- function(wf, init, chk = rnorm(5), tol = 1e-8) {
+is_weight_normalized <- function(wf, init, chk = rnorm(5), tol = 1e-8, nc = 1) {
     
     tst <- lapply(c(0,rnorm(chk)), function(x) {
         ss <- init
-        ss[1] <- ss[1] + x
-        try(abs(sum(wf(ss)) - ss[1]))
+        ss[nc] <- ss[nc] + x
+        try(abs(sum(wf(ss)) - ss[nc]))
     })
-    fail <- sapply(tst,inherits, "try-error")
+    
+    fail <- sapply(tst, inherits, "try-error")
     got_na <- fail
     got_na[!fail] <- sapply(tst[!fail], is.na)
     
-    if(all(fail) | all(got_na)) stop("Error in checking normalization, all candidate starting values produced errors")
+    if (all(fail) | all(got_na)) stop("Error in checking normalization, all candidate starting values produced errors")
     
     eq <- unlist(tst[!got_na])
-    if(all(eq < tol)) return(TRUE)
+    if (all(eq < tol)) return(TRUE)
     else return(FALSE)
+}
+
+find_normalisation_coefficient <- function(wf, init) {
+    tst <- lapply(1:length(init), function(i) try(is_weight_normalized(wf, init, nc = i)))
+    tst <- sapply(tst, function(l) if (inherits(l, "try-error")) return(FALSE) else return(l))
+    which(tst)
 }

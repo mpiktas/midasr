@@ -5,7 +5,7 @@
 \title{Plot MIDAS coefficients}
 \usage{
 \method{plot_midas_coef}{midas_nlpr}(x, term_name = NULL, title = NULL,
-  compare = NULL, ...)
+  compare = NULL, normalize = FALSE, ...)
 }
 \arguments{
 \item{x}{\code{midas_r} object}
@@ -15,6 +15,8 @@
 \item{title}{the title string of the graph. The default is \code{NULL} for the default title.}
 
 \item{compare}{the parameters for weight function to compare with the model, default is NULL}
+
+\item{normalize}{logical, if FALSE use the weight from the model, if TRUE, set the normalization coefficient of the weight function to 1.}
 
 \item{...}{not used}
 }

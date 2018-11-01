@@ -238,6 +238,7 @@ setMethod("extract", signature = className("midas_nlpr", "midasr"), definition =
 ##' @param term_name the term name for which the coefficients are plotted. Default is \code{NULL}, which selects the first MIDAS term
 ##' @param title the title string of the graph. The default is \code{NULL} for the default title.
 ##' @param compare the parameters for weight function to compare with the model, default is NULL
+##' @param normalize logical, if FALSE use the weight from the model, if TRUE, set the normalization coefficient of the weight function to 1.
 ##' @param ... not used
 ##' @return a data frame with restricted MIDAS coefficients, unrestricted MIDAS coefficients and lower and upper confidence interval limits. The data
 ##' frame is returned invisibly.
@@ -248,7 +249,7 @@ setMethod("extract", signature = className("midas_nlpr", "midasr"), definition =
 ##' @method plot_midas_coef midas_nlpr
 ##' @rdname plot_midas_coef.midas_nlpr
 ##' @export
-plot_midas_coef.midas_nlpr <- function(x, term_name = NULL, title = NULL,  compare = NULL, ...) {
+plot_midas_coef.midas_nlpr <- function(x, term_name = NULL, title = NULL, compare = NULL, normalize = FALSE, ...) {
     if(is.null(term_name)) {
         wt <- do.call("rbind",lapply(x$term_info,function(l)c(l$term_name,l$weight_name)))
         wt <- data.frame(wt, stringsAsFactors = FALSE)
@@ -262,6 +263,7 @@ plot_midas_coef.midas_nlpr <- function(x, term_name = NULL, title = NULL,  compa
    
     mcoef <- coef(x, type = "midas", term_name = term_name)
     pcoef <- coef(x, type = "plain", term_name = term_name)
+    
     sx <- summary(x)
     V <- sx$cov.unscaled * sx$sigma^2
     ti <- x$term_info[[term_name]]
@@ -270,16 +272,33 @@ plot_midas_coef.midas_nlpr <- function(x, term_name = NULL, title = NULL,  compa
     } else {
         Vind <- ti$coef_index[ti$param_map$r]
     }
-    grad_r <- jacobian(ti$weight, pcoef)
+    
+    wfun <- ti$weight
+    if (normalize) {
+        nc <- find_normalisation_coefficient(wfun, pcoef)
+        if (length(nc) == 0) stop("Weight restriction seems to not have normalization")
+        pcoef0 <- pcoef
+        mcoef <- mcoef/pcoef[nc]
+        pcoef <- pcoef[-nc]
+        Vind <- Vind[-nc]
+        wfun <- function(p) {
+            pp <- rep(NA, length(p) + 1)
+            pp[nc] <- 1
+            pp[-nc] <- p
+            ti$weight(pp) 
+        }
+    }
+    
+    grad_r <- jacobian(wfun, pcoef)
     V_s <- V[Vind, Vind]
     se_r <- sqrt(diag(grad_r %*% V_s %*% t(grad_r)))
     pd <- data.frame(restricted = mcoef, compare = NA, lower = mcoef - 1.96*se_r, upper = mcoef + 1.96*se_r, lag_struct = ti$lag_structure)
-   
+    
     if (!is.null(compare)) {
-        pd$compare <- ti$weight(compare)
+        pd$compare <- wfun(compare)
     }
     
-    ylim <- range(na.omit(c(pd[,1],pd[,2], pd[,3],pd[,4])))
+    ylim <- range(na.omit(c(pd[,1], pd[,2], pd[,3], pd[,4])))
     plot(pd$lag_struct, pd$restricted, col = "blue", ylab = "MIDAS coefficients", xlab = "High frequency lag", ylim = ylim)
     
     points(pd$lag_struct, pd$compare, col = "black") 
