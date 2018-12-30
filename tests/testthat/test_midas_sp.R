@@ -25,8 +25,11 @@ test_that("Plain and formula interface give the same results for PL", {
                           method = "Nelder-Mead", control = list(maxit = 100)) 
     
     mfr <- a100
-
-    expect_true(sum(abs(mfr$coefficients - mpl$coefficients)) < 1e-10)
+    
+    fmpl <- fitted(mpl)
+    fmfr <- fitted(mfr)
+    
+    expect_true((sum(abs(mfr$coefficients - mpl$coefficients)) < 1e-10) & (sum(abs(fmpl-fmfr)) < 1e-10))
 })
 
 test_that("Plain and formula interface give the same results for SI", {
@@ -41,9 +44,12 @@ test_that("Plain and formula interface give the same results for SI", {
                            method = "Nelder-Mead", control = list(maxit = 100))
         
    cmap <- c(1,4:5, 2:3)
-   expect_true(sum(abs(mfr$coefficients[cmap] - mpl$coefficients)) < 1e-10)
+   
+   fmpl <- fitted(mpl)
+   fmfr <- fitted(mfr)
+   
+   expect_true((sum(abs(mfr$coefficients[cmap] - mpl$coefficients)) < 1e-10)  & (sum(abs(fmpl-fmfr)) < 1e-10))
 })
-
 
 
 test_that("Rearanging terms works", {
@@ -101,3 +107,42 @@ test_that("Updating data and starting values works",{
     expect_that(sum(abs(m - b$model)), equals(0))
 })
 
+test_that("Predicting works for PL", {
+    r <- predict(a100, newdata = dgp_pl) - fitted(a100)
+    expect_that(sum(abs(r)), equals(0))
+})
+
+
+
+test_that("Predicting works for SI", {
+    r <- predict(b100, newdata = dgp_si) - fitted(b100)
+    expect_that(sum(abs(r)), equals(0))
+})
+
+
+test_that("Predicting works for pure SI model", {
+    bb <- midas_sp(y~ mlsd(x, 0:23, y, nnbeta), 
+                     bws = 1, degree = 1, data = dgp_si,
+                     start = list(x = c(2, 4)), 
+                     method = "Nelder-Mead", control = list(maxit = 100))
+    r <- predict(bb, newdata = dgp_si) - fitted(bb)
+    expect_that(sum(abs(r)), equals(0))
+}) 
+
+
+test_that("g_np and g_np_mv works the same for numeric and for matrices in case of a vector", {
+    oo <- midasr:::midas_sp_fit(a100)
+    
+    rn <- g_np(as.numeric(oo$y - oo$xi), as.numeric(oo$z), as.numeric(oo$z), coef(a100)[1], a100$degree)
+    rm <- g_np_mv(oo$y - oo$xi, oo$z, oo$z, coef(a100)[1], a100$degree)
+    expect_that(sum(abs(rn-rm)), equals(0))
+})
+
+
+test_that("cv_np works the same for numeric and for matrices in case of a vector", {
+    oo <- midasr:::midas_sp_fit(a100)
+    
+    rn <- cv_np(as.numeric(oo$y - oo$xi), as.numeric(oo$z),coef(a100)[1], a100$degree)
+    rm <- cv_np(oo$y - oo$xi, oo$z, coef(a100)[1], a100$degree)
+    expect_that(sum(abs(rn - rm)), equals(0))
+})

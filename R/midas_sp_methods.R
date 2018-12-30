@@ -199,6 +199,69 @@ update.midas_sp <- function(object, formula.,..., evaluate = TRUE) {
     else call
 }
 
+##' Predicted values based on \code{midas_sp} object.
+##'
+##' \code{predict.midas_sp} produces predicted values, obtained by evaluating regression function in the frame \code{newdata}. This means that the appropriate model matrix is constructed using only the data in \code{newdata}. This makes this function not very convenient for forecasting purposes. If you want to supply the new data for forecasting horizon only use the function \link{forecast.midas_r}. Also this function produces only static predictions, if you want dynamic forecasts use the \link{forecast.midas_r}.
+##' 
+##' @title Predict method for semi-parametric MIDAS regression fit
+##' @param object \code{\link{midas_nlpr}} object
+##' @param newdata a named list containing data for mixed frequencies. If omitted, the in-sample values are used.
+##' @param na.action function determining what should be done with missing values in \code{newdata}. The most likely cause of missing values is the insufficient data for the lagged variables. The default is to omit such missing values.
+##' @param ... additional arguments, not used
+##' @return a vector of predicted values
+##' @author Virmantas Kvedaras, Vaidotas Zemlys-Balevičius
+##' @method predict midas_sp
+##' @rdname predict.midas_sp
+##' @export
+predict.midas_sp <- function(object, newdata, na.action = na.omit, ... ) {
+    Zenv <- new.env(parent=parent.frame())
+    
+    if(missing(newdata))
+        return(as.vector(fitted(object)))
+    else {
+        ee <- data_to_env(newdata)    
+        ZZ <- object$Zenv    
+        parent.env(ee) <- ZZ
+    }
+    
+    assign("ee",ee,Zenv)
+    cll <- match.call()
+    mf <- match.call(expand.dots = FALSE)
+    m <- match(c("object", "newdata"), names(mf), 0L)
+    mf <- mf[c(1L, m)]
+    mf[[1L]] <- as.name("model.frame")
+    
+    formula <- Formula(formula(object))
+    Terms <- delete.response(formula)
+    mf[[2L]] <- Terms    
+    mf[[3L]] <- as.name("ee")   
+    mf[[4L]] <- na.action
+    names(mf)[c(2,3,4)] <- c("formula","data","na.action")
+    
+    mf <- eval(mf,Zenv)
+    mt <- attr(mf, "terms")
+    
+  
+
+    Xeval <- model.matrix(formula, data = mf, rhs = 1)
+    if (length(attr(formula, "rhs")) > 1) {
+        Zeval <- model.matrix(formula, data = mf, rhs = 2) 
+        if (attr(object$terms2,"intercept") == 1)  {
+            Zeval <- Zeval[, -1, drop = FALSE]
+        }
+        if (attr(object$terms,"intercept") == 1)  {
+            Xeval <- Xeval[, -1, drop = FALSE]
+        }
+    }
+    else { 
+        if (attr(object$terms2,"intercept") == 1)  {
+            Zeval <- Xeval[, -1, drop = FALSE]
+        }
+        Xeval <- NULL
+    }
+    
+    as.vector(midas_sp_fit(object, Xeval, Zeval)$fitted.values)
+}
 
 ##' Extracts various coefficients of MIDAS regression
 ##'

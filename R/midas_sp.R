@@ -307,6 +307,7 @@ prep_midas_sp <- function(y, X, Z, bws, degree, f, Zenv, cl, args, start, Ofunct
          call = cl,
          terms = mt1,
          terms2 = mt2,
+         formula = f,
          bws = bws,
          term_info = term_info,
          hessian = hess,
@@ -389,10 +390,10 @@ midas_si_plain <- function(y, X, p.ar = NULL, weight, degree = 1, start_bws, sta
         yar <- yy %*% pyy
         u <- y - yar
         xi <-  as.vector(X %*% weight(pr, ncol(X)))
-        np <- g_np(u,xi,  xeval = xi, h, degree)
-        list(fitted = yar + np, xi = xi, np = np)
+        np <- g_np(u, xi,  xeval = xi, h, degree)
+        list(fitted = yar + np, xi = yar, z = xi, y = y, g = np)
     }
-    fitted.values <- as.vector(y - rhs(par)$fitted)
+    fitted.values <- as.vector(rhs(par)$fitted)
     names(par) <- c("h", paste0("x", 1:length(start_x)), paste0("y", 1:length(start_ar)))
 
     list(coefficients = par,
@@ -493,9 +494,9 @@ midas_pl_plain <- function(y, X, z, p.ar = NULL, weight, degree = 1, start_bws, 
         u <- y - yar  - xi
         
         np <- g_np(u, z, xeval = z, h, degree)
-        list(fitted = yar + xi + np, xi = xi, np = np, z = z)
+        list(fitted = yar + xi + np, xi = xi + yar, z = z, g = np, y = y)
     }
-    fitted.values <- as.vector(y - rhs(par)$fitted)
+    fitted.values <- as.vector(rhs(par)$fitted)
     names(par) <- c("h", paste0("x", 1:length(start_x)), paste0("y", 1:length(start_ar)))
     
     list(coefficients = par,
@@ -514,7 +515,6 @@ midas_pl_plain <- function(y, X, z, p.ar = NULL, weight, degree = 1, start_bws, 
          start = start)
     
 }
-
 
 cv_np <- function(y, x, h, degree = 1) {
     cvg <- rep(NA, length(y))
@@ -611,7 +611,7 @@ kfun <- function(z0, z, h) {
     } else {
         z0 <- as.numeric(z0)
         h <- as.numeric(h)
-        apply(dnorm(scale(z, center = as.numeric(z0), scale = exp(h))), 1, prod)
+        apply(dnorm(scale(z, center = as.numeric(z0), scale = h)), 1, prod)
     }
 }
 
