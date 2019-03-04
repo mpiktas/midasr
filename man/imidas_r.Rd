@@ -4,8 +4,8 @@
 \alias{imidas_r}
 \title{Restricted MIDAS regression with I(1) regressors}
 \usage{
-imidas_r(formula, data, start, Ofunction = "optim", weight_gradients = NULL,
-  ...)
+imidas_r(formula, data, start, Ofunction = "optim",
+  weight_gradients = NULL, ...)
 }
 \arguments{
 \item{formula}{formula for restricted MIDAS regression. Formula must include \code{\link{fmls}} function}

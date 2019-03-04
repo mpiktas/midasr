@@ -5,7 +5,8 @@
 \title{Create a weight function selection table for MIDAS regression model}
 \usage{
 weights_table(formula, data, start = NULL, IC = c("AIC", "BIC"),
-  test = c("hAh_test"), Ofunction = "optim", weight_gradients = NULL, ...)
+  test = c("hAh_test"), Ofunction = "optim", weight_gradients = NULL,
+  ...)
 }
 \arguments{
 \item{formula}{the formula for MIDAS regression, the lag selection is performed for the last MIDAS lag term in the formula}

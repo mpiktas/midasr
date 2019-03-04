@@ -4,8 +4,8 @@
 \alias{midas_mmm_plain}
 \title{MMM (Mean-Min-Max)  MIDAS regression}
 \usage{
-midas_mmm_plain(y, X, z = NULL, weight, start_mmm, start_x, start_z = NULL,
-  method = c("Nelder-Mead"), ...)
+midas_mmm_plain(y, X, z = NULL, weight, start_mmm, start_x,
+  start_z = NULL, method = c("Nelder-Mead"), ...)
 }
 \arguments{
 \item{y}{model response}

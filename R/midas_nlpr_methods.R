@@ -1,7 +1,12 @@
-##' @importFrom stats fitted
-##' @name fitted
-NULL
 
+##' Fitted values for non-linear parametric MIDAS regression model
+##'
+##' Returns the fitted values of a fitted non-linear parametric MIDAS regression object
+##' @param object a \code{\link{midas_r}} object
+##' @param ... currently nothing
+##' @return the vector of fitted values
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
+##' @rdname fitted.midas_nlpr
 ##' @export
 ##' @method fitted midas_nlpr
 fitted.midas_nlpr <- function(object, ...) {

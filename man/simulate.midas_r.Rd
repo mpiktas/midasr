@@ -5,9 +5,10 @@
 \alias{simulate}
 \title{Simulate MIDAS regression response}
 \usage{
-\method{simulate}{midas_r}(object, nsim = 999, seed = NULL, future = TRUE,
-  newdata = NULL, insample = NULL, method = c("static", "dynamic"),
-  innov = NULL, show_progress = TRUE, ...)
+\method{simulate}{midas_r}(object, nsim = 999, seed = NULL,
+  future = TRUE, newdata = NULL, insample = NULL,
+  method = c("static", "dynamic"), innov = NULL,
+  show_progress = TRUE, ...)
 }
 \arguments{
 \item{object}{\code{\link{midas_r}} object}

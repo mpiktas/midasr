@@ -1,3 +1,10 @@
+##' Fitted values for semi-parametric MIDAS regression model
+##'
+##' Returns the fitted values of a fitted semi-parametric MIDAS regression object
+##' @param object a \code{\link{midas_r}} object
+##' @param ... currently nothing
+##' @return the vector of fitted values
+##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @export
 ##' @method fitted midas_sp
 fitted.midas_sp <- function(object, ...) {
