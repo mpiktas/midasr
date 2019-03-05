@@ -42,6 +42,6 @@ To install the development version of midasr, it's easiest to use the `devtools`
 
 [1]: http://mpiktas.github.com/midasr
 [2]: http://github.com/mpiktas/midasr
-[3]: http://www.unc.edu/~eghysels/
+[3]: http://eghysels.web.unc.edu
 [4]: https://www.jstatsoft.org/article/view/v072i04
-[5]: https://cran.r-project.org/web/packages/midasr/index.html
+[5]: https://cran.r-project.org/package=midasr
