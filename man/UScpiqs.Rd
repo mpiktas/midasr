@@ -8,9 +8,9 @@
 A \code{\link{data.frame}} object.
 }
 \source{
-\href{http://www.bea.gov/national/xls/gdplev.xls}{FRED}
+\href{https://fred.stlouisfed.org/series/CPALTT01USQ661S}{FRED}
 }
 \description{
-US quarterly CPI from 1960Q1 to 2017Q3s
+US quarterly CPI from 1960Q1 to 2017Q3s. Seasonaly adjusted, Index 2015=1
 }
 \keyword{datasets}

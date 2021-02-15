@@ -8,9 +8,10 @@
 A \code{\link{ts}} object.
 }
 \source{
-\href{http://www.bea.gov/national/xls/gdplev.xls}{U.S. Department of Commerce, Bureau of Economic Analysis}
+\href{https://fred.stlouisfed.org/series/GDPC1}{U.S. Department of Commerce, Bureau of Economic Analysis}
 }
 \description{
-The annual gross domestic product in billions of chained 2005 dollars for US from 1948 to 2011.
+The annual gross domestic product in billions of chained 2005 dollars for US from 1948 to 2011. 
+This data is kept for historical purposes, newer data is in 2012 chained dollars.
 }
 \keyword{datasets}
