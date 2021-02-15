@@ -7,6 +7,7 @@ nnbeta <- function(p, k) nbeta(c(1,p),k)
 dgp_lstr <- midas_lstr_sim(250, m = 12, theta = nnbeta(c(2, 4), 24), intercept = 1, plstr = c(1.5, 1, 1, 1), ar.x = 0.9, ar.y = 0.5, n.start = 100)
 dgp_mmm <-  midas_mmm_sim(250, m = 12, theta = nnbeta(c(2, 4), 24), intercept = 1, pmmm = c(1.5, 1), ar.x = 0.9, ar.y = 0.5, n.start = 100)
 
+accuracy <- sqrt(.Machine$double.eps)
 
 test_that("Plain and formula interface give the same results for LSTR", {
     z <- cbind(1, mls(dgp_lstr$y, 1:2, 1))
@@ -73,16 +74,16 @@ test_that("Updating Ofunction works for nplr", {
     b <- update(a, Ofunction = "nls")
     c <- suppressWarnings(update(b, Ofunction = "optimx", method = c("Nelder-Mead", "BFGS", "spg")))
     
-    expect_that(a$argmap_opt$Ofunction == "optim", is_true())
-    expect_that(b$argmap_opt$Ofunction == "nls", is_true())
-    expect_that(c$argmap_opt$Ofunction == "optimx", is_true())
+    expect_true(a$argmap_opt$Ofunction == "optim")
+    expect_true(b$argmap_opt$Ofunction == "nls")
+    expect_true(c$argmap_opt$Ofunction == "optimx")
     
-    expect_that(inherits(b$opt, "nls"), is_true())
-    expect_that(inherits(c$opt, "optimx"), is_true())
+    expect_true(inherits(b$opt, "nls"))
+    expect_true(inherits(c$opt, "optimx"))
     
-    expect_that(a$convergence == 0, is_true())
-    expect_that(b$convergence == 0, is_true())
-    expect_that(c$convergence == 0, is_true())
+    expect_true(a$convergence == 0)
+    expect_true(b$convergence == 0)
+    expect_true(c$convergence == 0)
     
 })
 
@@ -95,7 +96,7 @@ test_that("Updating Ofunction arguments  works", {
     
     b <- update(a, method = "CG")
     
-    expect_that(b$argmap_opt$method == "CG", is_true())
+    expect_true(b$argmap_opt$method == "CG")
     
 })
 
@@ -122,7 +123,7 @@ test_that("updating data and starting values works",{
                                                      `(Intercept)` = 1), Ofunction = "optim", method = "Nelder-Mead", control = list(maxit = 5000)) 
     
     
-    expect_that(sum(abs(coef(b) - coef(c))), equals(0))
+    expect_lt(sum(abs(coef(b) - coef(c))), accuracy)
 })
 
 test_that("LSTR standard errors work", {
@@ -136,7 +137,7 @@ test_that("LSTR standard errors work", {
     s1 <- summary(mfr1)
     s2 <- summary(mfr1$opt)
     
-    expect_true(sum(abs(s2$coefficients[, 2] - s1$coefficients[, 2])) < 1e-5)
+    expect_true(sum(abs(s2$coefficients[, 2] - s1$coefficients[, 2])) < sqrt(accuracy))
   
 })
 
@@ -152,7 +153,7 @@ test_that("MMM standard errors work", {
     s1 <- summary(mfr1)
     s2 <- summary(mfr1$opt)
     
-    expect_true(sum(abs(s2$coefficients[, 2] - s1$coefficients[, 2])) < 1e-5)
+    expect_true(sum(abs(s2$coefficients[, 2] - s1$coefficients[, 2])) < sqrt(accuracy))
     
 })
 
@@ -167,7 +168,7 @@ test_that("Predicting works for LSTR", {
     
     p2 <- predict(mfr)[1:198]
     
-    expect_true(sum(abs(p1 - p2)) < 1e-10)
+    expect_true(sum(abs(p1 - p2)) < accuracy)
 })
 
 test_that("Predicting works for MMM", {
@@ -181,6 +182,6 @@ test_that("Predicting works for MMM", {
     
     p2 <- predict(mfr)[1:198]
     
-    expect_true(sum(abs(p1 - p2)) < 1e-10)
+    expect_true(sum(abs(p1 - p2)) < accuracy)
 })
 

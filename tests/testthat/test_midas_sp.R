@@ -16,6 +16,7 @@ b100 <- midas_sp(y~mlsd(y, 1:2, y) | mlsd(x, 0:23, y, nnbeta),
          bws = 1, degree = 1, data = dgp_si,
          start = list(x = c(2, 4), y = c(0.5, 0)), 
          method = "Nelder-Mead", control = list(maxit = 100))
+accuracy <- sqrt(.Machine$double.eps)
 
 test_that("Plain and formula interface give the same results for PL", {
     X <- mls(dgp_pl$x, 0:23, 12)
@@ -29,7 +30,7 @@ test_that("Plain and formula interface give the same results for PL", {
     fmpl <- fitted(mpl)
     fmfr <- fitted(mfr)
     
-    expect_true((sum(abs(mfr$coefficients - mpl$coefficients)) < 1e-10) & (sum(abs(fmpl-fmfr)) < 1e-10))
+    expect_true((sum(abs(mfr$coefficients - mpl$coefficients)) < accuracy) & (sum(abs(fmpl-fmfr)) < accuracy))
 })
 
 test_that("Plain and formula interface give the same results for SI", {
@@ -48,7 +49,7 @@ test_that("Plain and formula interface give the same results for SI", {
    fmpl <- fitted(mpl)
    fmfr <- fitted(mfr)
    
-   expect_true((sum(abs(mfr$coefficients[cmap] - mpl$coefficients)) < 1e-10)  & (sum(abs(fmpl-fmfr)) < 1e-10))
+   expect_true((sum(abs(mfr$coefficients[cmap] - mpl$coefficients)) < accuracy)  & (sum(abs(fmpl-fmfr)) < accuracy))
 })
 
 
@@ -63,7 +64,7 @@ test_that("Rearanging terms works", {
     cmap <- c(1,5:6, 2:4)
     
     
-    expect_true(sum(abs(mfr1$coefficients[cmap]-mfr2$coefficients)) < 1e-10)
+    expect_true(sum(abs(mfr1$coefficients[cmap]-mfr2$coefficients)) < accuracy)
 })
 
 test_that("Updating Ofunction works for sp", {
@@ -72,15 +73,15 @@ test_that("Updating Ofunction works for sp", {
     b <- update(a, Ofunction = "nls")
     c <- suppressWarnings(update(b, Ofunction = "optimx", method = c("BFGS", "spg"), itnmax = 10))
     
-    expect_that(a$argmap_opt$Ofunction == "optim", is_true())
-    expect_that(b$argmap_opt$Ofunction == "nls", is_true())
-    expect_that(c$argmap_opt$Ofunction == "optimx", is_true())
+    expect_true(a$argmap_opt$Ofunction == "optim")
+    expect_true(b$argmap_opt$Ofunction == "nls")
+    expect_true(c$argmap_opt$Ofunction == "optimx")
     
-    expect_that(inherits(b$opt, "nls"), is_true())
-    expect_that(inherits(c$opt, "optimx"), is_true())
-    
-    expect_that(sum(abs(coef(a) - b$start_opt)) == 0, is_true())
-    expect_that(sum(abs(coef(b) - c$start_opt)) == 0, is_true())
+    expect_true(inherits(b$opt, "nls"))
+    expect_true(inherits(c$opt, "optimx"))
+  
+    expect_true(sum(abs(coef(a) - b$start_opt)) == 0)
+    expect_true(sum(abs(coef(b) - c$start_opt)) == 0)
     
 })
 
@@ -88,7 +89,7 @@ test_that("Updating Ofunction arguments  works", {
     a <- a100 
     b <- update(a, method = "CG", control = list(maxit = 5))
     
-    expect_that(b$argmap_opt$method == "CG", is_true())
+    expect_true(b$argmap_opt$method == "CG")
     
 })
 
@@ -104,12 +105,12 @@ test_that("Updating data and starting values works",{
     
     m <- na.omit(cbind(spd$y, mlsd(spd$y,1:2, spd$y), mlsd(spd$x, 0:23, spd$y)))
     
-    expect_that(sum(abs(m - b$model)), equals(0))
+    expect_lt(sum(abs(m - b$model)), accuracy)
 })
 
 test_that("Predicting works for PL", {
     r <- predict(a100, newdata = dgp_pl) - fitted(a100)
-    expect_that(sum(abs(r)), equals(0))
+    expect_equivalent(sum(abs(r)), 0)
 })
 
 

@@ -1,4 +1,6 @@
 context("Testing mls")
+accuracy <- sqrt(.Machine$double.eps)
+
 test_that("Embedding to low frequency works as expected",{
     x <- 1:24
     x1 <- matrix(2*(1:12),ncol=1)
@@ -16,7 +18,7 @@ test_that("mls and fmls give the same results",{
     e <- rnorm(100)
     a <- mls(e, 0:10, 10)
     b <- fmls(e, 10, 10)
-    expect_that(sum(abs(a - b), na.rm = TRUE), equals(0))
+    expect_lt(sum(abs(a - b), na.rm = TRUE), accuracy)
 })
 
 test_that("fmls and dmls give the same results",{
@@ -24,7 +26,7 @@ test_that("fmls and dmls give the same results",{
     e <- rnorm(100)
     a <- fmls(c(NA, diff(e)), 10, 10)
     b <- dmls(e, 10, 10)
-    expect_that(sum(abs(a - b), na.rm = TRUE), equals(0))
+    expect_lt(sum(abs(a - b), na.rm = TRUE), accuracy)
 })
 
 test_that("mlsd works the same as mls", {
@@ -35,7 +37,7 @@ test_that("mlsd works the same as mls", {
     m1 <- mlsd(x, 0:5, datey)
     m2 <- mls(x, 0:5, 12)
     
-    expect_true(sum(abs(m1-m2)) < 1e-10)
+    expect_true(sum(abs(m1-m2)) < accuracy)
     
 })
 
@@ -46,7 +48,7 @@ test_that("mlsd works for the ts objects", {
     m1 <- mlsd(x, 0:7, y)
     m2 <- mls(x, 0:7, 3)
     
-    expect_true(sum(abs(m1-m2), na.rm = TRUE) < 1e-10)
+    expect_true(sum(abs(m1-m2), na.rm = TRUE) < accuracy)
 })
 
 data(USunempr)
