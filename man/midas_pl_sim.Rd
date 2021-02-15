@@ -4,8 +4,17 @@
 \alias{midas_pl_sim}
 \title{Simulate PL MIDAS regression model}
 \usage{
-midas_pl_sim(n, m, theta, gfun, ar.x, ar.y, rand.gen = rnorm,
-  n.start = NA, ...)
+midas_pl_sim(
+  n,
+  m,
+  theta,
+  gfun,
+  ar.x,
+  ar.y,
+  rand.gen = rnorm,
+  n.start = NA,
+  ...
+)
 }
 \arguments{
 \item{n}{number of observations to simulate.}

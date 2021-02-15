@@ -4,8 +4,14 @@
 \alias{midas_r}
 \title{Restricted MIDAS regression}
 \usage{
-midas_r(formula, data, start, Ofunction = "optim",
-  weight_gradients = NULL, ...)
+midas_r(
+  formula,
+  data,
+  start,
+  Ofunction = "optim",
+  weight_gradients = NULL,
+  ...
+)
 }
 \arguments{
 \item{formula}{formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function}

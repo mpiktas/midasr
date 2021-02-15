@@ -4,9 +4,18 @@
 \alias{hf_lags_table}
 \title{Create a high frequency lag selection table for MIDAS regression model}
 \usage{
-hf_lags_table(formula, data, start, from, to, IC = c("AIC", "BIC"),
-  test = c("hAh_test"), Ofunction = "optim", weight_gradients = NULL,
-  ...)
+hf_lags_table(
+  formula,
+  data,
+  start,
+  from,
+  to,
+  IC = c("AIC", "BIC"),
+  test = c("hAh_test"),
+  Ofunction = "optim",
+  weight_gradients = NULL,
+  ...
+)
 }
 \arguments{
 \item{formula}{the formula for MIDAS regression, the lag selection is performed for the last MIDAS lag term in the formula}

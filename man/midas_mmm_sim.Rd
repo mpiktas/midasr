@@ -4,8 +4,18 @@
 \alias{midas_mmm_sim}
 \title{Simulate MMM MIDAS regression model}
 \usage{
-midas_mmm_sim(n, m, theta, intercept, pmmm, ar.x, ar.y, rand.gen = rnorm,
-  n.start = NA, ...)
+midas_mmm_sim(
+  n,
+  m,
+  theta,
+  intercept,
+  pmmm,
+  ar.x,
+  ar.y,
+  rand.gen = rnorm,
+  n.start = NA,
+  ...
+)
 }
 \arguments{
 \item{n}{number of observations to simulate.}

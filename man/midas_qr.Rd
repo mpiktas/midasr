@@ -4,8 +4,16 @@
 \alias{midas_qr}
 \title{Restricted MIDAS quantile regression}
 \usage{
-midas_qr(formula, data, tau = 0.5, start, Ofunction = "nlrq",
-  weight_gradients = NULL, guess_start = TRUE, ...)
+midas_qr(
+  formula,
+  data,
+  tau = 0.5,
+  start,
+  Ofunction = "nlrq",
+  weight_gradients = NULL,
+  guess_start = TRUE,
+  ...
+)
 }
 \arguments{
 \item{formula}{formula for restricted MIDAS regression or \code{midas_qr} object. Formula must include \code{\link{mls}} function}

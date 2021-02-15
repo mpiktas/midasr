@@ -5,11 +5,19 @@
 \alias{forecast}
 \title{Forecast MIDAS regression}
 \usage{
-\method{forecast}{midas_r}(object, newdata = NULL, se = FALSE,
-  level = c(80, 95), fan = FALSE, npaths = 999,
+\method{forecast}{midas_r}(
+  object,
+  newdata = NULL,
+  se = FALSE,
+  level = c(80, 95),
+  fan = FALSE,
+  npaths = 999,
   method = c("static", "dynamic"),
-  insample = get_estimation_sample(object), show_progress = TRUE,
-  add_ts_info = FALSE, ...)
+  insample = get_estimation_sample(object),
+  show_progress = TRUE,
+  add_ts_info = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{midas_r object}

@@ -4,8 +4,7 @@
 \alias{coef.midas_nlpr}
 \title{Extract coefficients of MIDAS regression}
 \usage{
-\method{coef}{midas_nlpr}(object, type = c("plain", "midas", "nlpr"),
-  term_names = NULL, ...)
+\method{coef}{midas_nlpr}(object, type = c("plain", "midas", "nlpr"), term_names = NULL, ...)
 }
 \arguments{
 \item{object}{\code{midas_nlpr} object}

@@ -7,8 +7,14 @@
 \usage{
 plot_midas_coef(x, term_name, title, ...)
 
-\method{plot_midas_coef}{midas_r}(x, term_name = NULL, title = NULL,
-  vcov. = sandwich, unrestricted = x$unrestricted, ...)
+\method{plot_midas_coef}{midas_r}(
+  x,
+  term_name = NULL,
+  title = NULL,
+  vcov. = sandwich,
+  unrestricted = x$unrestricted,
+  ...
+)
 }
 \arguments{
 \item{x}{\code{midas_r} object}

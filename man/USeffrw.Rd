@@ -4,7 +4,9 @@
 \name{USeffrw}
 \alias{USeffrw}
 \title{US weekly effective federal funds rate.}
-\format{A \code{\link{data.frame}} object.}
+\format{
+A \code{\link{data.frame}} object.
+}
 \source{
 \href{http://www.bea.gov/national/xls/gdplev.xls}{FRED}
 }

@@ -4,11 +4,24 @@
 \alias{select_and_forecast}
 \title{Create table for different forecast horizons}
 \usage{
-select_and_forecast(formula, data, from, to, insample, outsample, weights,
-  wstart, start = NULL, IC = "AIC", seltype = c("restricted",
-  "unrestricted"), test = "hAh_test", ftype = c("fixed", "recursive",
-  "rolling"), measures = c("MSE", "MAPE", "MASE"), fweights = c("EW",
-  "BICW", "MSFE", "DMSFE"), ...)
+select_and_forecast(
+  formula,
+  data,
+  from,
+  to,
+  insample,
+  outsample,
+  weights,
+  wstart,
+  start = NULL,
+  IC = "AIC",
+  seltype = c("restricted", "unrestricted"),
+  test = "hAh_test",
+  ftype = c("fixed", "recursive", "rolling"),
+  measures = c("MSE", "MAPE", "MASE"),
+  fweights = c("EW", "BICW", "MSFE", "DMSFE"),
+  ...
+)
 }
 \arguments{
 \item{formula}{initial formula for the}

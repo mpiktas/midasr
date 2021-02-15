@@ -4,8 +4,13 @@
 \alias{modsel}
 \title{Select the model based on given information criteria}
 \usage{
-modsel(x, IC = x$IC[1], test = x$test[1], type = c("restricted",
-  "unrestricted"), print = TRUE)
+modsel(
+  x,
+  IC = x$IC[1],
+  test = x$test[1],
+  type = c("restricted", "unrestricted"),
+  print = TRUE
+)
 }
 \arguments{
 \item{x}{a \link{midas_r_ic_table} object}

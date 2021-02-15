@@ -4,7 +4,9 @@
 \name{UScpiqs}
 \alias{UScpiqs}
 \title{US quartely seasonaly adjusted consumer price index}
-\format{A \code{\link{data.frame}} object.}
+\format{
+A \code{\link{data.frame}} object.
+}
 \source{
 \href{http://www.bea.gov/national/xls/gdplev.xls}{FRED}
 }

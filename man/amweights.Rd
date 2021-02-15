@@ -35,6 +35,7 @@ The following combinations are defined, corresponding to structure types \code{A
 where \eqn{k} is the number of low frequency lags, i.e. \eqn{d/m}. If the latter 
 value is not whole number, the error is produced.
 
+
 The starting values \eqn{p} should be supplied then as follows:
 \deqn{(\beta_1,\theta_1,...,\beta_k,\theta_k)}
 \deqn{(\beta_1,...,\beta_k,\theta)}

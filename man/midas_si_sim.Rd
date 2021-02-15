@@ -4,8 +4,17 @@
 \alias{midas_si_sim}
 \title{Simulate SI MIDAS regression model}
 \usage{
-midas_si_sim(n, m, theta, gfun, ar.x, ar.y, rand.gen = rnorm,
-  n.start = NA, ...)
+midas_si_sim(
+  n,
+  m,
+  theta,
+  gfun,
+  ar.x,
+  ar.y,
+  rand.gen = rnorm,
+  n.start = NA,
+  ...
+)
 }
 \arguments{
 \item{n}{number of observations to simulate.}

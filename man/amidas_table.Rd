@@ -4,9 +4,21 @@
 \alias{amidas_table}
 \title{Weight and lag selection table for aggregates based MIDAS regression model}
 \usage{
-amidas_table(formula, data, weights, wstart, type, start = NULL, from,
-  to, IC = c("AIC", "BIC"), test = c("hAh_test"),
-  Ofunction = "optim", weight_gradients = NULL, ...)
+amidas_table(
+  formula,
+  data,
+  weights,
+  wstart,
+  type,
+  start = NULL,
+  from,
+  to,
+  IC = c("AIC", "BIC"),
+  test = c("hAh_test"),
+  Ofunction = "optim",
+  weight_gradients = NULL,
+  ...
+)
 }
 \arguments{
 \item{formula}{the formula for MIDAS regression, the lag selection is performed for the last MIDAS lag term in the formula}

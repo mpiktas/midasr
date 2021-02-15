@@ -4,8 +4,18 @@
 \alias{midas_lstr_sim}
 \title{Simulate LSTR MIDAS regression model}
 \usage{
-midas_lstr_sim(n, m, theta, intercept, plstr, ar.x, ar.y,
-  rand.gen = rnorm, n.start = NA, ...)
+midas_lstr_sim(
+  n,
+  m,
+  theta,
+  intercept,
+  plstr,
+  ar.x,
+  ar.y,
+  rand.gen = rnorm,
+  n.start = NA,
+  ...
+)
 }
 \arguments{
 \item{n}{number of observations to simulate.}

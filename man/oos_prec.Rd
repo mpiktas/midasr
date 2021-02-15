@@ -4,7 +4,9 @@
 \name{oos_prec}
 \alias{oos_prec}
 \title{Out-of-sample prediction precision data on simulation example}
-\format{A \code{data.frame} object with four columns. The first column indicates the sample size, the second the type of constraint, the third the value of the precision measure and the fourth the type of precision measure.}
+\format{
+A \code{data.frame} object with four columns. The first column indicates the sample size, the second the type of constraint, the third the value of the precision measure and the fourth the type of precision measure.
+}
 \description{
 The code in the example generates the out-of-sample prediction precision data for correctly and incorrectly constrained MIDAS regression model compared to unconstrained MIDAS regression model.
 }

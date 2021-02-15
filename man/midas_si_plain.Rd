@@ -4,8 +4,18 @@
 \alias{midas_si_plain}
 \title{MIDAS Single index regression}
 \usage{
-midas_si_plain(y, X, p.ar = NULL, weight, degree = 1, start_bws,
-  start_x, start_ar = NULL, method = "Nelder-Mead", ...)
+midas_si_plain(
+  y,
+  X,
+  p.ar = NULL,
+  weight,
+  degree = 1,
+  start_bws,
+  start_x,
+  start_ar = NULL,
+  method = "Nelder-Mead",
+  ...
+)
 }
 \arguments{
 \item{y}{model response}

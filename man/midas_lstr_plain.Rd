@@ -4,8 +4,17 @@
 \alias{midas_lstr_plain}
 \title{LSTR (Logistic Smooth TRansition)  MIDAS regression}
 \usage{
-midas_lstr_plain(y, X, z = NULL, weight, start_lstr, start_x,
-  start_z = NULL, method = c("Nelder-Mead"), ...)
+midas_lstr_plain(
+  y,
+  X,
+  z = NULL,
+  weight,
+  start_lstr,
+  start_x,
+  start_z = NULL,
+  method = c("Nelder-Mead"),
+  ...
+)
 }
 \arguments{
 \item{y}{model response}

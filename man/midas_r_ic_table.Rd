@@ -4,9 +4,18 @@
 \alias{midas_r_ic_table}
 \title{Create a weight and lag selection table for MIDAS regression model}
 \usage{
-midas_r_ic_table(formula, data = NULL, start = NULL, table,
-  IC = c("AIC", "BIC"), test = c("hAh_test"), Ofunction = "optim",
-  weight_gradients = NULL, show_progress = TRUE, ...)
+midas_r_ic_table(
+  formula,
+  data = NULL,
+  start = NULL,
+  table,
+  IC = c("AIC", "BIC"),
+  test = c("hAh_test"),
+  Ofunction = "optim",
+  weight_gradients = NULL,
+  show_progress = TRUE,
+  ...
+)
 }
 \arguments{
 \item{formula}{the formula for MIDAS regression, the lag selection is performed for the last MIDAS lag term in the formula}

@@ -4,8 +4,7 @@
 \alias{midas_sp}
 \title{Semi-parametric MIDAS regression}
 \usage{
-midas_sp(formula, data, bws, start, degree = 1, Ofunction = "optim",
-  ...)
+midas_sp(formula, data, bws, start, degree = 1, Ofunction = "optim", ...)
 }
 \arguments{
 \item{formula}{formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function}

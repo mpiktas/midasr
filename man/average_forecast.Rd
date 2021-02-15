@@ -4,9 +4,16 @@
 \alias{average_forecast}
 \title{Average forecasts of MIDAS models}
 \usage{
-average_forecast(modlist, data, insample, outsample, type = c("fixed",
-  "recursive", "rolling"), fweights = c("EW", "BICW", "MSFE", "DMSFE"),
-  measures = c("MSE", "MAPE", "MASE"), show_progress = TRUE)
+average_forecast(
+  modlist,
+  data,
+  insample,
+  outsample,
+  type = c("fixed", "recursive", "rolling"),
+  fweights = c("EW", "BICW", "MSFE", "DMSFE"),
+  measures = c("MSE", "MAPE", "MASE"),
+  show_progress = TRUE
+)
 }
 \arguments{
 \item{modlist}{a list of \code{midas_r} objects}

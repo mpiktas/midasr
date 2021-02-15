@@ -4,8 +4,17 @@
 \alias{midas_r_plain}
 \title{Restricted MIDAS regression}
 \usage{
-midas_r_plain(y, X, z = NULL, weight, grw = NULL, startx,
-  startz = NULL, method = c("Nelder-Mead", "BFGS"), ...)
+midas_r_plain(
+  y,
+  X,
+  z = NULL,
+  weight,
+  grw = NULL,
+  startx,
+  startz = NULL,
+  method = c("Nelder-Mead", "BFGS"),
+  ...
+)
 }
 \arguments{
 \item{y}{model response}

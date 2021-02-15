@@ -4,8 +4,16 @@
 \alias{midas_auto_sim}
 \title{Simulate simple autoregressive MIDAS model}
 \usage{
-midas_auto_sim(n, alpha, x, theta, rand_gen = rnorm,
-  innov = rand_gen(n, ...), n_start = NA, ...)
+midas_auto_sim(
+  n,
+  alpha,
+  x,
+  theta,
+  rand_gen = rnorm,
+  innov = rand_gen(n, ...),
+  n_start = NA,
+  ...
+)
 }
 \arguments{
 \item{n}{sample size.}

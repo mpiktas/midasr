@@ -4,8 +4,19 @@
 \alias{midas_pl_plain}
 \title{MIDAS Partialy linear non-parametric regression}
 \usage{
-midas_pl_plain(y, X, z, p.ar = NULL, weight, degree = 1, start_bws,
-  start_x, start_ar = NULL, method = c("Nelder-Mead"), ...)
+midas_pl_plain(
+  y,
+  X,
+  z,
+  p.ar = NULL,
+  weight,
+  degree = 1,
+  start_bws,
+  start_x,
+  start_ar = NULL,
+  method = c("Nelder-Mead"),
+  ...
+)
 }
 \arguments{
 \item{y}{model response}

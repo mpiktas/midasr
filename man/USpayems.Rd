@@ -4,7 +4,9 @@
 \name{USpayems}
 \alias{USpayems}
 \title{United States total employment non-farms payroll, monthly, seasonally adjusted.}
-\format{A \code{\link{ts}} object.}
+\format{
+A \code{\link{ts}} object.
+}
 \source{
 \href{http://research.stlouisfed.org/fred2/series/PAYEMS}{FRED, Federal Reserve Economic Data, from the Federal Reserve Bank of St. Louis}
 }

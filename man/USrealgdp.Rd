@@ -4,7 +4,9 @@
 \name{USrealgdp}
 \alias{USrealgdp}
 \title{US annual gross domestic product in billions of chained 2005 dollars}
-\format{A \code{\link{ts}} object.}
+\format{
+A \code{\link{ts}} object.
+}
 \source{
 \href{http://www.bea.gov/national/xls/gdplev.xls}{U.S. Department of Commerce, Bureau of Economic Analysis}
 }

@@ -4,8 +4,14 @@
 \alias{plot_midas_coef.midas_nlpr}
 \title{Plot MIDAS coefficients}
 \usage{
-\method{plot_midas_coef}{midas_nlpr}(x, term_name = NULL, title = NULL,
-  compare = NULL, normalize = FALSE, ...)
+\method{plot_midas_coef}{midas_nlpr}(
+  x,
+  term_name = NULL,
+  title = NULL,
+  compare = NULL,
+  normalize = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{\code{midas_r} object}
