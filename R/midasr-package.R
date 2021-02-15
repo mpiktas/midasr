@@ -17,31 +17,32 @@ NULL
 ##' @name USunempr
 ##' @docType data
 ##' @format A \code{\link{ts}} object.
-##' @source \href{http://data.bls.gov/timeseries/LNS14000000}{U.S. Bureau of Labor Statistics}
+##' @source \href{https://fred.stlouisfed.org/series/UNRATE}{FRED}
 ##' @keywords datasets
 NULL
 
 
 ##' US annual gross domestic product in billions of chained 2005 dollars
 ##'
-##' The annual gross domestic product in billions of chained 2005 dollars for US from 1948 to 2011.
+##' The annual gross domestic product in billions of chained 2005 dollars for US from 1948 to 2011. 
+##' This data is kept for historical purposes, newer data is in 2012 chained dollars.
 ##' 
 ##' @name USrealgdp
 ##' @docType data
 ##' @format A \code{\link{ts}} object.
-##' @source \href{http://www.bea.gov/national/xls/gdplev.xls}{U.S. Department of Commerce, Bureau of Economic Analysis}
+##' @source \href{https://fred.stlouisfed.org/series/GDPC1}{U.S. Department of Commerce, Bureau of Economic Analysis}
 ##' @keywords datasets
 NULL
 
 
 ##' US quartely seasonaly adjusted consumer price index 
 ##'
-##' US quarterly CPI from 1960Q1 to 2017Q3s
+##' US quarterly CPI from 1960Q1 to 2017Q3s. Seasonaly adjusted, Index 2015=1
 ##' 
 ##' @name UScpiqs
 ##' @docType data
 ##' @format A \code{\link{data.frame}} object.
-##' @source \href{http://www.bea.gov/national/xls/gdplev.xls}{FRED}
+##' @source \href{https://fred.stlouisfed.org/series/CPALTT01USQ661S}{FRED}
 ##' @keywords datasets
 NULL
 
@@ -52,7 +53,7 @@ NULL
 ##' @name USeffrw
 ##' @docType data
 ##' @format A \code{\link{data.frame}} object.
-##' @source \href{http://www.bea.gov/national/xls/gdplev.xls}{FRED}
+##' @source \href{https://fred.stlouisfed.org/series/DFF}{FRED}
 ##' @keywords datasets
 NULL
 
