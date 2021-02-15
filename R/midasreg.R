@@ -338,7 +338,7 @@ update.midas_r <- function(object, formula.,..., evaluate = TRUE) {
         }
     }        
     if (evaluate) {
-        if(!missing(formula.) || "data" %in% names(extras)  || "weight_gradients" %in% names(extras) || redo) {
+        if (!missing(formula.) || any(c("data", "weight_gradients","start") %in% names(extras)) ||  redo) {
             eval(call, parent.frame())
         } else {
             ##If we got here, we assume that we do not need to reevaluate terms.
