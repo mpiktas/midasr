@@ -155,7 +155,7 @@ NULL
 ##' @name USqgdp
 ##' @docType data
 ##' @format A \code{\link{ts}} object.
-##' @source \href{https://research.stlouisfed.org/series/GDP}{FRED, Federal Reserve Economic Data, from the Federal Reserve Bank of St. Louis}
+##' @source \href{https://fred.stlouisfed.org/series/GDP}{FRED, Federal Reserve Economic Data, from the Federal Reserve Bank of St. Louis}
 ##' @keywords datasets
 ##' @examples
 ##' ## Do not run:
@@ -170,7 +170,7 @@ NULL
 ##' @name USpayems
 ##' @docType data
 ##' @format A \code{\link{ts}} object.
-##' @source \href{https://research.stlouisfed.org/series/PAYEMS}{FRED, Federal Reserve Economic Data, from the Federal Reserve Bank of St. Louis}
+##' @source \href{https://fred.stlouisfed.org/series/PAYEMS}{FRED, Federal Reserve Economic Data, from the Federal Reserve Bank of St. Louis}
 ##' @keywords datasets
 ##' @examples
 ##'
