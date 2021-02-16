@@ -65,13 +65,13 @@ NULL
 ##' @name rvsp500
 ##' @docType data
 ##' @format A \code{data.frame} object with two columns. First column contains date id, and the second the realized volatility for S&P500 index.
-##' @source \href{http://realized.oxford-man.ox.ac.uk/media/1366/oxfordmanrealizedvolatilityindices.zip}{http://realized.oxford-man.ox.ac.uk/media/1366/oxfordmanrealizedvolatilityindices.zip}
+##' @source \href{https://realized.oxford-man.ox.ac.uk/images/oxfordmanrealizedvolatilityindices-0.2-final.zip}{https://realized.oxford-man.ox.ac.uk/images/oxfordmanrealizedvolatilityindices-0.2-final.zip}
 ##' @references Heber, Gerd and Lunde, Asger, and Shephard, Neil and Sheppard, Kevin \emph{Oxford-Man Institute's realized library}, Oxford-Man Institute, University of Oxford (2009)
 ##' @keywords datasets
 ##' @examples
 ##' ## Do not run:
 ##' ## Download the data from
-##' ## http://realized.oxford-man.ox.ac.uk/media/1366/oxfordmanrealizedvolatilityindices.zip
+##' ## https://realized.oxford-man.ox.ac.uk/images/oxfordmanrealizedvolatilityindices-0.2-final.zip
 ##' ## It contains the file OxfordManRealizedVolatilityIndices.csv.
 ##' 
 ##' ## rvi <- read.csv("OxfordManRealizedVolatilityIndices.csv",check.names=FALSE,skip=2)
@@ -155,7 +155,7 @@ NULL
 ##' @name USqgdp
 ##' @docType data
 ##' @format A \code{\link{ts}} object.
-##' @source \href{http://research.stlouisfed.org/fred2/series/GDP}{FRED, Federal Reserve Economic Data, from the Federal Reserve Bank of St. Louis}
+##' @source \href{https://research.stlouisfed.org/fred2/series/GDP}{FRED, Federal Reserve Economic Data, from the Federal Reserve Bank of St. Louis}
 ##' @keywords datasets
 ##' @examples
 ##' ## Do not run:
@@ -170,7 +170,7 @@ NULL
 ##' @name USpayems
 ##' @docType data
 ##' @format A \code{\link{ts}} object.
-##' @source \href{http://research.stlouisfed.org/fred2/series/PAYEMS}{FRED, Federal Reserve Economic Data, from the Federal Reserve Bank of St. Louis}
+##' @source \href{https://research.stlouisfed.org/fred2/series/PAYEMS}{FRED, Federal Reserve Economic Data, from the Federal Reserve Bank of St. Louis}
 ##' @keywords datasets
 ##' @examples
 ##'

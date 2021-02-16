@@ -8,7 +8,7 @@
 A \code{\link{ts}} object.
 }
 \source{
-\href{http://research.stlouisfed.org/fred2/series/PAYEMS}{FRED, Federal Reserve Economic Data, from the Federal Reserve Bank of St. Louis}
+\href{https://research.stlouisfed.org/fred2/series/PAYEMS}{FRED, Federal Reserve Economic Data, from the Federal Reserve Bank of St. Louis}
 }
 \description{
 United States total employment non-farms payroll, monthly, seasonally adjusted. Retrieved from FRED, symbol "PAYEMS" at 2014-04-25.

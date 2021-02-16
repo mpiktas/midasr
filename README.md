@@ -1,8 +1,8 @@
 [![Travis-CI Build Status](https://travis-ci.org/mpiktas/midasr.svg?branch=master)](https://travis-ci.org/mpiktas/midasr)
 [![codecov.io](https://codecov.io/github/mpiktas/midasr/coverage.svg?branch=master)](https://codecov.io/github/mpiktas/midasr?branch=master)
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/midasr)](https://cran.r-project.org/package=midasr
+[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/midasr)](https://cran.r-project.org/package=midasr
 )
-[![Downloads](http://cranlogs.r-pkg.org/badges/midasr)](http://www.r-pkg.org/pkg/midasr)
+[![Downloads](https://cranlogs.r-pkg.org/badges/midasr)](https://www.r-pkg.org/pkg/midasr)
 
 The **midasr** R package provides econometric methods for working with mixed frequency data. The package provides tools for estimating time series MIDAS regression, where response and explanatory variables are of different frequency, e.g. quarterly vs monthly. The fitted regression model can be tested for adequacy and then used for forecasting. More specifically, the following main functions are available:
 
@@ -40,8 +40,8 @@ To install the development version of midasr, it's easiest to use the `devtools`
     install_github("midasr","mpiktas")
     
 
-[1]: http://mpiktas.github.com/midasr
-[2]: http://github.com/mpiktas/midasr
-[3]: http://eghysels.web.unc.edu
+[1]: https://mpiktas.github.io/midasr
+[2]: https://github.com/mpiktas/midasr
+[3]: https://eghysels.web.unc.edu
 [4]: https://www.jstatsoft.org/article/view/v072i04
 [5]: https://cran.r-project.org/package=midasr

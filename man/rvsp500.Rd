@@ -8,7 +8,7 @@
 A \code{data.frame} object with two columns. First column contains date id, and the second the realized volatility for S&P500 index.
 }
 \source{
-\href{http://realized.oxford-man.ox.ac.uk/media/1366/oxfordmanrealizedvolatilityindices.zip}{http://realized.oxford-man.ox.ac.uk/media/1366/oxfordmanrealizedvolatilityindices.zip}
+\href{https://realized.oxford-man.ox.ac.uk/images/oxfordmanrealizedvolatilityindices-0.2-final.zip}{https://realized.oxford-man.ox.ac.uk/images/oxfordmanrealizedvolatilityindices-0.2-final.zip}
 }
 \description{
 Realized volatility of S&P500(Live) index of the period 2000 01 03 - 2013 11 22
@@ -16,7 +16,7 @@ Realized volatility of S&P500(Live) index of the period 2000 01 03 - 2013 11 22
 \examples{
 ## Do not run:
 ## Download the data from
-## http://realized.oxford-man.ox.ac.uk/media/1366/oxfordmanrealizedvolatilityindices.zip
+## https://realized.oxford-man.ox.ac.uk/images/oxfordmanrealizedvolatilityindices-0.2-final.zip
 ## It contains the file OxfordManRealizedVolatilityIndices.csv.
 
 ## rvi <- read.csv("OxfordManRealizedVolatilityIndices.csv",check.names=FALSE,skip=2)
