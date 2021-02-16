@@ -1,13 +1,12 @@
 Package: midasr
 Title: Mixed Data Sampling Regression
 Description: Methods and tools for mixed frequency time series data analysis.
-    Allows estimation, model selection and forecasting for MIDAS regressions, 
-    Ghysels et al. (2016) <doi: 10.18637/jss.v072.i04>.
+    Allows estimation, model selection and forecasting for MIDAS regressions.
 URL: http://mpiktas.github.io/midasr/
 Version: 0.8
-Maintainer: Vaidotas Zemlys-Balevičius <zemlys@gmail.com>
-Author: Virmantas Kvedaras <virmantas.kvedaras@ec.europa.eu>, Vaidotas Zemlys-Balevičius
-   <vaidotas.zemlys@mif.vu.lt>
+Maintainer: Vaidotas Zemlys-Balevicius <zemlys@gmail.com>
+Author: Virmantas Kvedaras <virmantas.kvedaras@ec.europa.eu>, Vaidotas Zemlys-Balevicius
+   <zemlys@gmail.com>
 Depends:
     R (>= 2.11.0),
     sandwich,

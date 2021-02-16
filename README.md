@@ -40,7 +40,7 @@ To install the development version of midasr, it's easiest to use the `devtools`
     install_github("midasr","mpiktas")
     
 
-[1]: https://mpiktas.github.io/midasr
+[1]: https://mpiktas.github.io/midasr/
 [2]: https://github.com/mpiktas/midasr
 [3]: https://eghysels.web.unc.edu
 [4]: https://www.jstatsoft.org/article/view/v072i04
