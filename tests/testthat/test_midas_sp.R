@@ -19,6 +19,7 @@ b100 <- midas_sp(y~mlsd(y, 1:2, y) | mlsd(x, 0:23, y, nnbeta),
 accuracy <- sqrt(.Machine$double.eps)
 
 test_that("Plain and formula interface give the same results for PL", {
+    skip_on_cran()  
     X <- mls(dgp_pl$x, 0:23, 12)
     
     mpl <- midas_pl_plain(dgp_pl$y, X, dgp_pl$z, p.ar = 2L, nbeta, degree = 1, 
@@ -34,6 +35,7 @@ test_that("Plain and formula interface give the same results for PL", {
 })
 
 test_that("Plain and formula interface give the same results for SI", {
+    skip_on_cran()
     X <- mls(dgp_si$x, 0:23, 12)
     
    mpl <- midas_si_plain(dgp_si$y, X, p.ar = 2L, nnbeta, degree = 1, start_bws = 1, start_x = c(2, 4), start_ar = c(0.5, 0),
@@ -54,7 +56,7 @@ test_that("Plain and formula interface give the same results for SI", {
 
 
 test_that("Rearanging terms works", {
-    
+    skip_on_cran()
     mfr1 <- a100
     mfr2 <- midas_sp(y~mlsd(y, 1:2, y) + mlsd(x, 0:23, y, nbeta)| z, 
                    bws = 1, degree = 1, data = dgp_pl,
@@ -68,7 +70,7 @@ test_that("Rearanging terms works", {
 })
 
 test_that("Updating Ofunction works for sp", {
-    
+    skip_on_cran()
     a <- a100
     b <- update(a, Ofunction = "nls")
     c <- suppressWarnings(update(b, Ofunction = "optimx", method = c("BFGS", "spg"), itnmax = 10))
@@ -86,6 +88,7 @@ test_that("Updating Ofunction works for sp", {
 })
 
 test_that("Updating Ofunction arguments  works", {
+    skip_on_cran()
     a <- a100 
     b <- update(a, method = "CG", control = list(maxit = 5))
     
@@ -94,7 +97,7 @@ test_that("Updating Ofunction arguments  works", {
 })
 
 test_that("Updating data and starting values works",{
-  
+    skip_on_cran()
     spd <- dgp_si[c("y","x")]
     spd$y <- window(spd$y, start = 1, end = 200)
     spd$x <- window(spd$x, start = c(1,1), end = c(200,12))
@@ -109,6 +112,7 @@ test_that("Updating data and starting values works",{
 })
 
 test_that("Predicting works for PL", {
+    skip_on_cran()
     r <- predict(a100, newdata = dgp_pl) - fitted(a100)
     expect_equivalent(sum(abs(r)), 0)
 })
@@ -116,13 +120,15 @@ test_that("Predicting works for PL", {
 
 
 test_that("Predicting works for SI", {
+    skip_on_cran()
     r <- predict(b100, newdata = dgp_si) - fitted(b100)
     expect_that(sum(abs(r)), equals(0))
 })
 
 
 test_that("Predicting works for pure SI model", {
-    bb <- midas_sp(y~ mlsd(x, 0:23, y, nnbeta), 
+    skip_on_cran()   
+   bb <- midas_sp(y~ mlsd(x, 0:23, y, nnbeta), 
                      bws = 1, degree = 1, data = dgp_si,
                      start = list(x = c(2, 4)), 
                      method = "Nelder-Mead", control = list(maxit = 100))
@@ -132,6 +138,7 @@ test_that("Predicting works for pure SI model", {
 
 
 test_that("g_np and g_np_mv works the same for numeric and for matrices in case of a vector", {
+    skip_on_cran()
     oo <- midasr:::midas_sp_fit(a100)
     
     rn <- g_np(as.numeric(oo$y - oo$xi), as.numeric(oo$z), as.numeric(oo$z), coef(a100)[1], a100$degree)

@@ -10,6 +10,7 @@ dgp_mmm <-  midas_mmm_sim(250, m = 12, theta = nnbeta(c(2, 4), 24), intercept = 
 accuracy <- sqrt(.Machine$double.eps)
 
 test_that("Plain and formula interface give the same results for LSTR", {
+    skip_on_cran()
     z <- cbind(1, mls(dgp_lstr$y, 1:2, 1))
     colnames(z) <- c("Intercept", "y1", "y2")
     X <- mls(dgp_lstr$x, 0:23, 12)
@@ -25,6 +26,7 @@ test_that("Plain and formula interface give the same results for LSTR", {
 })
 
 test_that("Plain and formula interface give the same results for MMM", {
+    skip_on_cran()
     z <- cbind(1, mls(dgp_mmm$y, 1:2, 1))
     colnames(z) <- c("Intercept", "y1", "y2")
     X <- mls(dgp_mmm$x, 0:23, 12)
@@ -41,6 +43,7 @@ test_that("Plain and formula interface give the same results for MMM", {
 })
 
 test_that("Rearanging terms works", {
+    skip_on_cran()
     mfr1 <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
                       start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, 1, 1)),
                                    y = c(0.5, 0),
@@ -66,6 +69,7 @@ test_that("midas_nlpr works with the intercept term only", {
 
 
 test_that("Updating Ofunction works for nplr", {
+    skip_on_cran()
     a <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
                        start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, 1, 1)),
                                     y = c(0.5, 0),
@@ -88,6 +92,7 @@ test_that("Updating Ofunction works for nplr", {
 })
 
 test_that("Updating Ofunction arguments  works", {
+    skip_on_cran()
     a <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
                     start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, 1, 1)),
                                  y = c(0.5, 0),
@@ -101,7 +106,7 @@ test_that("Updating Ofunction arguments  works", {
 })
 
 test_that("updating data and starting values works",{
-  
+    skip_on_cran()
     spd <- dgp_lstr[c("y","x")]
     spd$y <- window(spd$y, start = 1, end = 200)
     spd$x <- window(spd$x, start = c(1,1), end = c(200,12))
@@ -127,6 +132,7 @@ test_that("updating data and starting values works",{
 })
 
 test_that("LSTR standard errors work", {
+    skip_on_cran()
     mfr <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
                       start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, 1, 1)),
                                    y = c(0.5, 0),
@@ -142,7 +148,7 @@ test_that("LSTR standard errors work", {
 })
 
 test_that("MMM standard errors work", {
-    
+    skip_on_cran()
     mfr <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_mmm, 
                       start = list(x = list(r = c(2, 4), mmm = c(1.5, 1)),
                                    y = c(0.5, 0),
@@ -158,7 +164,7 @@ test_that("MMM standard errors work", {
 })
 
 test_that("Predicting works for LSTR", {
-    
+    skip_on_cran()
     mfr <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_lstr, 
                       start = list(x = list(r = c(2, 4), lstr = c(1.5, 1, 1, 1)),
                                    y = c(0.5, 0),
@@ -172,6 +178,7 @@ test_that("Predicting works for LSTR", {
 })
 
 test_that("Predicting works for MMM", {
+    skip_on_cran()
     mfr <- midas_nlpr(y~mlsd(y, 1:2,  y) + mlsd(x, 0:23, y, nnbeta), data = dgp_mmm, 
                       start = list(x = list(r = c(2, 4), mmm = c(1.5, 1)),
                                    y = c(0.5, 0),
