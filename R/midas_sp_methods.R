@@ -8,85 +8,93 @@
 ##' @export
 ##' @method fitted midas_sp
 fitted.midas_sp <- function(object, ...) {
-    fit <- midas_sp_fit(object, Xeval = NULL, Zeval = NULL)
-    as.numeric(fit$fitted.values)
+  fit <- midas_sp_fit(object, Xeval = NULL, Zeval = NULL)
+  as.numeric(fit$fitted.values)
 }
 
 ##' @export
 ##' @method print midas_sp
-print.midas_sp <- function(x, digits=max(3,getOption("digits")-3),...) {
-    #Code adapted from dynln:::print.dynlm code
-    model_string <-  "\nSemi-parametric MIDAS regression model with \""
-    cat(paste(model_string, class(x$lhs)[1], 
-              "\" data:\n", sep = ""))
-    cat(paste("Start = ", x$lhs_start, 
-              ", End = ", x$lhs_end, 
-              "\n", sep = ""))
-    cat(" model:", deparse(x$call$formula),"\n")
-    print(coef(x),digits = digits, ...)
-    cat("\n")
-    cat("Function", x$argmap_opt$Ofunction, "was used for fitting\n")
-    invisible(x)
+print.midas_sp <- function(x, digits = max(3, getOption("digits") - 3), ...) {
+  # Code adapted from dynln:::print.dynlm code
+  model_string <- "\nSemi-parametric MIDAS regression model with \""
+  cat(paste(model_string, class(x$lhs)[1],
+    "\" data:\n",
+    sep = ""
+  ))
+  cat(paste("Start = ", x$lhs_start,
+    ", End = ", x$lhs_end,
+    "\n",
+    sep = ""
+  ))
+  cat(" model:", deparse(x$call$formula), "\n")
+  print(coef(x), digits = digits, ...)
+  cat("\n")
+  cat("Function", x$argmap_opt$Ofunction, "was used for fitting\n")
+  invisible(x)
 }
 
 
 ##' @export
 ##' @importFrom stats deviance pt pnorm residuals printCoefmat cor
 ##' @method summary midas_sp
-summary.midas_sp <- function(object, df=NULL, ...) {
-    r <- as.vector(residuals(object))
-    param <- coef(object)
-    pnames <- names(param)
-    n <- length(r)
-    p <- length(param)
-    rdf <- n - p
-    
-    resvar <- deviance(object)/rdf
-    
-    dg <- jacobian(object$rhs, param)
-    V <- resvar * ginv(crossprod(dg)/nrow(dg))/n
-    
-    colnames(V) <- pnames
-    rownames(V) <- pnames
-   
-    se <- sqrt(diag(V)) 
-       
-    f <- as.vector(object$fitted.values)
-    mss <- sum((f - mean(f))^2)
-    rss <- sum(r^2)
-    
-    n <- length(r)
-    p <- length(coef(object))
-    rdf <- n-p
-    df.int <- 0L
-    
-    r_squared <- R2.np(object$model[,1], f) 
-    tval <- param/se
-    
-    #Code stolen from coeftest function
-    if(is.null(df)) {
-        df <- rdf
-    }
-    if (is.finite(df) && df > 0) {
-        pval <- 2 * pt(abs(tval), df = df, lower.tail = FALSE)
-        cnames <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
-        mthd <- "t"
-    }
-    else {
-        pval <- 2 * pnorm(abs(tval), lower.tail = FALSE)
-        cnames <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
-        mthd <- "z"
-    }
-    
-    param <- cbind(param,se,tval,pval)
-    dimnames(param) <- list(pnames, c("Estimate", "Std. Error", 
-                                      "t value", "Pr(>|t|)"))
-    ans <- list(formula = formula(object$call$formula), residuals=r, sigma=sqrt(resvar),
-                df=c(p,rdf), cov.unscaled = V/resvar, call=object$call,
-                coefficients=param,
-                r_squared = r_squared, lhs_start = object$lhs_start, lhs_end = object$lhs_end, class_lhs = class(object$lhs))
-    class(ans) <- "summary.midas_sp"
-    ans
+summary.midas_sp <- function(object, df = NULL, ...) {
+  r <- as.vector(residuals(object))
+  param <- coef(object)
+  pnames <- names(param)
+  n <- length(r)
+  p <- length(param)
+  rdf <- n - p
+
+  resvar <- deviance(object) / rdf
+
+  dg <- jacobian(object$rhs, param)
+  V <- resvar * ginv(crossprod(dg) / nrow(dg)) / n
+
+  colnames(V) <- pnames
+  rownames(V) <- pnames
+
+  se <- sqrt(diag(V))
+
+  f <- as.vector(object$fitted.values)
+  mss <- sum((f - mean(f))^2)
+  rss <- sum(r^2)
+
+  n <- length(r)
+  p <- length(coef(object))
+  rdf <- n - p
+  df.int <- 0L
+
+  r_squared <- R2.np(object$model[, 1], f)
+  tval <- param / se
+
+  # Code stolen from coeftest function
+  if (is.null(df)) {
+    df <- rdf
+  }
+  if (is.finite(df) && df > 0) {
+    pval <- 2 * pt(abs(tval), df = df, lower.tail = FALSE)
+    cnames <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+    mthd <- "t"
+  }
+  else {
+    pval <- 2 * pnorm(abs(tval), lower.tail = FALSE)
+    cnames <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+    mthd <- "z"
+  }
+
+  param <- cbind(param, se, tval, pval)
+  dimnames(param) <- list(pnames, c(
+    "Estimate", "Std. Error",
+    "t value", "Pr(>|t|)"
+  ))
+  ans <- list(
+    formula = formula(object$call$formula), residuals = r, sigma = sqrt(resvar),
+    df = c(p, rdf), cov.unscaled = V / resvar, call = object$call,
+    coefficients = param,
+    r_squared = r_squared, lhs_start = object$lhs_start, lhs_end = object$lhs_end, class_lhs = class(object$lhs)
+  )
+  class(ans) <- "summary.midas_sp"
+  ans
 }
 
 ##' Semi-parametric MIDAS regression model deviance
@@ -99,27 +107,31 @@ summary.midas_sp <- function(object, df=NULL, ...) {
 ##' @rdname deviance.midas_sp
 ##' @method deviance midas_sp
 ##' @export
-deviance.midas_sp <- function(object,...) {
-    sum(residuals(object)^2,na.rm=TRUE)
+deviance.midas_sp <- function(object, ...) {
+  sum(residuals(object)^2, na.rm = TRUE)
 }
 
 ##' @export
 ##' @method print summary.midas_sp
-print.summary.midas_sp <- function(x, digits=max(3, getOption("digits") - 3 ), signif.stars = getOption("show.signif.stars"), ...) {
-    cat(paste("\nSemi-parametric MIDAS regression model with \"", x$class_lhs[1], 
-              "\" data:\n", sep = ""))
-    cat(paste("Start = ", x$lhs_start, 
-              ", End = ", x$lhs_end, 
-              "\n", sep = ""))
-    cat("\n Formula:", deparse(x$formula),"\n")
-    df <- x$df
-    rdf <- df[2L]
-    cat("\n Parameters:\n")
-    printCoefmat(x$coefficients,digits=digits,signif.stars=signif.stars,...)
-    cat("\n Residual standard error:", format(signif(x$sigma,digits)), "on", rdf , "degrees of freedom\n")
-    #   cat(" Multiple R-squared: ", formatC(x$r_squared, digits = digits))
-    #   cat(",\tAdjusted R-squared: ", formatC(x$adj_r_squared, digits = digits),"\n")
-    invisible(x)
+print.summary.midas_sp <- function(x, digits = max(3, getOption("digits") - 3), signif.stars = getOption("show.signif.stars"), ...) {
+  cat(paste("\nSemi-parametric MIDAS regression model with \"", x$class_lhs[1],
+    "\" data:\n",
+    sep = ""
+  ))
+  cat(paste("Start = ", x$lhs_start,
+    ", End = ", x$lhs_end,
+    "\n",
+    sep = ""
+  ))
+  cat("\n Formula:", deparse(x$formula), "\n")
+  df <- x$df
+  rdf <- df[2L]
+  cat("\n Parameters:\n")
+  printCoefmat(x$coefficients, digits = digits, signif.stars = signif.stars, ...)
+  cat("\n Residual standard error:", format(signif(x$sigma, digits)), "on", rdf, "degrees of freedom\n")
+  #   cat(" Multiple R-squared: ", formatC(x$r_squared, digits = digits))
+  #   cat(",\tAdjusted R-squared: ", formatC(x$adj_r_squared, digits = digits),"\n")
+  invisible(x)
 }
 
 
@@ -129,87 +141,95 @@ setMethod("extract", signature = className("midas_sp", "midasr"), definition = e
 ##' @method update midas_sp
 ##' @importFrom stats getCall setNames
 ##' @export
-update.midas_sp <- function(object, formula.,..., evaluate = TRUE) {
-    if (is.null(call <- getCall(object))) 
-        stop("need an object with call component")
-    extras <- match.call(expand.dots = FALSE)$...
-    if (!missing(formula.)) 
-        call$formula <- update(Formula(object), formula.)
-    
-    if (length(extras)) {
-        existing <- !is.na(match(names(extras), names(call))) 
-        for (a in names(extras)[existing]) call[[a]] <- extras[[a]]
-        if (any(!existing)) {
-            call <- c(as.list(call), extras[!existing])
-            call <- as.call(call)
-        }        
+update.midas_sp <- function(object, formula., ..., evaluate = TRUE) {
+  if (is.null(call <- getCall(object))) {
+    stop("need an object with call component")
+  }
+  extras <- match.call(expand.dots = FALSE)$...
+  if (!missing(formula.)) {
+    call$formula <- update(Formula(object), formula.)
+  }
+
+  if (length(extras)) {
+    existing <- !is.na(match(names(extras), names(call)))
+    for (a in names(extras)[existing]) call[[a]] <- extras[[a]]
+    if (any(!existing)) {
+      call <- c(as.list(call), extras[!existing])
+      call <- as.call(call)
     }
-    
-    ##1. If no start is supplied update the start from the call
-    ##2. If start is supplied intersect it with already fitted values.
-    
-    cf <- coef(object)
-    ustart <- lapply(object$term_info,function(x)cf[x[["coef_index"]]])
-    
-    redo <- FALSE
-    if(!("start" %in% names(extras))) {        
-        if(!("start" %in% names(call) && is.null(call$start))) {
-            call$start <- ustart
-            object$start_opt <- cf
-        }
+  }
+
+  ## 1. If no start is supplied update the start from the call
+  ## 2. If start is supplied intersect it with already fitted values.
+
+  cf <- coef(object)
+  ustart <- lapply(object$term_info, function(x) cf[x[["coef_index"]]])
+
+  redo <- FALSE
+  if (!("start" %in% names(extras))) {
+    if (!("start" %in% names(call) && is.null(call$start))) {
+      call$start <- ustart
+      object$start_opt <- cf
+    }
+  } else {
+    cstart <- eval(call$start, object$Zenv)
+    ustart[names(cstart)] <- cstart
+    call$start <- ustart
+    object$start_opt <- unlist(ustart)
+  }
+
+  if (evaluate) {
+    if (!missing(formula.) || "data" %in% names(extras) || "weight_gradients" %in% names(extras) || redo) {
+      eval(call, parent.frame())
     } else {
-        cstart <- eval(call$start,object$Zenv)
-        ustart[names(cstart)] <- cstart
-        call$start <- ustart
-        object$start_opt <- unlist(ustart)
-    } 
-    
-    if (evaluate) {
-        if(!missing(formula.) || "data" %in% names(extras)  || "weight_gradients" %in% names(extras) || redo) {
-            eval(call, parent.frame())
-        } else {
-            ##If we got here, we assume that we do not need to reevaluate terms.
-            if(!is.null(extras$Ofunction)) {
-                Ofunction <- eval(extras$Ofunction)
-                extras$Ofunction <- NULL
-            } else Ofunction <- object$argmap_opt$Ofunction            
-            dotargnm <- names(extras)
-            if (length(dotargnm) > 0) {
-                offending <- dotargnm[!dotargnm %in% names(formals(Ofunction))]
-                if (length(offending) > 0) {
-                    stop(paste("The function ", Ofunction, " does not have the following arguments: ", 
-                               paste(offending, collapse = ", "), sep = ""))
-                }
-            }
-            else {
-                extras <- NULL
-            }
-            if (Ofunction != object$argmap_opt$Ofunction) {
-                argmap <- c(list(Ofunction = Ofunction), extras)
-            }
-            else {
-                argmap <- object$argmap_opt
-                argmap$Ofunction <- NULL
-                argnm <- union(names(argmap), names(extras))
-                marg <- vector("list", length(argnm))
-                names(marg) <- argnm
-                marg[names(extras)] <- extras
-                oldarg <- setdiff(names(argmap), names(extras))
-                marg[oldarg] <- argmap[oldarg]
-                argmap <- c(list(Ofunction = Ofunction), marg)
-            }
-            object$call <- call
-            object$argmap_opt <- argmap
-            midas_nlpr.fit(object)
+      ## If we got here, we assume that we do not need to reevaluate terms.
+      if (!is.null(extras$Ofunction)) {
+        Ofunction <- eval(extras$Ofunction)
+        extras$Ofunction <- NULL
+      } else {
+        Ofunction <- object$argmap_opt$Ofunction
+      }
+      dotargnm <- names(extras)
+      if (length(dotargnm) > 0) {
+        offending <- dotargnm[!dotargnm %in% names(formals(Ofunction))]
+        if (length(offending) > 0) {
+          stop(paste("The function ", Ofunction, " does not have the following arguments: ",
+            paste(offending, collapse = ", "),
+            sep = ""
+          ))
         }
+      }
+      else {
+        extras <- NULL
+      }
+      if (Ofunction != object$argmap_opt$Ofunction) {
+        argmap <- c(list(Ofunction = Ofunction), extras)
+      }
+      else {
+        argmap <- object$argmap_opt
+        argmap$Ofunction <- NULL
+        argnm <- union(names(argmap), names(extras))
+        marg <- vector("list", length(argnm))
+        names(marg) <- argnm
+        marg[names(extras)] <- extras
+        oldarg <- setdiff(names(argmap), names(extras))
+        marg[oldarg] <- argmap[oldarg]
+        argmap <- c(list(Ofunction = Ofunction), marg)
+      }
+      object$call <- call
+      object$argmap_opt <- argmap
+      midas_nlpr.fit(object)
     }
-    else call
+  }
+  else {
+    call
+  }
 }
 
 ##' Predicted values based on \code{midas_sp} object.
 ##'
 ##' \code{predict.midas_sp} produces predicted values, obtained by evaluating regression function in the frame \code{newdata}. This means that the appropriate model matrix is constructed using only the data in \code{newdata}. This makes this function not very convenient for forecasting purposes. If you want to supply the new data for forecasting horizon only use the function \link{forecast.midas_r}. Also this function produces only static predictions, if you want dynamic forecasts use the \link{forecast.midas_r}.
-##' 
+##'
 ##' @title Predict method for semi-parametric MIDAS regression fit
 ##' @param object \code{\link{midas_nlpr}} object
 ##' @param newdata a named list containing data for mixed frequencies. If omitted, the in-sample values are used.
@@ -220,54 +240,54 @@ update.midas_sp <- function(object, formula.,..., evaluate = TRUE) {
 ##' @method predict midas_sp
 ##' @rdname predict.midas_sp
 ##' @export
-predict.midas_sp <- function(object, newdata, na.action = na.omit, ... ) {
-    Zenv <- new.env(parent=parent.frame())
-    
-    if(missing(newdata))
-        return(as.vector(fitted(object)))
-    else {
-        ee <- data_to_env(newdata)    
-        ZZ <- object$Zenv    
-        parent.env(ee) <- ZZ
-    }
-    
-    assign("ee",ee,Zenv)
-    cll <- match.call()
-    mf <- match.call(expand.dots = FALSE)
-    m <- match(c("object", "newdata"), names(mf), 0L)
-    mf <- mf[c(1L, m)]
-    mf[[1L]] <- as.name("model.frame")
-    
-    formula <- Formula(formula(object))
-    Terms <- delete.response(formula)
-    mf[[2L]] <- Terms    
-    mf[[3L]] <- as.name("ee")   
-    mf[[4L]] <- na.action
-    names(mf)[c(2,3,4)] <- c("formula","data","na.action")
-    
-    mf <- eval(mf,Zenv)
-    mt <- attr(mf, "terms")
-    
-  
+predict.midas_sp <- function(object, newdata, na.action = na.omit, ...) {
+  Zenv <- new.env(parent = parent.frame())
 
-    Xeval <- model.matrix(formula, data = mf, rhs = 1)
-    if (length(attr(formula, "rhs")) > 1) {
-        Zeval <- model.matrix(formula, data = mf, rhs = 2) 
-        if (attr(object$terms2,"intercept") == 1)  {
-            Zeval <- Zeval[, -1, drop = FALSE]
-        }
-        if (attr(object$terms,"intercept") == 1)  {
-            Xeval <- Xeval[, -1, drop = FALSE]
-        }
+  if (missing(newdata)) {
+    return(as.vector(fitted(object)))
+  } else {
+    ee <- data_to_env(newdata)
+    ZZ <- object$Zenv
+    parent.env(ee) <- ZZ
+  }
+
+  assign("ee", ee, Zenv)
+  cll <- match.call()
+  mf <- match.call(expand.dots = FALSE)
+  m <- match(c("object", "newdata"), names(mf), 0L)
+  mf <- mf[c(1L, m)]
+  mf[[1L]] <- as.name("model.frame")
+
+  formula <- Formula(formula(object))
+  Terms <- delete.response(formula)
+  mf[[2L]] <- Terms
+  mf[[3L]] <- as.name("ee")
+  mf[[4L]] <- na.action
+  names(mf)[c(2, 3, 4)] <- c("formula", "data", "na.action")
+
+  mf <- eval(mf, Zenv)
+  mt <- attr(mf, "terms")
+
+
+
+  Xeval <- model.matrix(formula, data = mf, rhs = 1)
+  if (length(attr(formula, "rhs")) > 1) {
+    Zeval <- model.matrix(formula, data = mf, rhs = 2)
+    if (attr(object$terms2, "intercept") == 1) {
+      Zeval <- Zeval[, -1, drop = FALSE]
     }
-    else { 
-        if (attr(object$terms2,"intercept") == 1)  {
-            Zeval <- Xeval[, -1, drop = FALSE]
-        }
-        Xeval <- NULL
+    if (attr(object$terms, "intercept") == 1) {
+      Xeval <- Xeval[, -1, drop = FALSE]
     }
-    
-    as.vector(midas_sp_fit(object, Xeval, Zeval)$fitted.values)
+  }
+  else {
+    if (attr(object$terms2, "intercept") == 1) {
+      Zeval <- Xeval[, -1, drop = FALSE]
+    }
+    Xeval <- NULL
+  }
+
+  as.vector(midas_sp_fit(object, Xeval, Zeval)$fitted.values)
 }
 
 ##' Extracts various coefficients of MIDAS regression
@@ -276,7 +296,7 @@ predict.midas_sp <- function(object, newdata, na.action = na.omit, ... ) {
 ##' of weight functions associated with MIDAS regression terms. These are the coefficients of the NLS problem associated with MIDAS regression.
 ##' The second is the coefficients of the linear model, i.e  the values of weight
 ##' functions of terms, or so called MIDAS coefficients. By default the function returns the first set of the coefficients.
-##' 
+##'
 ##' @title Extract coefficients of MIDAS regression
 ##' @param object \code{midas_nlpr} object
 ##' @param type one of plain, midas, or nlpr. Returns appropriate coefficients.
@@ -288,34 +308,38 @@ predict.midas_sp <- function(object, newdata, na.action = na.omit, ... ) {
 ##' @rdname coef.midas_sp
 ##' @export
 coef.midas_sp <- function(object, type = c("plain", "midas", "bw"), term_names = NULL, ...) {
-    type <- match.arg(type)
-    if (is.null(term_names) & type == "midas") stop("Please provide a term name to get midas type coefficients")
-    if (is.null(term_names)) {
-        if(type == "bw") {
-            object$coefficients[1:length(object$bws)]
-        }
-        else return(object$coefficients)
-    } else {
-        if (type == "bw") {
-            warning("Bandwith setting is the same for all terms") 
-            coef(object, type = "bw", term_names = NULL)
-        }
-        if (length(setdiff(term_names,names(object$term_info))) > 0) stop("Some of the term names are not present in estimated MIDAS regression")
-        if (type == "plain") {
-            res <- lapply(object$term_info[term_names], function(x) {
-                if (!is.null(x$coef_index)) object$coefficients[x$coef_index]
-            })
-        }  
-        if (type == "midas") {
-            res <- lapply(object$term_info[term_names], function(x) {
-                if (!is.null(x$coef_index))  x$weight(object$coefficients[x$coef_index])
-            })
-        }
-        names(res) <- NULL
-        if (length(res) == 1) return(res[[1]])
-        else return(unlist(res))
-        
+  type <- match.arg(type)
+  if (is.null(term_names) & type == "midas") stop("Please provide a term name to get midas type coefficients")
+  if (is.null(term_names)) {
+    if (type == "bw") {
+      object$coefficients[1:length(object$bws)]
     }
+    else {
+      return(object$coefficients)
+    }
+  } else {
+    if (type == "bw") {
+      warning("Bandwith setting is the same for all terms")
+      coef(object, type = "bw", term_names = NULL)
+    }
+    if (length(setdiff(term_names, names(object$term_info))) > 0) stop("Some of the term names are not present in estimated MIDAS regression")
+    if (type == "plain") {
+      res <- lapply(object$term_info[term_names], function(x) {
+        if (!is.null(x$coef_index)) object$coefficients[x$coef_index]
+      })
+    }
+    if (type == "midas") {
+      res <- lapply(object$term_info[term_names], function(x) {
+        if (!is.null(x$coef_index)) x$weight(object$coefficients[x$coef_index])
+      })
+    }
+    names(res) <- NULL
+    if (length(res) == 1) {
+      return(res[[1]])
+    } else {
+      return(unlist(res))
+    }
+  }
 }
 
 ##' @include midas_r_methods.R
@@ -340,59 +364,62 @@ plot_midas_coef.midas_sp <- plot_midas_coef.midas_nlpr
 ##' @importFrom numDeriv jacobian
 ##' @importFrom stats na.omit approx density
 ##' @export
-plot_sp <- function(x, term_name, title = NULL,  compare = NULL, ... ) {
-    
-    if (length(x$bws) > 1) stop("Plotting is currently supported for univariate non-parametric functions only")
-    ti <- x$term_info[[term_name]]
-    
-    if (ti$term_type != "Z") stop("The term name supplied does not correspond to non-parametric term") 
-    
-    gfun <- function(p) {
-        if(is.null(x$model_matrix_map$X)) { 
-            xi <- 0 
-        } else {
-            xi <- x$model[, x$model_matrix_map$X] %*% x$coef_X(p)
-        }
-        Z <- x$model[, x$model_matrix_map$Z, drop = FALSE]
-        if (is.null(ti$coef_index)) zi <- Z[, ti$midas_coef_index, drop = FALSE]
-        else zi <- Z[, ti$midas_coef_index] %*% ti$weight(p[ti$coef_index])
-        if (ncol(zi) == 1) zi <- as.numeric(zi)
-        u <- x$model[, 1] - xi
-        list(xi = xi, zi = zi, u = u, g = cv_np(u, zi, p[1:length(x$bws)], x$degree))
+plot_sp <- function(x, term_name, title = NULL, compare = NULL, ...) {
+  if (length(x$bws) > 1) stop("Plotting is currently supported for univariate non-parametric functions only")
+  ti <- x$term_info[[term_name]]
+
+  if (ti$term_type != "Z") stop("The term name supplied does not correspond to non-parametric term")
+
+  gfun <- function(p) {
+    if (is.null(x$model_matrix_map$X)) {
+      xi <- 0
+    } else {
+      xi <- x$model[, x$model_matrix_map$X] %*% x$coef_X(p)
     }
-    
-    
-    gg <- gfun(coef(x))
-    
-    kappa <- 0.5/pi # for standard Gaussian kernel
-    dns <- density(gg$zi, na.rm = T) # choose a better bandwith here !!!
-    f_z <- approx(dns$x, dns$y, xout = gg$zi)$y
-    se_np <- sqrt(kappa*deviance(x)/f_z/(exp(coef(x)[1])*x$nobs))
-    
-    
-    ozi <- order(gg$zi)
-    
-    se_npo <- se_np[ozi] 
-    xio <- gg$zi[ozi]
-    trmo <-  gg$g[ozi]
-    pd <- data.frame(xi = xio,  term = trmo, compare = NA, lower = trmo - 1.96*se_npo, upper = trmo + 1.96*se_npo)
-    
-    if (!is.null(compare)) {
-       pd$compare <- compare(pd$xi)
+    Z <- x$model[, x$model_matrix_map$Z, drop = FALSE]
+    if (is.null(ti$coef_index)) {
+      zi <- Z[, ti$midas_coef_index, drop = FALSE]
+    } else {
+      zi <- Z[, ti$midas_coef_index] %*% ti$weight(p[ti$coef_index])
     }
-    
-    ylim <- range(na.omit(c(pd$term,pd$compare, pd$lower, pd$upper)))
-    
-    plot(pd$xi, pd$term, col = "blue", ylab = "Estimated non-parametric function", xlab = "MIDAS aggregate", ylim = ylim, type = "l")
-    
-    points(pd$xi, pd$compare, type = "l", col="black")
-    points(pd$xi, pd$lower, type = "l", col = "grey", lty = 2)
-    points(pd$xi, pd$upper, type = "l", col = "grey", lty = 2)
-    
-    if (is.null(title)) {
-        title(main = paste0("Non-parametric estimate for term ",term_name," with weight: ",ti$weight_name))
-    } else title(main = title) 
-    
-    invisible(pd)
-    
+    if (ncol(zi) == 1) zi <- as.numeric(zi)
+    u <- x$model[, 1] - xi
+    list(xi = xi, zi = zi, u = u, g = cv_np(u, zi, p[1:length(x$bws)], x$degree))
+  }
+
+
+  gg <- gfun(coef(x))
+
+  kappa <- 0.5 / pi # for standard Gaussian kernel
+  dns <- density(gg$zi, na.rm = T) # choose a better bandwith here !!!
+  f_z <- approx(dns$x, dns$y, xout = gg$zi)$y
+  se_np <- sqrt(kappa * deviance(x) / f_z / (exp(coef(x)[1]) * x$nobs))
+
+
+  ozi <- order(gg$zi)
+
+  se_npo <- se_np[ozi]
+  xio <- gg$zi[ozi]
+  trmo <- gg$g[ozi]
+  pd <- data.frame(xi = xio, term = trmo, compare = NA, lower = trmo - 1.96 * se_npo, upper = trmo + 1.96 * se_npo)
+
+  if (!is.null(compare)) {
+    pd$compare <- compare(pd$xi)
+  }
+
+  ylim <- range(na.omit(c(pd$term, pd$compare, pd$lower, pd$upper)))
+
+  plot(pd$xi, pd$term, col = "blue", ylab = "Estimated non-parametric function", xlab = "MIDAS aggregate", ylim = ylim, type = "l")
+
+  points(pd$xi, pd$compare, type = "l", col = "black")
+  points(pd$xi, pd$lower, type = "l", col = "grey", lty = 2)
+  points(pd$xi, pd$upper, type = "l", col = "grey", lty = 2)
+
+  if (is.null(title)) {
+    title(main = paste0("Non-parametric estimate for term ", term_name, " with weight: ", ti$weight_name))
+  } else {
+    title(main = title)
+  }
+
+  invisible(pd)
 }

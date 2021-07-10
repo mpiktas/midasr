@@ -8,18 +8,17 @@
 ##' @seealso midas_r
 ##' @export
 ##' @author Vaidotas Zemlys
-deriv_tests<- function(x,tol=1e-6) UseMethod("deriv_tests")
+deriv_tests <- function(x, tol = 1e-6) UseMethod("deriv_tests")
 
 #' @rdname deriv_tests
 #' @method deriv_tests midas_r
 #' @export
-deriv_tests.midas_r <- function(x,tol=1e-6) {
-    gr <- x$gradient(coef(x))
-    hess <- x$hessian(coef(x))
-    egh <- eigen(hess)$values
+deriv_tests.midas_r <- function(x, tol = 1e-6) {
+  gr <- x$gradient(coef(x))
+  hess <- x$hessian(coef(x))
+  egh <- eigen(hess)$values
 
-    first <- sqrt(sum(gr^2))<tol
-    second <- !any(egh<0) & !any(abs(egh)<tol)
-    list(first=first,second=second,gradient=gr,eigenval=egh)
+  first <- sqrt(sum(gr^2)) < tol
+  second <- !any(egh < 0) & !any(abs(egh) < tol)
+  list(first = first, second = second, gradient = gr, eigenval = egh)
 }
-
