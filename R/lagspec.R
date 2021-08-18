@@ -24,9 +24,11 @@
 ##'
 ##' normalized exponential Almon lag restricts the coefficients \eqn{theta_h} in the following way:
 ##'
-##' \deqn{\theta_{h}=\delta\frac{\exp(\lambda_1(h+1)+\dots+\lambda_r(h+1)^r)}{\sum_{s=0}^d\exp(\lambda_1(s+1)+\dots+\lambda_r(h+1)^r)}}
+##' \deqn{\theta_{h}=\delta\frac{\exp(\lambda_1(h+1)+\dots+
+##' \lambda_r(h+1)^r)}{\sum_{s=0}^d\exp(\lambda_1(s+1)+\dots+\lambda_r(h+1)^r)}}
 ##'
-##' The parameter \eqn{\delta} should be the first element in vector \code{p}. The degree of the polynomial is then decided by the number of the remaining parameters.
+##' The parameter \eqn{\delta} should be the first element in vector \code{p}. The degree of
+##' the polynomial is then decided by the number of the remaining parameters.
 ##' @importFrom stats poly
 ##' @export
 nealmon <- function(p, d, m) {
@@ -41,7 +43,8 @@ nealmon <- function(p, d, m) {
 ##' Suppose a weight function \eqn{w(\beta,\theta)} satisfies the following equation:
 ##' \deqn{w(\beta,\theta)=\beta g(\theta)}
 ##'
-##' The following combinations are defined, corresponding to structure types \code{A}, \code{B} and \code{C} respectively:
+##' The following combinations are defined, corresponding to structure types
+##' \code{A}, \code{B} and \code{C} respectively:
 ##' \deqn{(w(\beta_1,\theta_1),...,w(\beta_k,\theta_k))}
 ##' \deqn{(w(\beta_1,\theta),...,w(\beta_k,\theta))}
 ##' \deqn{\beta(w(1,\theta),...,w(1,\theta)),}
@@ -71,7 +74,7 @@ amweights <- function(p, d, m, weight = nealmon, type = c("A", "B", "C")) {
 
   if (d %% m != 0) stop("Number of high frequency lags should be a multiple of frequency")
   if (type == "A") {
-    return(as.vector(apply(matrix(1:length(p), ncol = hf), 2, function(x) weight(p[x], m, m))))
+    return(as.vector(apply(matrix(seq_len(length(p)), ncol = hf), 2, function(x) weight(p[x], m, m))))
   }
   if (type == "B") {
     theta <- p[-1:-hf]
@@ -130,7 +133,8 @@ nbeta_gradient <- function(p, d, m) {
 
 ##' Normalized beta probability density function MIDAS weights specification (MATLAB toolbox compatible)
 ##'
-##' Calculate MIDAS weights according to normalized beta probability density function specification. Compatible with the specification in MATLAB toolbox.
+##' Calculate MIDAS weights according to normalized beta probability density function specification.
+##' Compatible with the specification in MATLAB toolbox.
 ##' @param p parameters for normalized beta probability density function
 ##' @param d number of coefficients
 ##' @param m the frequency ratio, currently ignored
@@ -142,7 +146,7 @@ nbetaMT <- function(p, d, m) {
   xi <- (1:d - 1) / (d - 1)
   xi[1] <- xi[1] + eps
   xi[d] <- xi[d] - eps
-  nb <- xi^(p[2] - 1) * (1 - xi)^(p[3] - 1)
+  nb <- xi^(p[2] - 1) * (1 - xi)^(p[3] - 1) #nolint
   if (sum(nb) < eps) {
     if (abs(p[4]) < eps) {
       rep(0, d)
@@ -155,7 +159,8 @@ nbetaMT <- function(p, d, m) {
   }
 }
 
-##' Gradient function for normalized beta probability density function MIDAS weights specification (MATLAB toolbox compatible)
+##' Gradient function for normalized beta probability density function MIDAS weights specification
+##' (MATLAB toolbox compatible)
 ##'
 ##' Calculate gradient function for normalized beta probability density function specification of MIDAS weights.
 ##' @param p parameters for normalized beta probability density function
@@ -169,7 +174,7 @@ nbetaMT_gradient <- function(p, d, m) {
   xi <- (1:d - 1) / (d - 1)
   xi[1] <- xi[1] + eps
   xi[d] <- xi[d] - eps
-  nb <- xi^(p[2] - 1) * (1 - xi)^(p[3] - 1)
+  nb <- xi^(p[2] - 1) * (1 - xi)^(p[3] - 1) #nolint
   snb <- sum(nb)
   wnb <- 1 + d * p[4]
   if (snb > eps) {
@@ -301,7 +306,7 @@ gompertzp_gradient <- function(p, d, m) {
 ##' @export
 nakagamip <- function(p, d, m) {
   i <- 1:d / d
-  ng <- i^(2 * p[2] - 1) * exp(-p[2] / p[3] * i^2)
+  ng <- i^(2 * p[2] - 1) * exp(-p[2] / p[3] * i^2) #nolint
   p[1] * ng / sum(ng)
 }
 
@@ -316,7 +321,7 @@ nakagamip <- function(p, d, m) {
 ##' @export
 nakagamip_gradient <- function(p, d, m) {
   i <- 1:d / d
-  ng <- i^(2 * p[2] - 1) * exp(-p[2] / p[3] * i^2)
+  ng <- i^(2 * p[2] - 1) * exp(-p[2] / p[3] * i^2) #nolint
   dp2 <- ((2 * log(i) * p[3] - i^2) / p[3]) * ng
   dp3 <- (p[2] * i^2 / p[3]^2) * ng
   cbind(
@@ -362,14 +367,16 @@ lcauchyp_gradient <- function(p, d, m) {
 
 ##' HAR(3)-RV model MIDAS weights specification
 ##'
-##' MIDAS weights for Heterogeneous Autoregressive model of Realized Volatilty (HAR-RV). It is assumed that month has 20 days.
+##' MIDAS weights for Heterogeneous Autoregressive model of Realized Volatilty (HAR-RV).
+##' It is assumed that month has 20 days.
 ##' @title HAR(3)-RV model MIDAS weights specification
 ##' @param p parameters for Almon lag
 ##' @param d number of the coefficients
 ##' @param m the frequency, currently ignored.
 ##' @return vector of coefficients
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
-##' @references Corsi, F., \emph{A Simple Approximate Long-Memory Model of Realized Volatility}, Journal of Financial Econometrics Vol. 7 No. 2 (2009) 174-196
+##' @references Corsi, F., \emph{A Simple Approximate Long-Memory Model of Realized Volatility},
+##' Journal of Financial Econometrics Vol. 7 No. 2 (2009) 174-196
 ##' @export
 harstep <- function(p, d, m) {
   if (d != 20) stop("HAR(3)-RV process requires 20 lags")
@@ -381,14 +388,16 @@ harstep <- function(p, d, m) {
 }
 ##' Gradient function for HAR(3)-RV model MIDAS weights specification
 ##'
-##' MIDAS weights for Heterogeneous Autoregressive model of Realized Volatilty (HAR-RV). It is assumed that month has 20 days.
+##' MIDAS weights for Heterogeneous Autoregressive model of Realized Volatilty (HAR-RV).
+##' It is assumed that month has 20 days.
 ##' @title Gradient function for HAR(3)-RV model MIDAS weights specification
 ##' @param p parameters for Almon lag
 ##' @param d number of the coefficients
 ##' @param m the frequency, currently ignored.
 ##' @return vector of coefficients
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
-##' @references Corsi, F., \emph{A Simple Approximate Long-Memory Model of Realized Volatility}, Journal of Financial Econometrics Vol. 7 No. 2 (2009) 174-196
+##' @references Corsi, F., \emph{A Simple Approximate Long-Memory Model of Realized Volatility},
+##' Journal of Financial Econometrics Vol. 7 No. 2 (2009) 174-196
 ##' @export
 harstep_gradient <- function(p, d, m) {
   if (d != 20) stop("HAR(3)-RV process requires 20 lags")
@@ -415,7 +424,8 @@ harstep_gradient <- function(p, d, m) {
 #' @return a vector of coefficients
 #' @export
 #' @author Virmantas Kvedaras, Vaidotas Zemlys
-#' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254
+#' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on
+#' parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254
 genexp <- function(p, d, m) {
   i <- (1:d - 1) / 100
   pol <- p[3] * i + p[4] * i^2
@@ -437,7 +447,8 @@ genexp <- function(p, d, m) {
 #' @return a vector of coefficients
 #' @export
 #' @author Virmantas Kvedaras, Vaidotas Zemlys
-#' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in regressions with variables of different frequency} Economics Letters 116 (2012) 250-254
+#' @references Kvedaras V., Zemlys, V. \emph{Testing the functional constraints on parameters in
+#' regressions with variables of different frequency} Economics Letters 116 (2012) 250-254
 genexp_gradient <- function(p, d, m) {
   i <- (1:d - 1) / 100
   pol <- p[3] * i + p[4] * i^2
@@ -468,7 +479,7 @@ is_weight_normalized <- function(wf, init, chk = rnorm(5), tol = 1e-8, nc = 1) {
 }
 
 find_normalisation_coefficient <- function(wf, init) {
-  tst <- lapply(1:length(init), function(i) try(is_weight_normalized(wf, init, nc = i)))
+  tst <- lapply(seq_len(length(init)), function(i) try(is_weight_normalized(wf, init, nc = i)))
   tst <- sapply(tst, function(l) if (inherits(l, "try-error")) {
     return(FALSE)
   } else {
