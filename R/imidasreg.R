@@ -4,14 +4,20 @@
 ##'
 ##' @param formula formula for restricted MIDAS regression. Formula must include \code{\link{fmls}} function
 ##' @param data a named list containing data with mixed frequencies
-##' @param start the starting values for optimisation. Must be a list with named elements.
-##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are the arguments passed to this function. The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
-##' @param weight_gradients a named list containing gradient functions of weights. The weight gradient function must return the matrix with dimensions
-##' \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the number of coefficients in unrestricted and restricted regressions correspondingly.
+##' @param start the starting values for optimisation. Must be a list with named elements
+##' @param Ofunction the list with information which R function to use for optimisation
+##' The list must have element named \code{Ofunction} which contains character string of chosen R
+##' function. Other elements of the list are the arguments passed to this function.
+##' The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}.
+##' Other supported functions are \code{\link{nls}}
+##' @param weight_gradients a named list containing gradient functions of weights. The weight gradient
+##' function must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q}
+##' are the number of coefficients in unrestricted and restricted regressions correspondingly.
 ##' The names of the list should coincide with the names of weights used in formula.
-##' The default value is NULL, which means that the numeric approximation of weight function gradient is calculated. If the argument is not NULL, but the
-##' name of the weight used in formula is not present, it is assumed that there exists an R function which has
-##' the name of the weight function appended with \code{.gradient}.
+##' The default value is NULL, which means that the numeric approximation of weight
+##' function gradient is calculated. If the argument is not NULL, but the weight
+##' used in formula is not present, it is assumed that there exists an R
+##' function which has the name of the weight function appended with \code{.gradient}.
 ##' @param ... additional arguments supplied to optimisation function
 ##' @return a \code{midas_r} object which is the list with the following elements:
 ##'
@@ -19,12 +25,14 @@
 ##' \item{midas_coefficients}{the estimates of MIDAS coefficients of MIDAS regression}
 ##' \item{model}{model data}
 ##' \item{unrestricted}{unrestricted regression estimated using \code{\link{midas_u}}}
-##' \item{term_info}{the named list. Each element is a list with the information about the term, such as its frequency, function for weights, gradient function of weights, etc.}
+##' \item{term_info}{the named list. Each element is a list with the information about the term,
+##' such as its frequency, function for weights, gradient function of weights, etc.}
 ##' \item{fn0}{optimisation function for non-linear least squares problem solved in restricted MIDAS regression}
 ##' \item{rhs}{the function which evaluates the right-hand side of the MIDAS regression}
 ##' \item{gen_midas_coef}{the function which generates the MIDAS coefficients of MIDAS regression}
 ##' \item{opt}{the output of optimisation procedure}
-##' \item{argmap_opt}{the list containing the name of optimisation function together with arguments for optimisation function}
+##' \item{argmap_opt}{the list containing the name of optimisation function together with arguments
+##' for optimisation function}
 ##' \item{start_opt}{the starting values used in optimisation}
 ##' \item{start_list}{the starting values as a list}
 ##' \item{call}{the call to the function}
@@ -32,7 +40,7 @@
 ##' \item{gradient}{gradient of NLS objective function}
 ##' \item{hessian}{hessian of NLS objective function}
 ##' \item{gradD}{gradient function of MIDAS weight functions}
-##' \item{Zenv}{the environment in which data is placed}
+##' \item{z_env}{the environment in which data is placed}
 ##' \item{use_gradient}{TRUE if user supplied gradient is used, FALSE otherwise}
 ##' \item{nobs}{the number of effective observations}
 ##' \item{convergence}{the convergence message}
@@ -66,9 +74,11 @@
 ##' estimate the parameters of the restriction
 ##'
 ##' \deqn{\theta_h=g(h,\lambda),}
-##' where \eqn{h=0,...,(k+1)m}, together with coefficients \eqn{\beta} corresponding to additional low frequency regressors.
+##' where \eqn{h=0,...,(k+1)m}, together with coefficients \eqn{\beta} corresponding to additional
+##' low frequency regressors.
 ##'
-##' It is assumed that \eqn{x} is a I(1) process, hence the special transformation is made. After the transformation \link{midas_r} is used for estimation.
+##' It is assumed that \eqn{x} is a I(1) process, hence the special transformation is made.
+##' After the transformation \link{midas_r} is used for estimation.
 ##'
 ##' MIDAS regression involves times series with different frequencies.
 ##'
@@ -77,14 +87,14 @@
 ##'
 ##' @export
 imidas_r <- function(formula, data, start, Ofunction = "optim", weight_gradients = NULL, ...) {
-  Zenv <- new.env(parent = environment(formula))
+  z_env <- new.env(parent = environment(formula))
 
   mt <- terms(formula(formula), specials = "fmls")
 
 
   if (missing(data)) {
     nms <- all.vars(mt)
-    insample <- lapply(nms, function(nm) eval(as.name(nm), Zenv))
+    insample <- lapply(nms, function(nm) eval(as.name(nm), z_env))
     names(insample) <- nms
     insample <- insample[!sapply(insample, is.function)]
   }
@@ -104,55 +114,51 @@ imidas_r <- function(formula, data, start, Ofunction = "optim", weight_gradients
   insample <- c(list(insample[[xname]]), insample)
   names(insample)[1] <- ".Level"
 
-  assign(".IMIDASdata", insample, envir = Zenv)
+  assign(".IMIDASdata", insample, envir = z_env)
 
   wf <- fr[-4:-5]
   wf[[1]] <- fr[[5]]
   for (j in 3:length(wf)) {
-    wf[[j]] <- eval(wf[[j]], Zenv)
+    wf[[j]] <- eval(wf[[j]], z_env)
   }
   wf[[3]] <- wf[[3]] + 1
   pp <- function(p, d) {
     wf[[2]] <- p
-    r <- eval(wf, Zenv)
+    r <- eval(wf, z_env)
     cumsum(r)[1:d]
   }
   mfg <- wf
   mfg[[1]] <- as.name(paste(as.character(wf[[1]]), "gradient", sep = "."))
   pp.gradient <- function(p, d) {
     mfg[[2]] <- p
-    r <- eval(mfg, Zenv)
+    r <- eval(mfg, z_env)
     apply(r, 2, cumsum)[1:d, ]
   }
 
-  formula <- expandfmls(formula(formula), "pp", Zenv, 0)
+  formula <- expandfmls(formula(formula), "pp", z_env, 0)
   cl <- match.call(expand.dots = TRUE)
   cl <- cl[names(cl) != "model"]
 
-  assign("pp", pp, Zenv)
-  assign("pp.gradient", pp.gradient, Zenv)
-  environment(formula) <- Zenv
+  assign("pp", pp, z_env)
+  assign("pp.gradient", pp.gradient, z_env)
+  environment(formula) <- z_env
   cl[[2]] <- formula
   cl[[1]] <- as.name("midas_r")
   cl$data <- as.name(".IMIDASdata")
-  res <- eval(cl, Zenv)
+  res <- eval(cl, z_env)
   class(res) <- c(class(res), "imidas_r")
   return(res)
 }
 
-## @method update imidas_r
-## @export
-# update.imidas_r <- update.midas_r
-
 ## Function for expanding the formula in I(1) case
-expandfmls <- function(expr, wfun, Zenv, diff = 0, truncate = FALSE) {
+expandfmls <- function(expr, wfun, z_env, diff = 0, truncate = FALSE) {
   if (length(expr) == 3) {
-    expr[[2]] <- expandfmls(expr[[2]], wfun, Zenv, diff, truncate)
-    expr[[3]] <- expandfmls(expr[[3]], wfun, Zenv, diff, truncate)
+    expr[[2]] <- expandfmls(expr[[2]], wfun, z_env, diff, truncate)
+    expr[[3]] <- expandfmls(expr[[3]], wfun, z_env, diff, truncate)
   }
   if (length(expr) == 5) {
     if (expr[[1]] == as.name("fmls")) {
-      rr <- modifyfmls(expr, wfun, Zenv, diff)
+      rr <- modifyfmls(expr, wfun, z_env, diff)
       if (truncate) {
         return(rr[[2]])
       }
@@ -168,12 +174,12 @@ expandfmls <- function(expr, wfun, Zenv, diff = 0, truncate = FALSE) {
 }
 
 ## Substitute fmls with dmls
-modifyfmls <- function(expr, wfun, Zenv, diff) {
+modifyfmls <- function(expr, wfun, z_env, diff) {
   res <- expression(a + b)[[1]]
   t2 <- expression(mls(x, a, b))[[1]]
-  nol <- eval(expr[[3]], Zenv)
+  nol <- eval(expr[[3]], z_env)
   expr[[3]] <- nol + diff
-  m <- eval(expr[[4]], Zenv)
+  m <- eval(expr[[4]], z_env)
   expr[[1]] <- as.name("dmls")
   t2[[2]] <- as.name(".Level")
   t2[[3]] <- nol + 1 + diff

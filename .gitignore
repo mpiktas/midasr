@@ -1,0 +1,31 @@
+*.Rhistory
+#Ignore main .RData 
+*.RData
+#Ignore all R transcript files
+*.R~
+*.Rt
+#Ignore some picture files
+*.jpg
+*.ps
+#*.html
+#Ignore emacs and vim temporary files
+*.swp
+*.swo
+.#*
+*#
+#Ignore Apple files
+.DS_Store
+#Ignore tex output files
+*.log
+*.eps
+*.aux
+*.toc
+*.out
+*.gz
+#Ignore output
+#output/*
+*~
+
+##Ignore .gitignore
+.Rproj.user
+tags

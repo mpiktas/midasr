@@ -1,6 +1,7 @@
 ##' Check whether non-linear least squares restricted MIDAS regression problem has converged
 ##'
-##' Computes the gradient and hessian of the optimisation function of restricted MIDAS regression and checks whether the conditions of local optimum are met. Numerical estimates are used.
+##' Computes the gradient and hessian of the optimisation function of restricted MIDAS regression and
+##' checks whether the conditions of local optimum are met. Numerical estimates are used.
 ##' @param x \code{\link{midas_r}} object
 ##' @param tol a tolerance, values below the tolerance are considered zero
 ##' @return a list with gradient, hessian of optimisation function and convergence message

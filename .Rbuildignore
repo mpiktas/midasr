@@ -5,3 +5,5 @@
 ^\.travis\.yml$
 ^\.github$
 .lintr
+.pre-commit-config.yaml
+tags
