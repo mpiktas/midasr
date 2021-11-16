@@ -519,8 +519,14 @@ point_forecast.midas_r <- function(object, newdata = NULL, method = c("static", 
 
   outsample <- outsample[intersect(names(outsample), names(freqinfo))]
   firstno <- names(outsample)[1]
+  
+  if (is.na(freqinfo[firstno])) {
+    h<-length(outsample[[firstno]])/length(object$term_info[[firstno]]$coef_index)
+  }
+  else { 
+    h <- length(outsample[[firstno]]) %/% freqinfo[firstno]
+    }
 
-  h <- length(outsample[[firstno]]) %/% freqinfo[firstno]
 
   if (method == "static") {
     res <- static_forecast(object, h, insample, outsample, yname)
