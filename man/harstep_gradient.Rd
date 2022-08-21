@@ -20,10 +20,12 @@ vector of coefficients
 Gradient function for HAR(3)-RV model MIDAS weights specification
 }
 \details{
-MIDAS weights for Heterogeneous Autoregressive model of Realized Volatilty (HAR-RV). It is assumed that month has 20 days.
+MIDAS weights for Heterogeneous Autoregressive model of Realized Volatilty (HAR-RV).
+It is assumed that month has 20 days.
 }
 \references{
-Corsi, F., \emph{A Simple Approximate Long-Memory Model of Realized Volatility}, Journal of Financial Econometrics Vol. 7 No. 2 (2009) 174-196
+Corsi, F., \emph{A Simple Approximate Long-Memory Model of Realized Volatility},
+Journal of Financial Econometrics Vol. 7 No. 2 (2009) 174-196
 }
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys

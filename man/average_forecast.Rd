@@ -44,7 +44,7 @@ Given the data, split it to in-sample and out-of-sample data. Then given the lis
 The forecasts can be produced in 3 ways. The \code{"fixed"} forecast uses model estimated with in-sample data. The \code{"rolling"} forecast reestimates model each time by increasing the in-sample by one low frequency observation and dropping the first low frequency observation. These reestimated models then are used to produce out-of-sample forecasts. The \code{"recursive"} forecast differs from \code{"rolling"} that it does not drop observations from the beginning of data.
 }
 \examples{
-set.seed(1001)  
+set.seed(1001)
 ## Number of low-frequency observations
 n<-250
 ## Linear trend and higher-frequency explanatory variables (e.g. quarterly and monthly)
@@ -65,7 +65,7 @@ mod2 <- midas_r(y ~ trend + mls(x, 4:20, 4, nealmon) + mls(z, 12:25, 12, nealmon
 avgf <- average_forecast(list(mod1,mod2),
                         data=list(y=y,x=x,z=z,trend=trend),
                         insample=1:200,outsample=201:250,
-                        type="fixed",                            
+                        type="fixed",
                         measures=c("MSE","MAPE","MASE"),
                         fweights=c("EW","BICW","MSFE","DMSFE"))
 }

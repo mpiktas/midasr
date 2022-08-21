@@ -16,7 +16,9 @@ a boolean TRUE, if mixed frequency data is conformable, FALSE if it is not.
 Given mixed frequency data check whether higher frequency data can be converted to the lowest frequency.
 }
 \details{
-The number of observations in higher frequency data elements should have a common divisor with the number of observations in response variable. It is always assumed that the response variable is of the lowest frequency.
+The number of observations in higher frequency data elements should have a common divisor
+ with the number of observations in response variable. It is always assumed that the response variable
+ is of the lowest frequency.
 }
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys

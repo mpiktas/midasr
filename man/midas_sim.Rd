@@ -30,7 +30,7 @@ MIDAS regression with one predictor variable has the following form:
 
 \deqn{y_t=\sum_{j=0}^{h}\theta_jx_{tm-j}+u_t,}
 where \eqn{m} is the frequency ratio and
-\eqn{h} is the number of high frequency lags included in the regression. 
+\eqn{h} is the number of high frequency lags included in the regression.
 
 MIDAS regression involves times series with different frequencies. In R
 the frequency property is set when creating time series objects

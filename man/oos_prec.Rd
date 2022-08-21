@@ -36,7 +36,7 @@ The code in the example generates the out-of-sample prediction precision data fo
 
 ## rep1 <- function(n) {
 ##     dt <- gendata(round(1.25*n))
-##     ni <- n    
+##     ni <- n
 ##     ind <- 1:ni
 ##     mind <- 1:(ni*12)
 ##     indt<-list(y=dt$y[ind],z=dt$z[mind],trend=dt$trend[ind])

@@ -22,7 +22,7 @@ a matrix containing the lags
 Create a matrix of MIDAS lags, including contemporaneous lag up to selected order.
 }
 \details{
-This is a convenience function, it calls \code{link{msl}} to perform actual calculations.
+This is a convenience function, it calls \code{link{mls}} to perform actual calculations.
 }
 \seealso{
 mls
