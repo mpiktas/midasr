@@ -142,14 +142,16 @@ check_mixfreq <- function(data) {
 #' # Example with zooreg
 #'
 #' # Convert x to zooreg object using yearmon time index
-#' xz <- as.zooreg(x)
+#' \dontrun{
+#' xz <- zoo::as.zooreg(x)
 #'
-#' yz <- zoo(as.numeric(y), order.by = as.Date(paste0(1980 + 0:11, "-01-01")))
+#' yz <- zoo::zoo(as.numeric(y), order.by = as.Date(paste0(1980 + 0:11, "-01-01")))
 #'
 #' # Heuristic works here
 #' m3 <- mlsd(xz, 0:5, yz)
 #'
 #' sum(abs(m3 - m1))
+#' }
 mlsd <- function(x, k, y, ...) {
   datex <- get_datex(x)
 
@@ -219,62 +221,4 @@ get_datey.zoo <- function(datey, datex) {
     if (datex[1] < left) left <- datex[1]
     return(c(left, datey_p, right))
   }
-}
-
-mlsd_old <- function(x, k, datey, ...) {
-  datex <- NULL
-  if (inherits(x, "ts")) datex <- time(x)
-  if (inherits(x, "zoo") | inherits(x, "xts")) datex <- index(x)
-
-  x <- as.numeric(x)
-  if (is.null(datex)) datex <- seq_len(length(x))
-
-  if (length(x) != length(datex)) stop("The date vector for high frequency data must be the same length as a data")
-
-  ## We always assume that if we observe data for low frequency period
-  ## the high frequency data is observed until the end of that period.
-  ## We build the indexes of the high frequency observations.
-  ## For that we need to capture all the x observations, hence the minimum period
-  ## must be the minimum x period.
-  ## The max period needs to be the next period after the maximum datey period.
-  ## If there is any data which falls into first period, we can discard it.
-
-  if (inherits(datey, "ts")) {
-    datey0 <- datey
-    left <- min(time(lag(datey, 1)))
-    right <- max(time(lag(datey, -1)))
-    if (min(datex) < left) left <- min(datex)
-    datey <- c(left, time(datey), right) - 0.001
-    datey0 <- time(datey0) - 0.001
-  } else {
-    if (inherits(datey, "zoo") | inherits(datey, "xts")) {
-      datey <- index(datey)
-    }
-    datey0 <- datey
-    left <- datey[1] - (datey[2] - datey[1])
-    if (min(datex) < left) left <- min(datex)
-    nd <- length(datey)
-    right <- datey[nd] + (datey[nd] - datey[nd - 1])
-    datey <- c(left, datey, right)
-  }
-
-
-  ct <- cut(datex, datey, right = FALSE, labels = FALSE, include.lowest = TRUE)
-  tct <- table(ct)
-  uct <- unique(ct)
-  nuct <- na.omit(uct)
-
-  # We do not need the first period, but sometimes it is matched.
-  # In that case it is dropped.
-  id <- match(2:(length(datey) - 1), nuct)
-
-  fhx <- function(h.x) {
-    id <- h.x - k
-    id[id <= 0] <- NA
-    x[id]
-  }
-  XX <- lapply(cumsum(tct), fhx)
-  X <- do.call("rbind", XX)
-  colnames(X) <- paste("X", k, sep = ".")
-  X[id, ]
 }
