@@ -17,7 +17,7 @@ midas_sp(formula, data, bws, start, degree = 1, Ofunction = "optim", ...)
 
 \item{degree}{the degree of local polynomial. 0 corresponds to local-constant, 1 local-linear. For univariate models higher values can be provided.}
 
-\item{Ofunction}{the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen 
+\item{Ofunction}{the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen
 R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link{optim}} with arguments
  \code{method="Nelder-Mead"} and \code{control=list(maxit=5000)}. Other supported functions are \code{\link{nls}}, \code{\link{optimx}}.}
 
@@ -42,7 +42,7 @@ a \code{midas_sp} object which is the list with the following elements:
 \item{terms}{terms object}
 \item{gradient}{gradient of NLS objective function}
 \item{hessian}{hessian of NLS objective function}
-\item{gradD}{gradient function of MIDAS weight functions} 
+\item{gradD}{gradient function of MIDAS weight functions}
 \item{Zenv}{the environment in which data is placed}
 \item{nobs}{the number of effective observations}
 \item{convergence}{the convergence message}

@@ -70,7 +70,7 @@ mr <- midas_r(y~fmls(x,4*12-1,12,theta_h0)-1,
               start=list(x=c(-0.1,0.1,-0.1,-0.001)),
               weight_gradients=list())
 
-##Use exact gradient. Note the 
+##Use exact gradient. Note the
 hAhr_test(mr)
 
 }

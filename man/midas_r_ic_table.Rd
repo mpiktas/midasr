@@ -59,7 +59,7 @@ y <- diff(log(USrealgdp))
 x <- window(diff(USunempr),start=1949)
 trend <- 1:length(y)
 
- 
+
 mwlr <- midas_r_ic_table(y~trend+fmls(x,12,12,nealmon),
                    table=list(x=list(weights=
                    as.list(c("nealmon","nealmon","nbeta")),

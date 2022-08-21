@@ -4,36 +4,61 @@
 \alias{mlsd}
 \title{MIDAS lag structure with dates}
 \usage{
-mlsd(x, k, datey, ...)
+mlsd(x, k, y, ...)
 }
 \arguments{
-\item{x}{a vector}
+\item{x}{a vector, of high frequency time series. Must be zoo or ts object}
 
 \item{k}{lags, a vector}
 
-\item{datey}{low frequency dates}
+\item{y}{a vector of low frequency time series. Must be zoo or ts object}
 
 \item{...}{further arguments used in fitting MIDAS regression}
 }
 \value{
-a matrix containing the first differences and the lag k+1.
+a matrix containing the lags
 }
 \description{
 MIDAS lag structure with dates
 }
+\details{
+High frequency time series is aligned with low frequency time series using date information.
+Then the high frequency lags are calculated.
+
+To align the time series the low frequency series index
+needs to be extended by one low frequency period into the past and into the future. If supplied time series
+object does not support extending time index, a simple heuristic is used.
+
+It is expected that time index for zoo objects can be converted to POSIXct format.
+}
 \examples{
-x <- c(1:144)
-y <- c(1:12)
-datey <- (y-1)*12+1
 
-#msld and mls should give the same results
+# Example with ts objects
+x <- ts(c(1:144), start = c(1980, 1), frequency = 12)
+y <- ts(c(1:12), start = 1980, frequency = 1)
 
-m1 <- mlsd(x, 0:5, datey)
+
+# msld and mls should give the same results
+
+m1 <- mlsd(x, 0:5, y)
 
 m2 <- mls(x, 0:5, 12)
 
 sum(abs(m1 - m2))
 
+# Example with zooreg
+
+# Convert x to zooreg object using yearmon time index
+\dontrun{
+xz <- zoo::as.zooreg(x)
+
+yz <- zoo::zoo(as.numeric(y), order.by = as.Date(paste0(1980 + 0:11, "-01-01")))
+
+# Heuristic works here
+m3 <- mlsd(xz, 0:5, yz)
+
+sum(abs(m3 - m1))
+}
 }
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys-Balevičius

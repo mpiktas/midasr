@@ -17,7 +17,8 @@ nbetaMT(p, d, m)
 vector of coefficients
 }
 \description{
-Calculate MIDAS weights according to normalized beta probability density function specification. Compatible with the specification in MATLAB toolbox.
+Calculate MIDAS weights according to normalized beta probability density function specification.
+Compatible with the specification in MATLAB toolbox.
 }
 \author{
 Virmantas Kvedaras, Vaidotas Zemlys

@@ -30,7 +30,7 @@ midas_qr(
 \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the number of coefficients in unrestricted and restricted regressions correspondingly.
 The names of the list should coincide with the names of weights used in formula.
 The default value is NULL, which means that the numeric approximation of weight function gradient is calculated. If the argument is not NULL, but the
-name of the weight used in formula is not present, it is assumed that there exists an R function which has  
+name of the weight used in formula is not present, it is assumed that there exists an R function which has
 the name of the weight function appended with \code{_gradient}.}
 
 \item{guess_start, }{logical, if TRUE tries certain strategy to improve starting values}
@@ -56,7 +56,7 @@ a \code{midas_r} object which is the list with the following elements:
 \item{terms}{terms object}
 \item{gradient}{gradient of NLS objective function}
 \item{hessian}{hessian of NLS objective function}
-\item{gradD}{gradient function of MIDAS weight functions} 
+\item{gradD}{gradient function of MIDAS weight functions}
 \item{Zenv}{the environment in which data is placed}
 \item{use_gradient}{TRUE if user supplied gradient is used, FALSE otherwise}
 \item{nobs}{the number of effective observations}
@@ -95,7 +95,7 @@ x <- window(xx, start=start(y))
 mr <- midas_qr(y~fmls(x,4*12-1,12,theta_h0), tau = c(0.1, 0.5, 0.9),
               list(y=y,x=x),
               start=list(x=c(-0.1,10,-10,-10)))
-              
+
 mr
 }
 \author{

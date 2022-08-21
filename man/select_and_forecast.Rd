@@ -67,7 +67,7 @@ Divide data into in-sample and out-of-sample. Fit different forecasting horizons
 }
 \examples{
 ### Sets a seed for RNG ###
-set.seed(1001)  
+set.seed(1001)
 ## Number of low-frequency observations
 n<-250
 ## Linear trend and higher-frequency explanatory variables (e.g. quarterly and monthly)
