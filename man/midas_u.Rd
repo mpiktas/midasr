@@ -24,7 +24,7 @@ MIDAS regression has the following form:
 
 \deqn{y_t = \sum_{j=1}^p\alpha_jy_{t-j} +\sum_{i=0}^{k}\sum_{j=0}^{l_i}\beta_{j}^{(i)}x_{tm_i-j}^{(i)} + u_t,}
 
-where \eqn{x_\tau^{(i)}}, \eqn{i=0,...k} are regressors of higher (or similar) frequency than \eqn{y_t}. 
+where \eqn{x_\tau^{(i)}}, \eqn{i=0,...k} are regressors of higher (or similar) frequency than \eqn{y_t}.
 Given certain assumptions the coefficients can be estimated using usual OLS and they have the familiar properties associated with simple linear regression.
 }
 \examples{

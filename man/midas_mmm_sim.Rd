@@ -46,19 +46,22 @@ Simulate MMM MIDAS regression model
 }
 \examples{
 
-nnbeta <- function(p, k) nbeta(c(1,p),k)
+nnbeta <- function(p, k) nbeta(c(1, p), k)
 
-dgp <- midas_mmm_sim(250, m = 12, theta = nnbeta(c(2, 4), 24), 
-                           intercept = c(1), pmmm = c(1.5, 1), 
-                           ar.x = 0.9, ar.y = 0.5, n.start = 100)
+dgp <- midas_mmm_sim(250,
+  m = 12, theta = nnbeta(c(2, 4), 24),
+  intercept = c(1), pmmm = c(1.5, 1),
+  ar.x = 0.9, ar.y = 0.5, n.start = 100
+)
+
 z <- cbind(1, mls(dgp$y, 1:2, 1))
 colnames(z) <- c("Intercept", "y1", "y2")
 X <- mls(dgp$x, 0:23, 12)
 
-mmm_mod <- midas_mmm_plain(dgp$y, X, z, nnbeta, 
-                          start_mmm = c(1.5, 1), 
-                          start_x = c(2, 4), start_z=c(1, 0.5, 0)) 
+mmm_mod <- midas_mmm_plain(dgp$y, X, z, nnbeta,
+  start_mmm = c(1.5, 1),
+  start_x = c(2, 4), start_z = c(1, 0.5, 0)
+)
 
 coef(mmm_mod)
-
 }

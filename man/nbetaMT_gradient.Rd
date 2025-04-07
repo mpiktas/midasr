@@ -2,7 +2,8 @@
 % Please edit documentation in R/lagspec.R
 \name{nbetaMT_gradient}
 \alias{nbetaMT_gradient}
-\title{Gradient function for normalized beta probability density function MIDAS weights specification (MATLAB toolbox compatible)}
+\title{Gradient function for normalized beta probability density function MIDAS weights specification
+(MATLAB toolbox compatible)}
 \usage{
 nbetaMT_gradient(p, d, m)
 }

@@ -18,16 +18,22 @@ imidas_r(
 
 \item{data}{a named list containing data with mixed frequencies}
 
-\item{start}{the starting values for optimisation. Must be a list with named elements.}
+\item{start}{the starting values for optimisation. Must be a list with named elements}
 
-\item{Ofunction}{the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are the arguments passed to this function. The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}}
+\item{Ofunction}{the list with information which R function to use for optimisation
+The list must have element named \code{Ofunction} which contains character string of chosen R
+function. Other elements of the list are the arguments passed to this function.
+The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}.
+Other supported functions are \code{\link{nls}}}
 
-\item{weight_gradients}{a named list containing gradient functions of weights. The weight gradient function must return the matrix with dimensions
-\eqn{d_k \times q}, where \eqn{d_k} and \eqn{q} are the number of coefficients in unrestricted and restricted regressions correspondingly.
+\item{weight_gradients}{a named list containing gradient functions of weights. The weight gradient
+function must return the matrix with dimensions \eqn{d_k \times q}, where \eqn{d_k} and \eqn{q}
+are the number of coefficients in unrestricted and restricted regressions correspondingly.
 The names of the list should coincide with the names of weights used in formula.
-The default value is NULL, which means that the numeric approximation of weight function gradient is calculated. If the argument is not NULL, but the
-name of the weight used in formula is not present, it is assumed that there exists an R function which has  
-the name of the weight function appended with \code{.gradient}.}
+The default value is NULL, which means that the numeric approximation of weight
+function gradient is calculated. If the argument is not NULL, but the weight
+used in formula is not present, it is assumed that there exists an R
+function which has the name of the weight function appended with \code{.gradient}.}
 
 \item{...}{additional arguments supplied to optimisation function}
 }
@@ -38,20 +44,22 @@ a \code{midas_r} object which is the list with the following elements:
 \item{midas_coefficients}{the estimates of MIDAS coefficients of MIDAS regression}
 \item{model}{model data}
 \item{unrestricted}{unrestricted regression estimated using \code{\link{midas_u}}}
-\item{term_info}{the named list. Each element is a list with the information about the term, such as its frequency, function for weights, gradient function of weights, etc.}
+\item{term_info}{the named list. Each element is a list with the information about the term,
+such as its frequency, function for weights, gradient function of weights, etc.}
 \item{fn0}{optimisation function for non-linear least squares problem solved in restricted MIDAS regression}
 \item{rhs}{the function which evaluates the right-hand side of the MIDAS regression}
 \item{gen_midas_coef}{the function which generates the MIDAS coefficients of MIDAS regression}
 \item{opt}{the output of optimisation procedure}
-\item{argmap_opt}{the list containing the name of optimisation function together with arguments for optimisation function}
+\item{argmap_opt}{the list containing the name of optimisation function together with arguments
+for optimisation function}
 \item{start_opt}{the starting values used in optimisation}
 \item{start_list}{the starting values as a list}
 \item{call}{the call to the function}
 \item{terms}{terms object}
 \item{gradient}{gradient of NLS objective function}
 \item{hessian}{hessian of NLS objective function}
-\item{gradD}{gradient function of MIDAS weight functions} 
-\item{Zenv}{the environment in which data is placed}
+\item{gradD}{gradient function of MIDAS weight functions}
+\item{z_env}{the environment in which data is placed}
 \item{use_gradient}{TRUE if user supplied gradient is used, FALSE otherwise}
 \item{nobs}{the number of effective observations}
 \item{convergence}{the convergence message}
@@ -69,11 +77,13 @@ Given MIDAS regression:
 estimate the parameters of the restriction
 
 \deqn{\theta_h=g(h,\lambda),}
-where \eqn{h=0,...,(k+1)m}, together with coefficients \eqn{\beta} corresponding to additional low frequency regressors.
+where \eqn{h=0,...,(k+1)m}, together with coefficients \eqn{\beta} corresponding to additional
+low frequency regressors.
 
-It is assumed that \eqn{x} is a I(1) process, hence the special transformation is made. After the transformation \link{midas_r} is used for estimation.
+It is assumed that \eqn{x} is a I(1) process, hence the special transformation is made.
+After the transformation \link{midas_r} is used for estimation.
 
-MIDAS regression involves times series with different frequencies. 
+MIDAS regression involves times series with different frequencies.
 
 The restriction function must return the restricted coefficients of
 the MIDAS regression.

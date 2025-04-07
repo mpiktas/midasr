@@ -18,7 +18,8 @@ deriv_tests(x, tol = 1e-06)
 a list with gradient, hessian of optimisation function and convergence message
 }
 \description{
-Computes the gradient and hessian of the optimisation function of restricted MIDAS regression and checks whether the conditions of local optimum are met. Numerical estimates are used.
+Computes the gradient and hessian of the optimisation function of restricted MIDAS regression and
+checks whether the conditions of local optimum are met. Numerical estimates are used.
 }
 \seealso{
 midas_r

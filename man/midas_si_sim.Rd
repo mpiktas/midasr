@@ -43,10 +43,11 @@ Simulate SI MIDAS regression model
 }
 \examples{
 
-nnbeta <- function(p, k) nbeta(c(1,p),k)
+nnbeta <- function(p, k) nbeta(c(1, p), k)
 
-dgp <- midas_si_sim(250, m = 12, theta = nnbeta(c(2, 4), 24), 
-                           gfun = function(x) 0.03*x^3, 
-                           ar.x = 0.9, ar.y = 0.5, n.start = 100)
-                           
+dgp <- midas_si_sim(250,
+  m = 12, theta = nnbeta(c(2, 4), 24),
+  gfun = function(x) 0.03 * x^3,
+  ar.x = 0.9, ar.y = 0.5, n.start = 100
+)
 }
