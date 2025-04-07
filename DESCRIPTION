@@ -4,9 +4,6 @@ Description: Methods and tools for mixed frequency time series data analysis.
     Allows estimation, model selection and forecasting for MIDAS regressions.
 URL: http://mpiktas.github.io/midasr/
 Version: 0.9
-Maintainer: Vaidotas Zemlys-Balevičius <zemlys@gmail.com>
-Author: Virmantas Kvedaras <virmantas.kvedaras@ec.europa.eu>, Vaidotas Zemlys-Balevicius
-   <zemlys@gmail.com>
 Depends:
     R (>= 2.11.0),
     sandwich,
@@ -50,3 +47,16 @@ Collate:
     'nonparametric.R'
     'simulate.R'
     'tests.R'
+Authors@R: c(
+    person(given = "Vaidotas", 
+        family = "Zemlys-Balevičius",
+        email = "zemlys@gmail.com", 
+        role = "cre"),
+    person(given = "Virmantas", 
+        family = "Kvedaras", 
+        email = "virmantas.kvedaras@ec.europa.eu", 
+        role = "aut"),
+    person(given = "Vaidotas", 
+        family= "Zemlys-Balevičius", 
+        email = "zemlys@gmail.com", 
+        role = "aut"))
