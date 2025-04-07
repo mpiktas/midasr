@@ -62,8 +62,7 @@ midas_u <- function(formula, data, ...) {
 
   if (missing(data)) {
     ee <- NULL
-  }
-  else {
+  } else {
     ee <- data_to_env(data)
     parent.env(ee) <- parent.frame()
   }
@@ -81,7 +80,7 @@ midas_u <- function(formula, data, ...) {
   }
 
   if (inherits(yy, "ts")) {
-    y_index <- 1:length(yy)
+    y_index <- seq_len(length(yy))
     if (!is.null(attr(mf, "na.action"))) {
       y_index <- y_index[-attr(mf, "na.action")]
     }
@@ -108,7 +107,7 @@ midas_u <- function(formula, data, ...) {
 ##'
 ##' Estimate restricted MIDAS regression using non-linear least squares.
 ##'
-##' @param formula formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function
+##' @param formula formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{mls}} function
 ##' @param data a named list containing data with mixed frequencies
 ##' @param start the starting values for optimisation. Must be a list with named elements.
 ##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link{optim}} with argument \code{method="BFGS"}. Other supported functions are \code{\link{nls}}
@@ -222,8 +221,7 @@ midas_r <- function(formula, data, start, Ofunction = "optim", weight_gradients 
 
   if (missing(data)) {
     ee <- NULL
-  }
-  else {
+  } else {
     ee <- data_to_env(data)
     parent.env(ee) <- parent.frame()
   }
@@ -262,7 +260,7 @@ midas_r <- function(formula, data, start, Ofunction = "optim", weight_gradients 
     yy <- eval(formula[[2]], ee)
   }
 
-  y_index <- 1:length(yy)
+  y_index <- seq_len(length(yy))
   if (!is.null(attr(mf, "na.action"))) {
     y_index <- y_index[-attr(mf, "na.action")]
   }
@@ -359,14 +357,12 @@ update.midas_r <- function(object, formula., ..., evaluate = TRUE) {
             sep = ""
           ))
         }
-      }
-      else {
+      } else {
         extras <- NULL
       }
       if (Ofunction != object$argmap_opt$Ofunction) {
         argmap <- c(list(Ofunction = Ofunction), extras)
-      }
-      else {
+      } else {
         argmap <- object$argmap_opt
         argmap$Ofunction <- NULL
         argnm <- union(names(argmap), names(extras))
@@ -381,8 +377,7 @@ update.midas_r <- function(object, formula., ..., evaluate = TRUE) {
       object$argmap_opt <- argmap
       midas_r.fit(object)
     }
-  }
-  else {
+  } else {
     call
   }
 }
@@ -428,7 +423,7 @@ midas_r.fit <- function(x) {
       stop("The optimisation algorithm of MIDAS regression failed with the following message:\n", opt, "\nPlease try other starting values or a different optimisation function")
     }
     bmet <- which.min(opt$value)
-    par <- as.numeric(opt[bmet, 1:length(args$par)])
+    par <- as.numeric(opt[bmet, seq_len(length(args$par))])
     names(par) <- names(coef(x))
     x$convergence <- opt$convcode[bmet]
   }
@@ -627,7 +622,7 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     Ofunction <- "lm"
   } else {
     if (is.null(start)) {
-      cl$formula <- update_weights(cl$formula, setNames(lapply(1:length(weight_names), function(x) ""), weight_names))
+      cl$formula <- update_weights(cl$formula, setNames(lapply(seq_len(length(weight_names)), function(x) ""), weight_names))
       warning("Since the start = NULL, it is assumed that U-MIDAS model is fitted")
       return(eval(cl, Zenv))
     } else {
@@ -641,7 +636,7 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
 
   pinds <- build_indices(np, names(start_default))
 
-  for (i in 1:length(start_default)) names(start_default[[i]]) <- NULL
+  for (i in seq_len(length(start_default))) names(start_default[[i]]) <- NULL
 
 
   if (!is.null(lagsTable)) {
@@ -687,8 +682,7 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     Xstart <- mapply(function(cf, inds, iswhgt) {
       if (iswhgt) {
         X[, inds, drop = FALSE] %*% cf
-      }
-      else {
+      } else {
         X[, inds, drop = FALSE]
       }
     }, initial_midas_coef, xinds, wi, SIMPLIFY = FALSE)
@@ -703,7 +697,7 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     prec <- suppressWarnings(lsfit(XX, y, intercept = FALSE))
     lmstart <- lapply(xxinds, function(x) coef(prec)[x])
     names(lmstart) <- names(xxinds)
-    for (i in 1:length(lmstart)) names(lmstart[[i]]) <- NULL
+    for (i in seq_len(length(lmstart))) names(lmstart[[i]]) <- NULL
 
     nms <- !(names(start_default) %in% names(start))
     start_default[nms] <- lmstart[nms]
@@ -729,8 +723,6 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
     X %*% coefs
   }
 
-  # aa <- try(mdsrhs(starto))
-
   fn0 <- function(p, ...) {
     r <- y - mdsrhs(p)
     sum(r^2)
@@ -745,8 +737,7 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
   if (!use_gradient) {
     gradD <- function(p) jacobian(all_coef, p)
     gr <- function(p) grad(fn0, p)
-  }
-  else {
+  } else {
     grf <- sapply(rfd, "[[", "gradient")
     ## Calculate the initial value to get the idea about the dimensions
     pp0 <- lapply(pinds, function(xx) starto[xx])
@@ -767,10 +758,9 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
         grmat <- mapply(function(fun, param) fun(param), grf, pp, SIMPLIFY = FALSE)
         if (length(grmat) == 1) {
           res <- grmat[[1]]
-        }
-        else {
+        } else {
           res <- matrix(0, nrow = sum(rownos), ncol = sum(colnos))
-          for (j in 1:length(grmat)) {
+          for (j in seq_len(length(grmat))) {
             ind <- pindm[[j]]
             res[ind$row, ind$col] <- grmat[[j]]
           }
@@ -828,7 +818,7 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
         res <- matrix(0, nrow = sum(rownos), ncol = sum(colnos))
         gr_star <- do.call("rbind", mapply(expandD2, rf, pp, lagsTable, SIMPLIFY = FALSE, MoreArgs = list(length(pinds[[dind]]))))
         res[, pinds[[dind]]] <- gr_star
-        for (j in 1:length(egrmat)) {
+        for (j in seq_len(length(egrmat))) {
           ind <- pindm[[j]]
           res[ind$row, ind$col] <- egrmat[[j]]
         }
@@ -944,8 +934,7 @@ midas_r_plain <- function(y, X, z = NULL, weight, grw = NULL, startx, startz = N
     }
     gradD <- function(p) grw(p, d)
     start <- startx
-  }
-  else {
+  } else {
     all_coef <- function(p) {
       c(weight(p[1:nw], d), p[-nw:-1])
     }
@@ -963,14 +952,12 @@ midas_r_plain <- function(y, X, z = NULL, weight, grw = NULL, startx, startz = N
         zb <- matrix(0, nrow = nz, ncol = nw)
         rbind(cbind(ww, zr), cbind(zb, diag(nz)))
       }
-    }
-    else {
+    } else {
       gradD <- NULL
     }
     start <- c(startx, startz)
   }
 
-  n <- nrow(model)
   fn0 <- function(p) {
     sum((y - XX %*% all_coef(p))^2)
   }
@@ -979,8 +966,7 @@ midas_r_plain <- function(y, X, z = NULL, weight, grw = NULL, startx, startz = N
     gradD <- function(p) jacobian(all_coef, p)
     gr <- function(p) grad(fn0, p)
     gr0 <- NULL
-  }
-  else {
+  } else {
     gr <- function(p) {
       XD <- XX %*% gradD(p)
       resid <- y - XX %*% all_coef(p)
@@ -990,7 +976,7 @@ midas_r_plain <- function(y, X, z = NULL, weight, grw = NULL, startx, startz = N
   }
   opt <- optimx(start, fn0, gr0, method = method, ...)
   bmet <- which.min(opt$value)
-  par <- as.numeric(opt[bmet, 1:length(start)])
+  par <- as.numeric(opt[bmet, seq_len(length(start))])
   call <- match.call()
   fitted.values <- as.vector(XX %*% all_coef(par))
   list(
@@ -1039,8 +1025,7 @@ update_weights <- function(expr, tb) {
           expr[[end + 1]] <- as.name(tb[[term_name]])
         }
       }
-    }
-    else {
+    } else {
       return(expr)
     }
   }
@@ -1063,7 +1048,7 @@ checkARstar <- function(trms) {
       lags <- eval(vars[[idx]][[3]], env)
       push <- lapply(fs, "*", lags)
 
-      lagsTable <- lapply(1:length(vars), function(w) {
+      lagsTable <- lapply(seq_len(length(vars)), function(w) {
         z <- vars[[w]]
         if (length(z) >= 4 && eval(z[[4]], env) != 1) {
           l <- eval(z[[3]], env)
@@ -1082,7 +1067,7 @@ checkARstar <- function(trms) {
       shortSeq <- function(s) {
         wt <- which(!diff(s) == 1)
         idx <- c(1, 1 + c(wt, wt - 1), length(s))
-        ams <- s[intersect(1:length(s), idx)]
+        ams <- s[intersect(seq_len(length(s)), idx)]
         fc <- cumsum(c(TRUE, !round(diff(ams) / 2 + head(ams, -1)) %in% s))
         out <- lapply(split(ams, fc), function(x) {
           if (length(x) == 2) {
@@ -1095,7 +1080,7 @@ checkARstar <- function(trms) {
         out
       }
 
-      vars <- lapply(1:length(vars), function(w) {
+      vars <- lapply(seq_len(length(vars)), function(w) {
         z <- vars[[w]]
 
         if (length(z) >= 4 && eval(z[[4]], env) != 1) {
