@@ -64,14 +64,13 @@ NULL
 ##' @name rvsp500
 ##' @docType data
 ##' @format A \code{data.frame} object with two columns. First column contains date id, and the second the realized volatility for S&P500 index.
-##' @source \href{https://realized.oxford-man.ox.ac.uk/images/oxfordmanrealizedvolatilityindices-0.2-final.zip}{https://realized.oxford-man.ox.ac.uk/images/oxfordmanrealizedvolatilityindices-0.2-final.zip}
+##' @source No longer available. Read the statement here: \href{https://oxford-man.ox.ac.uk/research/realized-library/}{https://oxford-man.ox.ac.uk/research/realized-library/}
 ##' @references Heber, Gerd and Lunde, Asger, and Shephard, Neil and Sheppard, Kevin \emph{Oxford-Man Institute's realized library}, Oxford-Man Institute, University of Oxford (2009)
 ##' @keywords datasets
 ##' @examples
 ##' ## Do not run:
-##' ## Download the data from
-##' ## https://realized.oxford-man.ox.ac.uk/images/oxfordmanrealizedvolatilityindices-0.2-final.zip
-##' ## It contains the file OxfordManRealizedVolatilityIndices.csv.
+##' ## The original data contained the file the file OxfordManRealizedVolatilityIndices.csv. The code below 
+##' ## reproduces the dataset.
 ##'
 ##' ## rvi <- read.csv("OxfordManRealizedVolatilityIndices.csv",check.names=FALSE,skip=2)
 ##' ## ii <- which(rvi$DateID=="20131112")
