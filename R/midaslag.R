@@ -180,16 +180,20 @@ mlsd <- function(x, k, y, ...) {
 
 get_datex <- function(x) UseMethod("get_datex")
 
+
+##' @exportS3Method get_datex zoo
 get_datex.zoo <- function(x) {
   as.POSIXct(index(x))
 }
 
+##' @exportS3Method get_datex ts
 get_datex.ts <- function(x) {
   time(x)
 }
 
 get_datey <- function(y, datex) UseMethod("get_datey")
 
+##' @exportS3Method get_datey ts
 get_datey.ts <- function(y, datex) {
   left <- time(lag(y, 1))[1]
   right <- tail(time(lag(y, -1)), n = 1)
@@ -197,8 +201,10 @@ get_datey.ts <- function(y, datex) {
   c(left, time(y), right) - 0.001
 }
 
-get_datey.default <- function(datey, datex) {
+##' @exportS3Method get_datey default
+get_datey.default <- function(y, datex) {
   ## If we get here, we assume that both datey and datex are ordered and comparable
+    datey <- y
   left <- datey[1] - (datey[2] - datey[1])
   if (datex[1] < left) left <- datex[1]
   nd <- length(datey)
@@ -206,8 +212,10 @@ get_datey.default <- function(datey, datex) {
   c(left, datey, right)
 }
 
-get_datey.zoo <- function(datey, datex) {
+##' @exportS3Method get_datey zoo
+get_datey.zoo <- function(y, datex) {
   ## Test whether the lag extends the dates
+  datey <- y 
   lagy <- lag(datey, 1)
   fd_lagy <- index(lagy)[1]
   fd_y <- index(datey)[1]

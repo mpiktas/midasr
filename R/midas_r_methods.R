@@ -300,11 +300,11 @@ coef.midas_r <- function(object, midas = FALSE, term_names = NULL, ...) {
   }
 }
 
-##' @export
+
 get_frequency_info <- function(object, ...) UseMethod("get_frequency_info")
 
-##' @export
-get_frequency_info.midas_r <- function(object) {
+##' @exportS3Method get_frequency_info midas_r
+get_frequency_info.midas_r <- function(object, ...) {
   yname <- all.vars(object$terms[[2]])
   res <- sapply(object$term_info, "[[", "frequency")
   ## Make sure response variable is first
@@ -317,7 +317,7 @@ get_frequency_info.midas_r <- function(object) {
   res[setdiff(names(res), "(Intercept)")]
 }
 
-##' @export
+##' @exportS3Method get_frequency_info default
 get_frequency_info.default <- function(object, ...) {
   mt <- terms(object)
   Zenv <- object$Zenv
