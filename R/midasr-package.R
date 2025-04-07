@@ -69,8 +69,8 @@ NULL
 ##' @keywords datasets
 ##' @examples
 ##' ## Do not run:
-##' ## The original data contained the file the file OxfordManRealizedVolatilityIndices.csv. The code below 
-##' ## reproduces the dataset.
+##' ## The original data contained the file OxfordManRealizedVolatilityIndices.csv. 
+##' ## The code below reproduces the dataset.
 ##'
 ##' ## rvi <- read.csv("OxfordManRealizedVolatilityIndices.csv",check.names=FALSE,skip=2)
 ##' ## ii <- which(rvi$DateID=="20131112")
