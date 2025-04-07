@@ -31,9 +31,9 @@ midas_mmm_plain(
 
 \item{start_z}{the starting values for additional low frequency variables}
 
-\item{method}{a method passed to \link{optimx}}
+\item{method}{a method passed to \link[optimx]{optimx}}
 
-\item{...}{additional parameters to \link{optimx}}
+\item{...}{additional parameters to \link[optimx]{optimx}}
 }
 \value{
 an object similar to \code{midas_r} object

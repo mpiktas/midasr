@@ -909,8 +909,8 @@ prepmidas_r <- function(y, X, mt, Zenv, cl, args, start, Ofunction, weight_gradi
 ##' @param grw the gradient of weight function
 ##' @param startx the starting values for weight function
 ##' @param startz the starting values for additional low frequency variables
-##' @param method a method passed to \link{optimx}
-##' @param ... additional parameters to \link{optimx}
+##' @param method a method passed to \link[optimx]{optimx}
+##' @param ... additional parameters to \link[optimx]{optimx}
 ##' @return an object similar to \code{midas_r} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @import numDeriv

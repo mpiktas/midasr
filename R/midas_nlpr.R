@@ -7,7 +7,7 @@
 ##' @param start the starting values for optimisation. Must be a list with named elements.
 ##' @param Ofunction the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen
 ##' R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link{optim}} with arguments
-##'  \code{method="Nelder-Mead"} and \code{control=list(maxit=5000)}. Other supported functions are \code{\link{nls}}, \code{\link{optimx}}.
+##'  \code{method="Nelder-Mead"} and \code{control=list(maxit=5000)}. Other supported functions are \code{\link{nls}}, \code{\link[optimx]{optimx}}.
 ##' @param ... additional arguments supplied to optimisation function
 ##' @return a \code{midas_r} object which is the list with the following elements:
 ##'
@@ -496,8 +496,8 @@ prep_midas_nlpr <- function(y, X, mt, Zenv, cl, args, start, Ofunction, guess_st
 ##' @param start_lstr the starting values for lstr term
 ##' @param start_x the starting values for weight function
 ##' @param start_z the starting values for additional low frequency variables
-##' @param method a method passed to \link{optimx}
-##' @param ... additional parameters to \link{optimx}
+##' @param method a method passed to \link[optimx]{optimx}
+##' @param ... additional parameters to \link[optimx]{optimx}
 ##' @return an object similar to \code{midas_r} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @import numDeriv
@@ -573,8 +573,8 @@ midas_lstr_plain <- function(y, X, z = NULL, weight, start_lstr, start_x, start_
 ##' @param start_mmm the starting values for MMM term
 ##' @param start_x the starting values for weight function
 ##' @param start_z the starting values for additional low frequency variables
-##' @param method a method passed to \link{optimx}
-##' @param ... additional parameters to \link{optimx}
+##' @param method a method passed to \link[optimx]{optimx}
+##' @param ... additional parameters to \link[optimx]{optimx}
 ##' @return an object similar to \code{midas_r} object
 ##' @author Virmantas Kvedaras, Vaidotas Zemlys
 ##' @import numDeriv

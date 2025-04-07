@@ -18,8 +18,8 @@ midas_sp(formula, data, bws, start, degree = 1, Ofunction = "optim", ...)
 \item{degree}{the degree of local polynomial. 0 corresponds to local-constant, 1 local-linear. For univariate models higher values can be provided.}
 
 \item{Ofunction}{the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen
-R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link{optim}} with arguments
- \code{method="Nelder-Mead"} and \code{control=list(maxit=5000)}. Other supported functions are \code{\link{nls}}, \code{\link{optimx}}.}
+R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link[optimx]{optimx}} with arguments
+ \code{method="Nelder-Mead"} and \code{control=list(maxit=5000)}. Other supported functions are \code{\link{nls}}, \code{\link[optimx]{optimx}}.}
 
 \item{...}{additional arguments supplied to optimisation function}
 }

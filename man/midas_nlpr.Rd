@@ -15,7 +15,7 @@ midas_nlpr(formula, data, start, Ofunction = "optim", ...)
 
 \item{Ofunction}{the list with information which R function to use for optimisation. The list must have element named \code{Ofunction} which contains character string of chosen
 R function. Other elements of the list are the arguments passed to this function.  The default optimisation function is \code{\link{optim}} with arguments
- \code{method="Nelder-Mead"} and \code{control=list(maxit=5000)}. Other supported functions are \code{\link{nls}}, \code{\link{optimx}}.}
+ \code{method="Nelder-Mead"} and \code{control=list(maxit=5000)}. Other supported functions are \code{\link{nls}}, \code{\link[optimx]{optimx}}.}
 
 \item{...}{additional arguments supplied to optimisation function}
 }
