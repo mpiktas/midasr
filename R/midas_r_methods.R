@@ -118,7 +118,7 @@ summary.midas_r <- function(object, vcov. = vcovHAC, df = NULL, prewhite = TRUE,
 
   if (!is.null(vcov.)) {
     set <- try(sqrt(diag(vcov.(object, prewhite = prewhite, ...))))
-    if (class(set) == "try-error") {
+    if (inherits(set, "try-error")) {
       warning("Unable to compute robust standard errors, using non-robust ones. This is an indication of problems with optimisation, please try other starting values or change optimisation method")
     } else {
       se <- set
@@ -300,8 +300,10 @@ coef.midas_r <- function(object, midas = FALSE, term_names = NULL, ...) {
   }
 }
 
-get_frequency_info <- function(x, ...) UseMethod("get_frequency_info")
+##' @export
+get_frequency_info <- function(object, ...) UseMethod("get_frequency_info")
 
+##' @export
 get_frequency_info.midas_r <- function(object) {
   yname <- all.vars(object$terms[[2]])
   res <- sapply(object$term_info, "[[", "frequency")
@@ -315,6 +317,7 @@ get_frequency_info.midas_r <- function(object) {
   res[setdiff(names(res), "(Intercept)")]
 }
 
+##' @export
 get_frequency_info.default <- function(object, ...) {
   mt <- terms(object)
   Zenv <- object$Zenv
@@ -355,7 +358,7 @@ dynamic_forecast <- function(object, h, fdata, outsample, freqinfo, innov = rep(
     }, outsample, freqinfo[names(outsample)], SIMPLIFY = FALSE)
     hout <- c(yna, hout)
     fdata <- rbind_list(fdata[names(hout)], hout)
-    if (class(fdata) == "try-error") stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
+    if (inherits(fdata, "try-error")) stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
     rr <- predict.midas_r(object, newdata = fdata, na.action = na.pass)
     n <- length(rr)
     res[i] <- rr[n] + innov[i]
@@ -370,7 +373,7 @@ static_forecast <- function(object, h, insample, outsample, yname) {
     names(outsample)[1] <- yname
   }
   data <- try(rbind_list(insample[names(outsample)], outsample))
-  if (class(data) == "try-error") stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
+  if (inherits(data, "try-error")) stop("Missing variables in newdata. Please supply the data for all the variables (excluding the response variable) in regression")
   res <- predict.midas_r(object, newdata = data, na.action = na.pass)
   n <- length(res)
   res[n + 1 - h:1]

@@ -1,21 +1,16 @@
 midasr 0.8
 ==========
-Bugfix release to accomodate M1 architecture
+* Bugfix release to accomodate M1 architecture
 
 midasr 0.7
 ===========
 Major release with new functionality.
 
-* Add 5 new models. LSTR-MIDAS and MMM-MIDAS are fitted with midas_nlpr.
-SI-MIDAS and PL-MIDAS are fitted with midas_sp. Quantile MIDAS model are fitted 
-with midas_qr.
+* Add 5 new models. LSTR-MIDAS and MMM-MIDAS are fitted with midas_nlpr. SI-MIDAS and PL-MIDAS are fitted with midas_sp. Quantile MIDAS model are fitted with midas_qr.
 
-* Add new midas lag implementation mlsd. It allows using time series attributes
-of the data and can align high frequency into low frequency when the number of 
-high frequency periods is not the same for all low frequency periods.
+* Add new midas lag implementation mlsd. It allows using time series attributes of the data and can align high frequency into low frequency when the number of high frequency periods is not the same for all low frequency periods.
 
-* Add support for texreg package. Fitted midasr models can be outputed to nice
-tables
+* Add support for texreg package. Fitted midasr models can be outputed to nice tables
 
 midasr 0.6
 ===========
@@ -93,7 +88,7 @@ A bug fix release
 
 midasr 0.1
 ============
-Release to CRAN.
+* Release to CRAN.
 
 
 midasr 0.0.8
