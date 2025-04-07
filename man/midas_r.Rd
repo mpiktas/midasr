@@ -14,7 +14,7 @@ midas_r(
 )
 }
 \arguments{
-\item{formula}{formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{mls}} function}
+\item{formula}{formula for restricted MIDAS regression or \code{midas_r} object. Formula must include \code{\link{fmls}} function}
 
 \item{data}{a named list containing data with mixed frequencies}
 

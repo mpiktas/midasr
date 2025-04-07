@@ -493,7 +493,7 @@ make_ic_table <- function(candlist, IC, test, ...) {
   dtest <- function(mm) {
     ## The error might be given if there are NaN values in the hessian, give NA instead of the error.
     out <- try(deriv_tests(mm), silent = TRUE)
-    if (class(out) == "try-error") {
+    if (inherits(out, "try-error")) {
       c(NA, NA)
     } else {
       unlist(out[c("first", "second")])

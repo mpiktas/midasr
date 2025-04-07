@@ -4,11 +4,10 @@
 ##'
 ##' @name midasr-package
 ##' @aliases midasr
-##' @docType package
 ##' @title Mixed Data Sampling Regression
 ##' @author Virmantas Kvedaras \email{virmantas.kvedaras@@mif.vu.lt}, Vaidotas Zemlys (maintainer) \email{zemlys@@gmail.com}
-##' @keywords package
-NULL
+##' @keywords internal
+"_PACKAGE"
 
 ##' US monthly unemployment rate
 ##'

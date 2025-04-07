@@ -11,7 +11,15 @@ Package for estimating, testing and forecasting MIDAS regression.
 \details{
 Methods and tools for mixed frequency time series data analysis. Allows estimation, model selection and forecasting for MIDAS regressions.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{http://mpiktas.github.io/midasr/}
+  \item Report bugs at \url{https://github.com/mpiktas/midasr/issues}
+}
+
+}
 \author{
 Virmantas Kvedaras \email{virmantas.kvedaras@mif.vu.lt}, Vaidotas Zemlys (maintainer) \email{zemlys@gmail.com}
 }
-\keyword{package}
+\keyword{internal}

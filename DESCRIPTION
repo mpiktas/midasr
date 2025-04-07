@@ -30,7 +30,7 @@ Suggests:
     testthat,
     lubridate,
     xts
-RoxygenNote: 7.1.2
+RoxygenNote: 7.3.2
 Encoding: UTF-8
 Collate: 
     'deriv.R'
